@@ -30,6 +30,19 @@ Bundan sonra yapılan her değişiklik doğrudan `Fiam/src/tabanca_makine_verile
   adı/bölgesi/açıklaması güncellenir; tabanca ve bağlantı bilgilerine dokunulmaz. Aynı dosya tekrar yüklenirse makine çoğalmaz.
 - Excel okuyucu (SheetJS, Apache-2.0) `Fiam/src/lib/` içindedir, internet olmadan da çalışır.
 
+## Bağlantı durumu
+
+- Makinenin durumu artık uçların doluluğuna göre değil, **elle** belirlenir: **🔫 Tabanca yok → ⏳ Bekliyor → ✅ Bağlantı tamam**.
+  Bağlantı sayfasında (düzenleme modu) **✅ Bağlantı tamam olarak işaretle** butonuyla işaretlenir, gerekirse geri alınır.
+  Makine listesinde, ana sayfada ve filtrelerde bu durum kullanılır.
+
+## Kayıt güvenliği
+
+- Bilgisayarda (çift tıklayınca) değişiklikler, klasöre bağlanana kadar sadece o tarayıcıda durur; ekranın üstünde
+  **"⚠️ Değişikliklerin henüz dosyaya yazılmadı"** uyarısı çıkar ve sayfa kapatılırken tarayıcı uyarır.
+- Tarayıcıdaki kayıt klasördeki dosyadan yeniyse, sayfa açılınca o açılır (değişiklik kaybolmaz).
+- "Kaydedilmemiş değişiklikler var" sorusunda İPTAL denirse değişiklikler silinmez; **⚙️ Ayarlar → ♻️ Geri getir** ile geri yüklenir.
+
 ## Köprüler
 
 - Bağlantı sayfasında (düzenleme modu) **🔗 Köprüler** bölümünden iki uç arasına köprü eklenir; rengi listeden seçilir.

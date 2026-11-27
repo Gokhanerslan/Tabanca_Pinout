@@ -132,8 +132,6 @@
   tr.used td input.addr { border-color: rgba(34,197,94,.55); }
   tr.used td { background: rgba(59,130,246,.09); }
   tr.flash td { background: rgba(251,191,36,.2) !important; }
-  .progress { height: 6px; background: var(--input); border-radius: 4px; overflow: hidden; min-width: 70px; }
-  .progress > div { height: 100%; background: var(--green); }
 
   #toast { position: fixed; bottom: 18px; right: 18px; background: var(--card); border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,.4);
     padding: 12px 18px; border-radius: 12px; font-size: 14px; opacity: 0; transition: .25s; pointer-events: none; z-index: 99; }
@@ -338,9 +336,8 @@
         <select id="fBrand"></select>
         <select id="fPin">
           <option value="">Hepsi</option>
-          <option value="full">✅ Tamamlanan</option>
-          <option value="partial">🟡 Yarım kalan</option>
-          <option value="none">⚪ Hiç bağlanmamış</option>
+          <option value="done">✅ Bağlantısı tamam</option>
+          <option value="wait">⏳ Bekliyor</option>
           <option value="nogun">🔫 Tabanca atanmamış</option>
           <option value="critical">⚠️ Sadece kritik</option>
         </select>
@@ -487,7 +484,7 @@ function pinStats(m) {
   const pins = Array.isArray(m.pins) ? m.pins : [];
   const filled = pins.filter(isPinUsed).length;
   if (!m.brand) return { total: 0, filled: 0, state: "nogun" };
-  return { total: pins.length, filled, state: filled === 0 ? "none" : (filled === pins.length ? "full" : "partial") };
+  return { total: pins.length, filled, state: m.done ? "done" : "wait" };
 }
 function wireSummary(p) {
   if (p.wireType === "numbered") return p.wireNo ? `Siyah kablo No: ${p.wireNo}` : "Siyah kablo (No girilmedi)";
@@ -587,7 +584,7 @@ function normalize(raw) {
   if (Array.isArray(raw?.machines)) {
     out.machines = raw.machines.map(m => ({
       id: m.id || uid(), region: (m.region || m.section || "").trim(), code: m.code || "", name: m.name || "",
-      brand: m.brand || "", gunCode: m.gunCode || "", note: m.note || "", critical: !!m.critical,
+      brand: m.brand || "", gunCode: m.gunCode || "", note: m.note || "", critical: !!m.critical, done: !!m.done,
       shellColor: /^#[0-9a-f]{6}$/i.test(m.shellColor || "") ? m.shellColor : DEFAULT_SHELL, image: m.image || "",
       bridges: normBridges(m.bridges),
       pins: Array.isArray(m.pins) ? m.pins.map(normPin) : []
@@ -624,8 +621,24 @@ function saveUI() {
   try { localStorage.setItem(LS_UI, JSON.stringify(ui)); } catch (e) {}
 }
 
+const LS_RESCUE = "tabanca_rehber_kurtarma_v5";
+function rescueLocal(data) {   // kaydedilmemiş değişiklikleri silmeden önce ayrı bir yere sakla
+  try { localStorage.setItem(LS_RESCUE, JSON.stringify({ data, at: new Date().toISOString() })); } catch (e) {}
+}
+function rescueInfo() { try { return JSON.parse(localStorage.getItem(LS_RESCUE) || "null"); } catch (e) { return null; } }
+function restoreRescue() {
+  const r = rescueInfo(); if (!r?.data) return;
+  if (!confirm(`${new Date(r.at).toLocaleString("tr-TR")} tarihli kaydedilmemiş değişiklikler geri getirilsin mi?\n(Şu anki veri bunların yerine geçer.)`)) return;
+  const keepRev = db._rev; db = normalize(r.data); db._rev = keepRev;
+  changed(); render(); toast("♻️ Değişiklikler geri getirildi.");
+}
+let warnedNoFolder = false, newerLocalNotice = false;
 function changed() {        // her veri değişikliğinden sonra çağrılır
   dirty = true; saveLocal(); updateStatus();
+  if (MODE === "file" && !serverOnline && !warnedNoFolder) {
+    warnedNoFolder = true;
+    toast("⚠️ Değişiklik şimdilik sadece bu tarayıcıda. Kalıcı olması için 📁 Klasöre bağlan.");
+  }
   clearTimeout(saveTimer);
   saveTimer = setTimeout(saveNow, AUTOSAVE_MS);
 }
@@ -751,8 +764,11 @@ async function connectFolder() {
     }
     const fileData = await readDataFile();
     serverOnline = true;
-    if (dirty && confirm("Klasöre bağlanmadan önce yaptığın değişiklikler var. Dosyaya yazılsın mı?\n(İPTAL dersen dosyadaki veri yüklenir.)")) {
-      render(); saveNow(); return;
+    if (dirty) {
+      if (confirm(`Klasöre bağlanmadan önce yaptığın değişiklikler var. Bu klasöre yazılsın mı?\n\nTAMAM → değişikliklerimi kaydet (önerilen)\nİPTAL → klasördeki veriyi aç (değişikliklerin silinmez, Ayarlar → ♻️ Geri getir ile dönebilirsin)`)) {
+        render(); await saveNow(fileData ? false : true); return;
+      }
+      rescueLocal(db);
     }
     if (fileData) { db = normalize(fileData); dirty = false; saveLocal(); render(); }
     else { render(); changed(); }
@@ -814,21 +830,27 @@ async function loadInitial() {
 
   if (remote) {
     db = normalize(remote);
-    if (local?.dirty && local.data &&
-        confirm(`Bu tarayıcıda kaydedilmemiş değişiklikler var. Şimdi ${MODE === "file" ? "dosyaya yazılsın" : "sunucuya gönderilsin"} mi?\n(İPTAL dersen ${placeName()} veri kullanılır.)`)) {
-      db = normalize(local.data); dirty = true;
-      render(); saveNow(local.data._rev !== remote._rev);
-      return;
+    if (local?.dirty && local.data) {
+      if (confirm(`Bu tarayıcıda kaydedilmemiş değişiklikler var. Şimdi ${MODE === "file" ? "dosyaya yazılsın" : "sunucuya gönderilsin"} mi?\n\nTAMAM → kaydet (önerilen)\nİPTAL → ${placeName()} veriyi aç (değişikliklerin silinmez, Ayarlar → ♻️ Geri getir ile dönebilirsin)`)) {
+        db = normalize(local.data); dirty = true;
+        render(); saveNow(local.data._rev !== remote._rev);
+        return;
+      }
+      rescueLocal(local.data);
     }
     dirty = false; saveLocal();
-  } else if (local?.dirty && local.data) {
-    db = normalize(local.data); dirty = true;                     // kaydedilmemiş yerel değişiklikler
-  } else if (window.TABANCA_VERI) {
-    db = normalize(window.TABANCA_VERI);                          // src/veri.js (çift tıklayınca)
-  } else if (local?.data) {
-    db = normalize(local.data);
+  } else {
+    // klasöre/sunucuya ulaşılamadı: bu tarayıcıdaki kayıt klasördeki veri.js'ten yeniyse onu aç (değişiklik kaybolmasın)
+    const fileD = window.TABANCA_VERI, ld = local?.data;
+    const ver = d => [parseInt(d?._rev) || 0, Date.parse(d?.updatedAt || 0) || 0];
+    const isNewer = (a, b) => { const [ra, ta] = ver(a), [rb, tb] = ver(b); return ra > rb || (ra === rb && ta > tb); };
+    if (local?.dirty && ld) { db = normalize(ld); dirty = true; }
+    else if (ld && fileD && isNewer(ld, fileD)) { db = normalize(ld); dirty = true; newerLocalNotice = true; }
+    else if (fileD) db = normalize(fileD);                        // src/veri.js (çift tıklayınca)
+    else if (ld) db = normalize(ld);
   }
   render();
+  if (newerLocalNotice) toast("ℹ️ Bu bilgisayarda klasördekinden daha yeni bir kayıt bulundu ve açıldı. Kalıcı olması için 📁 Klasöre bağlan.");
 }
 
 async function reloadFromServer() {
@@ -886,17 +908,18 @@ function updateStatus() {
 
   // Dosya modunda klasör bağlı değilse uyarı çubuğu
   const banner = $("fileBanner");
-  const showBanner = EDIT && MODE === "file" && !serverOnline;
+  const showBanner = MODE === "file" && !serverOnline && (EDIT || dirty);
   banner.style.display = showBanner ? "flex" : "none";
   if (showBanner) {
     $("fileBannerText").innerHTML = window.showDirectoryPicker
-      ? `📁 <b>Kaydetmek için bir kez klasör seçmen gerekiyor.</b> Butona bas ve <b>src</b> klasörünü seç.` +
-        (dirty ? ` <span style="color:#FCD34D">Kaydedilmemiş değişikliklerin bu tarayıcıda bekliyor.</span>` : "")
+      ? (dirty ? `⚠️ <b>Değişikliklerin henüz dosyaya yazılmadı</b> (şimdilik sadece bu tarayıcıda). Butona bas ve <b>Fiam/src</b> klasörünü seç.`
+               : `📁 <b>Kaydetmek için bir kez klasör seçmen gerekiyor.</b> Butona bas ve <b>Fiam/src</b> klasörünü seç.`)
       : (IS_MOBILE ? "📱 <b>Telefonda klasöre kaydedilemiyor.</b> " : "<b>Bu tarayıcı klasöre kaydedemiyor.</b> ") +
         `Değişiklikler bu tarayıcıda saklanıyor. Kalıcı kaydetmek için bilgisayarda <b>Chrome / Edge</b> kullan ya da dosyaları indirip <b>src</b> klasörüne koy.`;
     const fb = $("fileBannerBtn");
     fb.textContent = window.showDirectoryPicker ? "📁 Klasöre bağlan" : "⬇️ Dosyaları indir";
-    fb.onclick = window.showDirectoryPicker ? connectFolder : downloadDataFiles;
+    fb.onclick = !window.showDirectoryPicker ? downloadDataFiles
+      : EDIT ? connectFolder : () => askPassword("Kaydetmek için şifreyi gir.").then(ok => ok && connectFolder());
   }
 
   const m = getMachine(ui.machineId);
@@ -909,6 +932,9 @@ function updateStatus() {
       : `Çalışma şekli: <b>SUNUCU (PHP)</b> · Sunucu: <b>${serverOnline ? "BAĞLI" : "ULAŞILAMIYOR"}</b><br>`) +
     `Veri sürümü: <b>${db._rev}</b>${db.updatedAt ? " · Son kayıt: <b>" + esc(new Date(db.updatedAt).toLocaleString("tr-TR")) + "</b>" : ""}<br>` +
     `Toplam: <b>${db.machines.length}</b> makine, <b>${brands().length}</b> marka şablonu`;
+  const rs = rescueInfo();
+  if (rs?.data) $("dataInfo").innerHTML += `<br>♻️ Kaydedilmemiş değişiklik yedeği var: <b>${esc(new Date(rs.at).toLocaleString("tr-TR"))}</b>
+    <button class="btn-sm edit-only" onclick="restoreRescue()">♻️ Geri getir</button>`;
 }
 
 /* ================== SAYFALAR ================== */
@@ -929,16 +955,15 @@ function render() {
 
 /* ---------- ANA SAYFA ---------- */
 function renderHome() {
-  const st = { full: 0, partial: 0, none: 0, nogun: 0 };
+  const st = { done: 0, wait: 0, nogun: 0 };
   db.machines.forEach(m => st[pinStats(m).state]++);
   const regions = new Set(db.machines.map(regionOf));
   $("homeStats").innerHTML = [
     ["🏭", "Makine", db.machines.length, "machines", "", ""],
     ["📍", "Bölge", regions.size, "machines", "", ""],
     ["🏷️", "Marka", brands().length, "brands", "", ""],
-    ["✅", "Bağlantısı tamam", st.full, "machines", "full", "ok"],
-    ["🟡", "Yarım kalan", st.partial, "machines", "partial", "warn"],
-    ["⚪", "Hiç bağlanmamış", st.none, "machines", "none", "none"],
+    ["✅", "Bağlantısı tamam", st.done, "machines", "done", "ok"],
+    ["⏳", "Bekliyor", st.wait, "machines", "wait", "warn"],
     ["🔫", "Tabanca atanmamış", st.nogun, "machines", "nogun", "none"],
   ].map(([ic, l, v, p, f, c]) => `<div class="stat ${c}" data-goto="${p}" data-pinfilter="${f}"><div class="stat-ic">${ic}</div>
       <div><div class="stat-val">${v}</div><div class="stat-label">${l}</div></div></div>`).join("");
@@ -1030,8 +1055,8 @@ function machineRow(m) {
     <td><div class="row" style="flex-wrap:nowrap">${f("name")}<label title="Kritik makine" style="white-space:nowrap;cursor:pointer"><input type="checkbox" data-mid="${m.id}" data-mf="critical" ${m.critical ? "checked" : ""} style="min-height:0;width:16px;height:16px;vertical-align:middle"> ⚠️</label></div></td>
     <td><select data-mid="${m.id}" data-mf="brand"><option value="" ${m.brand ? "" : "selected"}>— Tabanca yok —</option>${brandOptions(m.brand)}</select></td>
     <td>${f("gunCode")}</td>
-    <td><span class="badge ${badge}">${s.state === "nogun" ? "🔫 Tabanca yok" : s.filled + "/" + s.total}</span>
-        <div class="progress" style="margin-top:4px"><div style="width:${s.total ? s.filled / s.total * 100 : 0}%"></div></div></td>
+    <td>${s.state === "nogun" ? `<span class="badge ${badge}">🔫 Tabanca yok</span>`
+        : `<label style="cursor:pointer;white-space:nowrap"><input type="checkbox" data-mid="${m.id}" data-mf="done" ${m.done ? "checked" : ""} style="min-height:0;width:17px;height:17px;vertical-align:middle"> ✅ Tamam</label>`}</td>
     <td class="actions">
       <button class="btn-primary btn-sm" data-openpins="${m.id}">🔌 Bağlantı</button>
       <button class="btn-sm" data-dup="${m.id}" title="Kopyala">📄 Kopyala</button>
@@ -1060,7 +1085,7 @@ function assignGun(machineId, brandSel, gunInput) {
   if (!brand) { alert("Tabancanın markasını seç."); return; }
   if (m.brand && m.brand !== brand && pinStats(m).filled > 0 &&
       !confirm(`${m.code} makinesinde ${m.brand} tabancası var ve bağlantıları girilmiş.\n${brand} atanırsa bu bağlantılar silinir. Devam edilsin mi?`)) return;
-  if (m.brand !== brand || !m.pins.length) { m.pins = freshPins(brand); m.bridges = normBridges(db.brandInfo[brand]?.bridges); }
+  if (m.brand !== brand || !m.pins.length) { m.pins = freshPins(brand); m.bridges = normBridges(db.brandInfo[brand]?.bridges); m.done = false; }
   m.brand = brand; m.gunCode = gun;
   (gunInput || $("agGun")).value = "";
   ui.machineId = m.id; ui.assignId = m.id; saveUI();
@@ -1273,10 +1298,13 @@ function pinSVG(cx, cy, num, p, sel, showWire, key, r = 16) {
     body = `<defs><clipPath id="${id}"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath></defs>
       <g clip-path="url(#${id})"><rect x="${cx - r}" y="${cy - r}" width="${r}" height="${2 * r}" fill="${f1}"/><rect x="${cx}" y="${cy - r}" width="${r}" height="${2 * r}" fill="${f2}"/>
       <line x1="${cx}" y1="${cy - r}" x2="${cx}" y2="${cy + r}" stroke="#FFFFFF" stroke-width="1.2"/></g>
-      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#FFFFFF" stroke-width="2.5"/>` + txt(n, "#FFFFFF", 12.5, true);
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+      <circle cx="${cx}" cy="${cy}" r="${r + 2}" fill="none" stroke="#0F172A" stroke-width="2.5"/>` + txt(n, "#FFFFFF", 12.5, true);
   } else {
     const c = colorObj(p.color), hex = c.hex || "#475569";
-    body = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${hex}" stroke="#FFFFFF" stroke-width="2.5"/>` + txt(n, isLight(hex) ? "#111827" : "#FFFFFF");
+    // açık renkli kablo (beyaz, sarı…) açık zeminde kaybolmasın: koyu dış halka + açık renklerde koyu iç çizgi
+    body = `<circle cx="${cx}" cy="${cy}" r="${r + 2}" fill="#0F172A"/>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="${hex}" stroke="${isLight(hex) ? "#475569" : "#FFFFFF"}" stroke-width="2"/>` + txt(n, isLight(hex) ? "#111827" : "#FFFFFF");
   }
   if (svgPos && key) svgPos[key] = { x: cx, y: cy };
   return `<g class="pin-g" data-svgpin="${esc(key)}">${tip}${body}${ring}</g>`;
@@ -1525,7 +1553,8 @@ function renderPins() {
   $("pinsContent").innerHTML = `
     <div class="panel no-print">
       <div class="panel-title"><span>✏️ Makine bilgisi</span>
-        <span class="badge ${s.state === "full" ? "b-green" : s.state === "partial" ? "b-amber" : "b-red"}" id="pinBadge">${s.filled}/${s.total} uç bağlı</span></div>
+        ${m.done ? `<button class="btn-sm" data-done="${m.id}" data-val="0" title="Tamam işaretini kaldır">✅ Bağlantı tamam — ↩️ geri al</button>`
+                 : `<button class="btn-add" data-done="${m.id}" data-val="1">✅ Bağlantı tamam olarak işaretle</button>`}</div>
       <div class="row">
         <label class="muted">Bölge<br><input data-mid="${m.id}" data-mf="region" list="regionList" value="${esc(m.region)}" style="width:150px"></label>
         <label class="muted">Makine Kodu<br><input data-mid="${m.id}" data-mf="code" value="${esc(m.code)}" style="width:130px"></label>
@@ -1859,12 +1888,12 @@ setInterval(() => { if (EDIT && Date.now() - lastActivity > AUTO_LOCK_MIN * 6000
 $("modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(true); });
 
 /* ================== SADE GÖRÜNÜM (kilitliyken) ================== */
-const stateText = s => s.state === "nogun" ? "🔫 Tabanca yok" : s.state === "full" ? "✅ Tamam" : s.state === "partial" ? "🟡 Yarım" : "⚪ Boş";
-const stateCls = s => s.state === "nogun" ? "b-red" : s.state === "full" ? "b-green" : s.state === "partial" ? "b-amber" : "b-gray";
+const stateText = s => s.state === "nogun" ? "🔫 Tabanca yok" : s.state === "done" ? "✅ Bağlantı tamam" : "⏳ Bekliyor";
+const stateCls = s => s.state === "nogun" ? "b-red" : s.state === "done" ? "b-green" : "b-amber";
 
 const SORTS = {
   region: m => regionOf(m), code: m => m.code, name: m => m.name, brand: m => m.brand, gun: m => m.gunCode,
-  conn: m => connectorOf(m.brand), crit: m => m.critical ? 0 : 1, state: m => { const s = pinStats(m); return s.total ? s.filled / s.total : 0; }
+  conn: m => connectorOf(m.brand), crit: m => m.critical ? 0 : 1, state: m => ({ done: 2, wait: 1, nogun: 0 })[pinStats(m).state]
 };
 function machineListTable(list) {
   const key = SORTS[ui.msort] ? ui.msort : "region", dir = ui.mdir === -1 ? -1 : 1;
@@ -1879,12 +1908,12 @@ function machineListTable(list) {
     <thead><tr><th style="width:44px">#</th>${th("region", "📍 Bölge", "110px")}${th("code", "Kod", "150px")}${th("name", "Makine adı")}
       ${th("brand", "🏷️ Marka", "95px")}${th("gun", "🔫 Tabanca", "105px")}${th("conn", "🔌 Soket", "130px")}${th("state", "Bağlantı", "150px")}<th class="no-print" style="width:70px"></th></tr></thead>
     <tbody>${rows.map((m, i) => {
-      const s = pinStats(m), pct = s.total ? Math.round(s.filled / s.total * 100) : 0;
+      const s = pinStats(m);
       return `<tr data-openpins="${m.id}" style="cursor:pointer">
         <td class="muted">${i + 1}</td><td>${esc(regionOf(m))}</td><td><span class="m-code" style="white-space:nowrap">${esc(m.code || "—")}</span></td>
         <td><b>${esc(m.name)}</b>${m.critical ? ` <span class="pill b-red" style="padding:1px 8px;font-size:11px">⚠️ Kritik</span>` : ""}${m.note ? `<div class="muted">📝 ${esc(trunc(m.note, 70))}</div>` : ""}</td>
         <td>${esc(m.brand || "—")}</td><td>${esc(m.gunCode || "—")}</td><td class="muted" style="font-size:12.5px">${m.brand ? esc(CONNECTORS[connectorOf(m.brand)]) : "—"}</td>
-        <td>${s.state === "nogun" ? `<span class="muted">🔫 Tabanca yok</span>` : `<div class="m-prog"><div class="bar"><div style="width:${pct}%"></div></div><span>${stateText(s)} ${s.filled}/${s.total}</span></div>`}</td>
+        <td><span class="pill ${stateCls(s)}" style="font-size:12px">${stateText(s)}</span></td>
         <td class="no-print"><button class="btn-primary btn-sm" style="white-space:nowrap" data-openpins="${m.id}">🔌 Aç</button></td>
       </tr>`;
     }).join("")}</tbody></table></div>`;
@@ -1955,12 +1984,12 @@ function printMachines() {
 }
 
 function machineCard(m) {
-  const s = pinStats(m), pct = s.total ? Math.round(s.filled / s.total * 100) : 0;
+  const s = pinStats(m);
   return `<div class="m-card" data-openpins="${m.id}">
     <div class="m-top"><span class="m-code">${esc(m.code || "—")}</span><span class="chip">${m.brand ? esc(m.brand) : "🔫 Tabanca yok"}</span></div>
     <div class="m-name">${esc(m.name)}${m.critical ? ` <span class="pill b-red" style="padding:1px 8px;font-size:11px">⚠️ Kritik</span>` : ""}</div>
     <div class="m-meta">🔫 Tabanca: ${esc(m.gunCode || "—")}</div>
-    <div class="m-prog"><div class="bar"><div style="width:${pct}%"></div></div><span>${stateText(s)} ${s.filled}/${s.total}</span></div>
+    <div><span class="pill ${stateCls(s)}">${stateText(s)}</span></div>
     <button class="btn-primary" data-openpins="${m.id}">🔌 Bağlantıyı gör</button>
   </div>`;
 }
@@ -2010,7 +2039,7 @@ function renderPinsView(m) {
         <span class="m-code big">${esc(m.code || "—")}</span>
         <div style="flex:1 1 240px"><div class="m-name big">${esc(m.name)}</div>
           <div class="muted" style="font-size:14px">📍 ${esc(regionOf(m))} · 🏷️ ${esc(m.brand)} · 🔫 ${esc(m.gunCode || "—")}</div></div>
-        <span class="pill ${stateCls(s)}" style="font-size:14px">${stateText(s)} — ${s.filled}/${s.total} uç bağlı</span>
+        <span class="pill ${stateCls(s)}" style="font-size:14px">${stateText(s)}</span>
       </div>
       ${m.note ? `<div class="hint" style="text-align:left">📝 ${esc(m.note)}</div>` : ""}
       <div class="row no-print">
@@ -2078,6 +2107,7 @@ document.addEventListener("change", e => {
   }
   if (!EDIT && (d.mf || d.pf || d.bf || d.bk || d.sk || d.bk2)) return;
   if (d.mf === "critical") { const m = getMachine(d.mid); if (m) { m.critical = t.checked; changed(); } return; }
+  if (d.mf === "done") { const m = getMachine(d.mid); if (m) { m.done = t.checked; changed(); render(); } return; }
   if (d.mf) return setMachineField(d.mid, d.mf, t.value);
   if (d.bf) { (db.brandInfo[ui.brand] ||= { connector: "", image: "", note: "", orientation: "v", blocks: [] })[d.bf] = d.bf === "note" ? t.value.trim() : t.value; changed(); return renderBrands(); }
   if (d.bk) {   // klemens bloğu düzenleme
@@ -2116,8 +2146,6 @@ document.addEventListener("change", e => {
     // metin alanı: odağı kaybetmemek için sadece şemayı, satır rengini ve rozeti güncelle
     const tr = t.closest("tr"); tr.classList.toggle("used", isPinUsed(p)); tr.dataset.rowpin = pinKey(p);
     renderPinDiagram();
-    const s = pinStats(getMachine(ui.machineId)), bd = $("pinBadge");
-    if (bd) { bd.textContent = `${s.filled}/${s.total} uç bağlı`; bd.className = "badge " + (s.state === "full" ? "b-green" : s.state === "partial" ? "b-amber" : "b-red"); }
     return;
   }
   if (t.id === "pinMachineSelect") { ui.machineId = t.value; ui.selPin = null; saveUI(); render(); }
@@ -2159,13 +2187,15 @@ document.addEventListener("click", e => {
   if (sortTh) { const k = sortTh.dataset.msort; ui.mdir = ui.msort === k ? -(ui.mdir || 1) : 1; ui.msort = k; saveUI(); return renderMachines(); }
   const t = e.target.closest("button, .stat, [data-openpins]"); if (!t) return;
   const d = t.dataset;
-  if (!EDIT && (d.dup || d.delm || d.imgup || d.imgdel || d.blkadd || d.blkdel !== undefined || d.ctx || d.sladd || d.sldel !== undefined || d.bradd || d.brdel)) return;
+  if (!EDIT && (d.dup || d.delm || d.imgup || d.imgdel || d.blkadd || d.blkdel !== undefined || d.ctx || d.sladd || d.sldel !== undefined || d.bradd || d.brdel || d.done)) return;
   if (d.page) return openPage(d.page);
   if (d.goto) { if (d.pinfilter !== undefined) { $("fPin").value = d.pinfilter; } return openPage(d.goto); }
   if (d.openpins) { ui.machineId = d.openpins; ui.selPin = null; return openPage("pins"); }
   if (d.dup) return duplicateMachine(d.dup);
   if (d.delm) return deleteMachine(d.delm);
   if (d.view) { ui.view = d.view; saveUI(); return renderPins(); }
+  if (d.done) { const m = getMachine(d.done); if (!m) return; m.done = d.val === "1"; changed(); renderPins();
+    return toast(m.done ? `✅ ${m.code} bağlantısı tamam olarak işaretlendi.` : `↩️ ${m.code} tekrar "bekliyor" oldu.`); }
   if (d.mview) { ui.mview = d.mview; saveUI(); return renderMachines(); }
   if (d.regionpick !== undefined) { $("fRegion").value = $("fRegion").value === d.regionpick ? "" : d.regionpick; return renderMachines(); }
   if (d.brandgo !== undefined) { ui.brand = brands()[+d.brandgo] || ui.brand; return openPage("brands"); }
@@ -2220,7 +2250,7 @@ document.addEventListener("click", e => {
   }
 });
 
-window.addEventListener("beforeunload", e => { if (dirty && serverOnline) { e.preventDefault(); e.returnValue = ""; } });
+window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });   // kaydedilmemiş değişiklik varken uyar
 window.addEventListener("online", () => { if (dirty) saveNow(); });
 setInterval(() => { if (dirty && !saving) saveNow(); }, 30000);   // sunucu gelirse bekleyen veriyi gönder
 
