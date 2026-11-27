@@ -5091,6 +5091,13 @@
           "sig": "—",
           "desc": "Kullanılmıyor"
         }
+      ],
+      "bridges": [
+        {
+          "a": "INPUT|0VE",
+          "b": "OUTPUT|0VE",
+          "color": "Mavi"
+        }
       ]
     },
     "FIAM": {
@@ -5195,7 +5202,8 @@
           "sig": "—",
           "desc": "Kullanılmıyor"
         }
-      ]
+      ],
+      "bridges": []
     },
     "Doğa": {
       "connector": "DB25",
@@ -5334,7 +5342,8 @@
           "sig": "—",
           "desc": "Kullanılmıyor"
         }
-      ]
+      ],
+      "bridges": []
     },
     "Sehan": {
       "connector": "DB25",
@@ -5473,7 +5482,8 @@
           "sig": "—",
           "desc": "Kullanılmıyor"
         }
-      ]
+      ],
+      "bridges": []
     },
     "Kilews": {
       "connector": "KLEMENS",
@@ -5868,7 +5878,8 @@
           "sig": "—",
           "desc": "Kullanılmıyor"
         }
-      ]
+      ],
+      "bridges": []
     }
   },
   "colors": []

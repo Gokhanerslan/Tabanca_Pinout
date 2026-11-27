@@ -5092,6 +5092,13 @@ window.TABANCA_VERI = {
           "sig": "—",
           "desc": "Kullanılmıyor"
         }
+      ],
+      "bridges": [
+        {
+          "a": "INPUT|0VE",
+          "b": "OUTPUT|0VE",
+          "color": "Mavi"
+        }
       ]
     },
     "FIAM": {
@@ -5196,7 +5203,8 @@ window.TABANCA_VERI = {
           "sig": "—",
           "desc": "Kullanılmıyor"
         }
-      ]
+      ],
+      "bridges": []
     },
     "Doğa": {
       "connector": "DB25",
@@ -5335,7 +5343,8 @@ window.TABANCA_VERI = {
           "sig": "—",
           "desc": "Kullanılmıyor"
         }
-      ]
+      ],
+      "bridges": []
     },
     "Sehan": {
       "connector": "DB25",
@@ -5474,7 +5483,8 @@ window.TABANCA_VERI = {
           "sig": "—",
           "desc": "Kullanılmıyor"
         }
-      ]
+      ],
+      "bridges": []
     },
     "Kilews": {
       "connector": "KLEMENS",
@@ -5869,7 +5879,8 @@ window.TABANCA_VERI = {
           "sig": "—",
           "desc": "Kullanılmıyor"
         }
-      ]
+      ],
+      "bridges": []
     }
   },
   "colors": []
