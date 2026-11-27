@@ -23,7 +23,7 @@ Bundan sonra yapılan her değişiklik doğrudan `Fiam/src/tabanca_makine_verile
 | Desoutter | 2 klemens bloğu (INPUT 13, OUTPUT 13), dikey | Kılavuz sayfası (VALSP'li) |
 | FIAM | DB25 | TPU-C3 rehberi |
 | Doğa, Sehan | DB25 | HDC serisi 25P I/O, P64 = 1 (PLC) |
-| Kilews | 2 klemens bloğu (OUTPUT 20, INPUT 20), yatay | Kılavuz s. 46–47 — sadece açık tanımlı pinler girildi |
+| Kilews | 2 klemens bloğu (OUTPUT 20, INPUT 20), yatay | KL-GTCS kullanım kılavuzu (s. 32–33, 47): OUT1–9 ve IN_1–10, 40 klemensin tamamı |
 
 Hepsi **Markalar & Şablonlar** sayfasından değiştirilebilir, pin eklenip silinebilir.
 
