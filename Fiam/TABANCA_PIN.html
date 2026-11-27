@@ -957,7 +957,7 @@ function openPage(p) { ui.page = p; saveUI(); render(); window.scrollTo(0, 0); }
 function render() {
   if (!ui.brand || !db.templates[ui.brand]) ui.brand = brands()[0] || null;
   if (ui.machineId && !getMachine(ui.machineId)) ui.machineId = null;
-  if (!ui.machineId && db.machines.length) ui.machineId = db.machines[0].id;
+  if (!ui.machineId && db.machines.length) ui.machineId = orderedMachines()[0].id;   // tabancalı makine önce
   ui.view = "rear";   // her sokette sadece arka (kablo tarafı) görünüm
 
   document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("active", b.dataset.page === ui.page));
@@ -1561,8 +1561,11 @@ function imgTargetName(target) {
 /* ---------- PİN & BAĞLANTI ---------- */
 function renderPins() {
   const sel = $("pinMachineSelect");
-  sel.innerHTML = db.machines.length
-    ? db.machines.map(m => `<option value="${m.id}" ${m.id === ui.machineId ? "selected" : ""}>[${esc(regionOf(m))}] ${esc(m.code)} — ${esc(m.name)} ${m.brand ? "(" + esc(m.brand) + ")" : "— 🔫 tabanca yok"}</option>`).join("")
+  const om = orderedMachines(), withGun = om.filter(m => m.brand), noGun = om.filter(m => !m.brand);
+  const opt = m => `<option value="${m.id}" ${m.id === ui.machineId ? "selected" : ""}>[${esc(regionOf(m))}] ${esc(m.code)} — ${esc(m.name)}${m.brand ? " (" + esc(m.brand) + (m.gunCode ? " · " + esc(m.gunCode) : "") + ")" : ""}</option>`;
+  sel.innerHTML = om.length
+    ? (withGun.length ? `<optgroup label="🔫 Tabancası atanmış (${withGun.length})">${withGun.map(opt).join("")}</optgroup>` : "") +
+      (noGun.length ? `<optgroup label="Tabanca yok (${noGun.length})">${noGun.map(opt).join("")}</optgroup>` : "")
     : `<option value="">Makine yok</option>`;
 
   const m = getMachine(ui.machineId);
@@ -1682,10 +1685,15 @@ function addColor() {
   changed(); renderPins(); toast(`"${name}" rengi eklendi.`);
 }
 
+/* Bağlantı şeması listesi: tabancası atanmış makineler önce, sonra bölge ve koda göre */
+function orderedMachines() {
+  return [...db.machines].sort((a, b) => (a.brand ? 0 : 1) - (b.brand ? 0 : 1) ||
+    regionOf(a).localeCompare(regionOf(b), "tr") || String(a.code).localeCompare(String(b.code), "tr", { numeric: true }));
+}
 function stepMachine(d) {
-  if (!db.machines.length) return;
-  const i = db.machines.findIndex(m => m.id === ui.machineId);
-  ui.machineId = db.machines[(i + d + db.machines.length) % db.machines.length].id;
+  const om = orderedMachines(); if (!om.length) return;
+  const i = om.findIndex(m => m.id === ui.machineId);
+  ui.machineId = om[(i + d + om.length) % om.length].id;
   ui.selPin = null; saveUI(); render();
 }
 
