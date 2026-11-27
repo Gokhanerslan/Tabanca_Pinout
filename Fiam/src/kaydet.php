@@ -15,9 +15,11 @@ $BACKUP_DIR  = __DIR__ . '/yedek';
 $BACKUP_KEEP = 50;               // en fazla kaç yedek tutulsun
 $MAX_BYTES   = 5 * 1024 * 1024;  // en fazla 5 MB veri kabul et
 
-// Boş bırakırsan herkes kaydedebilir.
-// Bir şifre yazarsan sayfa kaydederken bu şifreyi sorar.
-$EDIT_PASSWORD = '';
+// Düzenleme şifresi sayfadaki "Ayarlar → Şifreyi değiştir" bölümünden değiştirilir.
+// Şifre veride düz metin olarak değil, SHA-256(tuz + şifre) olarak "settings" altında tutulur.
+// Veride şifre yoksa varsayılan şifre geçerlidir:
+$DEFAULT_SALT     = 'tabanca';
+$DEFAULT_PASSWORD = '1234';
 // -----------------------------------------------------------
 
 header('Content-Type: application/json; charset=utf-8');
@@ -46,7 +48,6 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     $data = veriOku($DATA_FILE);
-    $data['_locked'] = ($EDIT_PASSWORD !== '');
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
 }
@@ -55,12 +56,17 @@ if ($method !== 'POST') {
     cevap(405, array('status' => 'error', 'message' => 'Desteklenmeyen HTTP metodu.'));
 }
 
-// ---- Şifre kontrolü ----
-if ($EDIT_PASSWORD !== '') {
-    $key = isset($_SERVER['HTTP_X_EDIT_KEY']) ? $_SERVER['HTTP_X_EDIT_KEY'] : '';
-    if (!hash_equals($EDIT_PASSWORD, $key)) {
-        cevap(401, array('status' => 'error', 'message' => 'Kaydetme şifresi hatalı.'));
-    }
+// ---- Şifre kontrolü (sunucudaki mevcut verinin şifresiyle) ----
+$stored = veriOku($DATA_FILE);
+$salt = $DEFAULT_SALT;
+$hash = hash('sha256', $DEFAULT_SALT . $DEFAULT_PASSWORD);
+if (isset($stored['settings']['passHash']) && $stored['settings']['passHash'] !== '') {
+    $salt = isset($stored['settings']['passSalt']) ? (string)$stored['settings']['passSalt'] : '';
+    $hash = (string)$stored['settings']['passHash'];
+}
+$key = isset($_SERVER['HTTP_X_EDIT_KEY']) ? $_SERVER['HTTP_X_EDIT_KEY'] : '';
+if (!hash_equals($hash, hash('sha256', $salt . $key))) {
+    cevap(401, array('status' => 'error', 'message' => 'Şifre yanlış veya girilmedi.'));
 }
 
 // ---- Görsel yükleme: POST kaydet.php?gorsel=1  {name, data: "data:image/jpeg;base64,..."} ----
@@ -140,7 +146,6 @@ if (file_exists($DATA_FILE)) {
     }
 }
 
-unset($incoming['_locked']);
 $incoming['_rev']      = $currentRev + 1;
 $incoming['updatedAt'] = date('c');
 

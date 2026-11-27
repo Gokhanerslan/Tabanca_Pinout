@@ -16,6 +16,16 @@ Bundan sonra yapılan her değişiklik doğrudan `Fiam/src/tabanca_makine_verile
 
 `Fiam` klasörünün içeriğini hostinge yükle, `src` klasörüne yazma izni ver, sayfayı adresinden aç. Kayıt `src/kaydet.php` üzerinden yapılır. Kaydetmeyi şifrelemek için `kaydet.php` içindeki `$EDIT_PASSWORD` değerini doldur.
 
+## Şifre
+
+- **Bakmak için şifre gerekmez.** Değiştirmek için sağ üstteki **🔒 Düzenle** butonuna basıp şifre girilir.
+- İlk şifre **1234** — ilk iş **⚙️ Ayarlar → Şifreyi değiştir** bölümünden değiştir.
+- 20 dakika işlem yapılmazsa düzenleme kendiliğinden kilitlenir.
+- Şifre veride düz metin olarak değil, SHA-256 (tuz + şifre) olarak `settings` altında tutulur.
+  Sunucu modunda `kaydet.php` her kayıtta şifreyi kendisi kontrol eder. Bilgisayarda (çift tıklayınca) şifre sadece
+  sayfayı korur; JSON dosyasını elle açan biri yine de değiştirebilir.
+- Şifreyi unutursan: `src/tabanca_makine_veriler.json` içindeki `"settings"` bölümünü silersen şifre tekrar **1234** olur.
+
 ## Varsayılan marka tanımları
 
 | Marka | Soket | Kaynak |
