@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>TABANCA & MAKİNE REHBERİ</title>
+<style>
+  :root {
+    --bg: #1E1F26;
+    --card: #2C2F3A;
+    --card2: #232630;
+    --border: #3E4252;
+    --text: #F1F3F5;
+    --muted: #A0A6B5;
+    --green: #10B981;
+    --blue: #3B82F6;
+    --amber: #F59E0B;
+    --red: #EF4444;
+  }
+  * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
+  body { margin: 0; padding: 14px; background: var(--bg); color: var(--text); }
+  .container { max-width: 1320px; margin: 0 auto; }
+
+  header {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 14px;
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;
+  }
+  h1 { margin: 0; font-size: 18px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .sub { color: var(--muted); font-size: 12.5px; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .json-badge {
+    display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 11px;
+    font-weight: 700; background: rgba(16, 185, 129, 0.16); color: #6EE7B7;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+  }
+
+  button, select, input {
+    background: #383C4A; color: var(--text); border: 1px solid var(--border);
+    padding: 9px 12px; border-radius: 7px; font-size: 13px; min-height: 38px;
+  }
+  button { cursor: pointer; font-weight: 700; transition: 0.15s; }
+  button:hover { background: #464B5C; }
+  button.btn-home { background: #383C4A; border-color: #64748B; text-transform: uppercase; }
+  button.btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; text-transform: uppercase; }
+  button.btn-add { background: var(--green); border-color: var(--green); color: #fff; text-transform: uppercase; }
+  button.btn-del { background: #7F1D1D; border-color: #991B1B; color: #fff; text-transform: uppercase; }
+
+  .home-page { display: none; }
+  .home-page.active { display: block; }
+  .home-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px; margin-bottom: 14px;
+  }
+  .nav-big-btn {
+    background: var(--card); border: 2px solid var(--border); border-radius: 12px;
+    padding: 26px 20px; text-align: left; display: flex; flex-direction: column; gap: 8px;
+    min-height: 120px; text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  .nav-big-btn:hover { border-color: var(--blue); background: var(--card2); transform: translateY(-2px); }
+  .nav-big-title { font-size: 18px; font-weight: 800; color: #F8FAFC; }
+  .nav-big-desc { font-size: 12.5px; font-weight: 600; color: var(--muted); text-transform: none; letter-spacing: 0; }
+  .nav-big-count { font-size: 13px; font-weight: 700; color: #93C5FD; margin-top: auto; }
+
+  .sub-page { display: none; }
+  .sub-page.active { display: block; }
+
+  .panel {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 12px;
+  }
+  .panel-title {
+    font-size: 15px; font-weight: 800; color: #FBBF24; text-transform: uppercase;
+    letter-spacing: 0.4px; margin-bottom: 10px;
+  }
+  .brand-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .brand-btn { background: var(--card2); border: 1px solid var(--border); text-transform: uppercase; }
+  .brand-btn.active { background: var(--green); border-color: var(--green); color: #fff; }
+
+  .form-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+  .region-summary-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px; margin-bottom: 12px;
+  }
+  .region-card {
+    background: var(--card2); border: 1px solid var(--border); border-radius: 9px;
+    padding: 12px;
+  }
+  .region-card-title { font-size: 12px; font-weight: 700; color: #93C5FD; text-transform: uppercase; }
+  .region-card-count { font-size: 20px; font-weight: 800; color: #F8FAFC; margin-top: 4px; }
+
+  .region-group {
+    background: var(--card2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 12px;
+  }
+  .region-group-header {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    margin-bottom: 8px; font-weight: 800; color: #FBBF24; text-transform: uppercase; font-size: 13.5px;
+  }
+
+  .badge-assigned {
+    display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700;
+    background: rgba(16, 185, 129, 0.18); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.4);
+  }
+  .badge-unassigned {
+    display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700;
+    background: rgba(245, 158, 11, 0.18); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.4);
+  }
+
+  .table-wrap {
+    width: 100%; overflow-x: auto; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--card);
+  }
+  table { width: 100%; border-collapse: collapse; min-width: 720px; }
+  th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+  th { background: var(--card2); color: var(--muted); font-weight: 700; white-space: nowrap; text-transform: uppercase; }
+  tr:hover { background: rgba(59, 130, 246, 0.08); }
+  .edit-input { background: #1E1F26; padding: 6px 8px; min-height: 32px; width: 100%; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div>
+      <h1>TABANCA & MAKİNE REHBERİ</h1>
+      <div class="sub">
+        <span id="statusLine">SAYFA: ANA SAYFA | MARKA: DESOUTTER | MAKİNE: YOK</span>
+        <span class="json-badge" id="jsonStatus">JSON: BEKLENİYOR</span>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn-add" onclick="saveAllData()">JSON KAYDET</button>
+      <button class="btn-home" onclick="openPage('home')">ANA SAYFA</button>
+    </div>
+  </header>
+
+  <!-- ANA SAYFA -->
+  <section id="page-home" class="home-page active">
+    <div class="home-grid">
+      <button class="nav-big-btn" onclick="openPage('brands')">
+        <span class="nav-big-title">TABANCA MARKALARI</span>
+        <span class="nav-big-desc">Desoutter, FIAM, Doğa, Sehan ve Kilews marka seçimi ve pin şablonları</span>
+        <span class="nav-big-count">5 MARKA TANIMLI</span>
+      </button>
+
+      <button class="nav-big-btn" onclick="openPage('machines')">
+        <span class="nav-big-title">MAKİNELER</span>
+        <span class="nav-big-desc">Kayıtlı makineleri listele, yeni makine ekle veya sil</span>
+        <span class="nav-big-count" id="homeMachineCount">0 MAKİNE KAYITLI</span>
+      </button>
+
+      <button class="nav-big-btn" onclick="openPage('machine-lists')">
+        <span class="nav-big-title">MAKİNE LİSTELERİ</span>
+        <span class="nav-big-desc">Pin atanmış/atanmamış tüm makineler, toplam sayı ve bölge görünümü</span>
+        <span class="nav-big-count" id="homeMachineListsCount">0 MAKİNE SİSTEMDE</span>
+      </button>
+
+      <button class="nav-big-btn" onclick="openPage('pins')">
+        <span class="nav-big-title">PİN & BAĞLANTI</span>
+        <span class="nav-big-desc">Seçili makine veya markanın pin sinyal ve kablo/adres tablosu</span>
+        <span class="nav-big-count" id="homeActiveTarget">HEDEF: DESOUTTER</span>
+      </button>
+
+      <button class="nav-big-btn" onclick="openPage('json')">
+        <span class="nav-big-title">JSON KAYIT / YÜKLE</span>
+        <span class="nav-big-desc">Kayıtlı verileri JSON dosyasına kaydet, indir veya JSON yükle</span>
+        <span class="nav-big-count" id="homeJsonInfo">DOSYA: tabanca_makine_veriler.json</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- SAYFA 1: TABANCA MARKALARI -->
+  <section id="page-brands" class="sub-page">
+    <div class="panel">
+      <div class="panel-title">TABANCA MARKALARI</div>
+      <div class="brand-list" id="brandButtons"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">SEÇİLİ MARKANIN MAKİNELERİ</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>BÖLGE</th>
+              <th>MAKİNE KODU</th>
+              <th>MAKİNE ADI</th>
+              <th>MARKA</th>
+              <th>TABANCA KODU</th>
+              <th>İŞLEM</th>
+            </tr>
+          </thead>
+          <tbody id="brandMachinesBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAYFA 2: MAKİNELER -->
+  <section id="page-machines" class="sub-page">
+    <div class="panel">
+      <div class="panel-title">YENİ MAKİNE EKLE</div>
+      <div class="form-row">
+        <input type="text" id="newMachineRegion" placeholder="BÖLGE (ÖRN: BÖLGE 1)" style="width:160px;">
+        <input type="text" id="newMachineCode" placeholder="MAKİNE KODU (ÖRN: M-01)" style="width:160px;">
+        <input type="text" id="newMachineName" placeholder="MAKİNE ADI" style="width:210px;">
+        <select id="newMachineBrand"></select>
+        <input type="text" id="newMachineGun" placeholder="TABANCA KODU" style="width:150px;">
+        <button class="btn-add" onclick="addMachine()">MAKİNE EKLE</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">KAYITLI MAKİNELER (<span id="machinesTotalLabel">0</span>)</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>BÖLGE</th>
+              <th>MAKİNE KODU</th>
+              <th>MAKİNE ADI</th>
+              <th>MARKA</th>
+              <th>TABANCA KODU</th>
+              <th>İŞLEM</th>
+            </tr>
+          </thead>
+          <tbody id="machinesTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAYFA: MAKİNE LİSTELERİ (TÜM MAKİNELER + PİN ATANMIŞ / ATANMAMIŞ + BÖLGE BÖLGE) -->
+  <section id="page-machine-lists" class="sub-page">
+    <div class="panel">
+      <div class="panel-title">MAKİNE LİSTELERİ — SİSTEMDEKİ TOPLAM MAKİNE: <span id="systemTotalMachines">0</span></div>
+      <div class="form-row" style="margin-bottom:12px;">
+        <select id="machineListRegionFilter" onchange="renderMachineLists()">
+          <option value="">TÜM BÖLGELER</option>
+        </select>
+        <select id="machineListPinFilter" onchange="renderMachineLists()">
+          <option value="">TÜM PİN DURUMLARI (ATANMIŞ / ATANMAMIŞ)</option>
+          <option value="assigned">PİN ATANMIŞ</option>
+          <option value="unassigned">PİN ATANMAMIŞ</option>
+        </select>
+        <input type="text" id="machineListSearch" placeholder="BÖLGE, MAKİNE KODU, ADI, MARKA VEYA TABANCA KODU ARA..." style="flex:1 1 240px;" oninput="renderMachineLists()">
+      </div>
+      <div class="region-summary-grid" id="regionSummaryGrid"></div>
+      <div id="regionGroupsContainer"></div>
+    </div>
+  </section>
+
+  <!-- SAYFA 3: PİN & BAĞLANTI -->
+  <section id="page-pins" class="sub-page">
+    <div class="panel">
+      <div class="panel-title">MAKİNE / TABANCA SEÇİMİ</div>
+      <div class="form-row">
+        <select id="pinMachineSelect" onchange="selectMachine(this.value)"></select>
+        <input type="text" id="pinGunCodeInput" placeholder="TABANCA KODU" style="width:170px;" oninput="updateGunCode(this.value)">
+        <button class="btn-primary" onclick="saveAllData()">JSON'A KAYDET</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:65px;">PİN</th>
+            <th style="width:160px;">GRUP</th>
+            <th style="width:180px;">SİNYAL</th>
+            <th>AÇIKLAMA</th>
+            <th style="width:180px;">KABLO / ADRES</th>
+          </tr>
+        </thead>
+        <tbody id="pinsTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SAYFA 4: JSON KAYIT / YÜKLE -->
+  <section id="page-json" class="sub-page">
+    <div class="panel">
+      <div class="panel-title">JSON VERİ YÖNETİMİ</div>
+      <div class="form-row">
+        <button class="btn-add" onclick="saveAllData()">SUNUCU JSON'A KAYDET (api.php)</button>
+        <button class="btn-primary" onclick="exportJSON()">JSON DOSYASI İNDİR</button>
+        <button onclick="document.getElementById('jsonFileInput').click()">JSON DOSYASI YÜKLE</button>
+        <input type="file" id="jsonFileInput" accept=".json,application/json" style="display:none;" onchange="importJSON(event)">
+      </div>
+      <p style="color:var(--muted); font-size:12.5px; margin:10px 0 0 0;" id="jsonDetailText">
+        Kayıtlı veriler tarayıcı hafızasında ve JSON yapısında tutulur. PHP sunucusu aktifse doğrudan <strong>tabanca_makine_veriler.json</strong> dosyasına yazılır.
+      </p>
+    </div>
+  </section>
+</div>
+
+<script>
+  const BRANDS = ["Desoutter", "FIAM", "Doğa", "Sehan", "Kilews"];
+  const STORAGE_KEY = "tabanca_makine_json_v4";
+  const API_URL = "api.php";
+
+  let currentPage = "home";
+  let state = {
+    activeBrand: "Desoutter",
+    selectedMachineId: null,
+    templates: {},
+    machines: []
+  };
+
+  function getRegionName(m) {
+    const r = (m.region || m.section || "").trim();
+    return r || "BÖLGESİZ";
+  }
+
+  function hasAssignedPins(m) {
+    if (!Array.isArray(m.pins)) return false;
+    return m.pins.some(p => {
+      const addrVal = (p.addr || p.code || "").trim();
+      return addrVal !== "";
+    });
+  }
+
+  function hydrateState(parsed) {
+    if (!parsed || typeof parsed !== "object") return;
+    state = {
+      activeBrand: BRANDS.includes(parsed.activeBrand) ? parsed.activeBrand : "Desoutter",
+      selectedMachineId: parsed.selectedMachineId || null,
+      templates: (parsed.templates && typeof parsed.templates === "object") ? parsed.templates : {},
+      machines: Array.isArray(parsed.machines) ? parsed.machines.map(m => ({
+        ...m,
+        region: (m.region || m.section || "").trim(),
+        pins: Array.isArray(m.pins) ? m.pins : []
+      })) : []
+    };
+    if (!state.selectedMachineId && state.machines.length > 0) {
+      state.selectedMachineId = state.machines[0].id;
+    }
+  }
+
+  function saveLocal() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {}
+  }
+
+  async function saveAllData() {
+    saveLocal();
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(state)
+      });
+      if (res.ok) {
+        document.getElementById("jsonStatus").textContent = "JSON: KAYDEDİLDİ";
+        document.getElementById("jsonDetailText").textContent = "Veriler tabanca_makine_veriler.json dosyasına ve tarayıcı hafızasına kaydedildi.";
+        return;
+      }
+    } catch (e) {}
+    document.getElementById("jsonStatus").textContent = "JSON: HAFIZADA";
+    document.getElementById("jsonDetailText").textContent = "Veriler tarayıcı hafızasına kaydedildi. Dosya olarak almak için 'JSON DOSYASI İNDİR' butonunu kullanabilirsin.";
+  }
+
+  async function loadInitialData() {
+    try {
+      const res = await fetch(API_URL, { cache: "no-store" });
+      if (res.ok) {
+        const parsed = await res.json();
+        hydrateState(parsed);
+        saveLocal();
+        document.getElementById("jsonStatus").textContent = "JSON: YÜKLENDİ";
+        render();
+        return;
+      }
+    } catch (e) {}
+
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        hydrateState(JSON.parse(raw));
+        document.getElementById("jsonStatus").textContent = "JSON: HAFIZADA";
+      }
+    } catch (e) {}
+    render();
+  }
+
+  function openPage(pageName) {
+    currentPage = pageName;
+    document.getElementById("page-home").classList.toggle("active", pageName === "home");
+    ["brands", "machines", "machine-lists", "pins", "json"].forEach(p => {
+      const el = document.getElementById("page-" + p);
+      if (el) el.classList.toggle("active", pageName === p);
+    });
+    render();
+  }
+
+  function clonePins(brand) {
+    const src = state.templates[brand] || [];
+    return src.map(p => ({ ...p }));
+  }
+
+  function selectBrand(brand) {
+    state.activeBrand = brand;
+    const brandMachines = state.machines.filter(m => m.brand === brand);
+    if (brandMachines.length > 0 && !brandMachines.some(m => m.id === state.selectedMachineId)) {
+      state.selectedMachineId = brandMachines[0].id;
+    } else if (brandMachines.length === 0) {
+      state.selectedMachineId = null;
+    }
+    saveAllData();
+    render();
+  }
+
+  function selectMachine(id) {
+    state.selectedMachineId = id || null;
+    const m = state.machines.find(x => x.id === state.selectedMachineId);
+    if (m && m.brand) state.activeBrand = m.brand;
+    saveAllData();
+    render();
+  }
+
+  function openMachinePins(id) {
+    selectMachine(id);
+    openPage("pins");
+  }
+
+  function addMachine() {
+    const regInp = document.getElementById("newMachineRegion");
+    const codeInp = document.getElementById("newMachineCode");
+    const nameInp = document.getElementById("newMachineName");
+    const brandSel = document.getElementById("newMachineBrand");
+    const gunInp = document.getElementById("newMachineGun");
+
+    const name = nameInp.value.trim();
+    if (!name) {
+      alert("Lütfen makine adını girin.");
+      return;
+    }
+
+    const region = regInp.value.trim() || "BÖLGESİZ";
+    const brand = brandSel.value || state.activeBrand;
+    const id = "m_" + Date.now();
+    state.machines.push({
+      id,
+      region,
+      code: codeInp.value.trim() || ("M-" + (state.machines.length + 1)),
+      name,
+      brand,
+      gunCode: gunInp.value.trim(),
+      pins: clonePins(brand)
+    });
+
+    state.activeBrand = brand;
+    state.selectedMachineId = id;
+    codeInp.value = "";
+    nameInp.value = "";
+    gunInp.value = "";
+    saveAllData();
+    render();
+  }
+
+  function deleteMachine(id) {
+    const target = state.machines.find(m => m.id === id);
+    if (!target) return;
+    if (!confirm(`"${target.name}" makinesini silmek istiyor musunuz?`)) return;
+    state.machines = state.machines.filter(m => m.id !== id);
+    if (state.selectedMachineId === id) {
+      state.selectedMachineId = state.machines.length > 0 ? state.machines[0].id : null;
+    }
+    saveAllData();
+    render();
+  }
+
+  function updateGunCode(val) {
+    const m = state.machines.find(x => x.id === state.selectedMachineId);
+    if (m) {
+      m.gunCode = val;
+      saveLocal();
+      updateStatusLine();
+    }
+  }
+
+  function updatePinAddr(pinNum, val) {
+    const m = state.machines.find(x => x.id === state.selectedMachineId);
+    if (m) {
+      const p = m.pins.find(x => x.pin === pinNum);
+      if (p) p.addr = val;
+      saveLocal();
+      return;
+    }
+    const tpl = state.templates[state.activeBrand] || [];
+    const tp = tpl.find(x => x.pin === pinNum);
+    if (tp) tp.addr = val;
+    saveLocal();
+  }
+
+  function exportJSON() {
+    saveLocal();
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "tabanca_makine_veriler.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importJSON(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        hydrateState(JSON.parse(reader.result));
+        saveAllData();
+        render();
+      } catch (err) {
+        alert("Geçersiz JSON dosyası.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }
+
+  function renderMachineLists() {
+    const totalSystem = state.machines.length;
+    document.getElementById("systemTotalMachines").textContent = totalSystem;
+
+    const allRegions = Array.from(new Set(state.machines.map(getRegionName)));
+    const regFilterEl = document.getElementById("machineListRegionFilter");
+    const prevReg = regFilterEl.value;
+    regFilterEl.innerHTML = `<option value="">TÜM BÖLGELER</option>` + allRegions.map(r =>
+      `<option value="${r}" ${r === prevReg ? "selected" : ""}>${r}</option>`
+    ).join("");
+
+    const pinFilter = document.getElementById("machineListPinFilter").value;
+    const q = (document.getElementById("machineListSearch").value || "").trim().toLowerCase();
+    const selectedReg = regFilterEl.value;
+
+    const filtered = state.machines.filter(m => {
+      const reg = getRegionName(m);
+      const assigned = hasAssignedPins(m);
+      if (selectedReg && reg !== selectedReg) return false;
+      if (pinFilter === "assigned" && !assigned) return false;
+      if (pinFilter === "unassigned" && assigned) return false;
+      if (q) {
+        const hay = `${reg} ${m.code || ""} ${m.name || ""} ${m.brand || ""} ${m.gunCode || ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    const grouped = {};
+    filtered.forEach(m => {
+      const reg = getRegionName(m);
+      if (!grouped[reg]) grouped[reg] = [];
+      grouped[reg].push(m);
+    });
+
+    const regionKeys = Object.keys(grouped);
+    document.getElementById("regionSummaryGrid").innerHTML = regionKeys.length > 0
+      ? regionKeys.map(reg =>
+          `<div class="region-card">
+            <div class="region-card-title">${reg}</div>
+            <div class="region-card-count">${grouped[reg].length} MAKİNE</div>
+          </div>`
+        ).join("")
+      : `<div class="region-card"><div class="region-card-title">BÖLGE KAYDI</div><div class="region-card-count">0 MAKİNE</div></div>`;
+
+    document.getElementById("regionGroupsContainer").innerHTML = regionKeys.length > 0
+      ? regionKeys.map(reg =>
+          `<div class="region-group">
+            <div class="region-group-header">
+              <span>${reg}</span>
+              <span>${grouped[reg].length} MAKİNE</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>MAKİNE KODU</th>
+                    <th>MAKİNE ADI</th>
+                    <th>MARKA</th>
+                    <th>TABANCA KODU</th>
+                    <th>PİN DURUMU</th>
+                    <th>İŞLEM</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${grouped[reg].map((m, idx) => {
+                    const isAssigned = hasAssignedPins(m);
+                    return `<tr>
+                      <td>${idx + 1}</td>
+                      <td><strong>${m.code}</strong></td>
+                      <td>${m.name}</td>
+                      <td>${m.brand}</td>
+                      <td>${m.gunCode || "—"}</td>
+                      <td>${isAssigned ? `<span class="badge-assigned">PİN ATANMIŞ</span>` : `<span class="badge-unassigned">PİN ATANMAMIŞ</span>`}</td>
+                      <td style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button class="btn-primary" onclick="openMachinePins('${m.id}')">PİNLER</button>
+                        <button class="btn-del" onclick="deleteMachine('${m.id}')">SİL</button>
+                      </td>
+                    </tr>`;
+                  }).join("")}
+                </tbody>
+              </table>
+            </div>
+          </div>`
+        ).join("")
+      : `<div style="color:var(--muted);">Sistemde kayıtlı veya filtreye uyan makine bulunamadı.</div>`;
+  }
+
+  function updateStatusLine() {
+    const m = state.machines.find(x => x.id === state.selectedMachineId);
+    const pageUpper = currentPage.replace("-", " ").toUpperCase();
+    const mText = m ? `${m.code} — ${m.name}` : "YOK";
+    document.getElementById("statusLine").textContent =
+      `SAYFA: ${pageUpper} | MARKA: ${state.activeBrand.toUpperCase()} | MAKİNE: ${mText.toUpperCase()}`;
+    document.getElementById("homeMachineCount").textContent = `${state.machines.length} MAKİNE KAYITLI`;
+    document.getElementById("homeMachineListsCount").textContent = `${state.machines.length} MAKİNE SİSTEMDE`;
+    document.getElementById("homeActiveTarget").textContent =
+      `HEDEF: ${state.activeBrand.toUpperCase()}${m ? " / " + m.code.toUpperCase() : ""}`;
+  }
+
+  function render() {
+    updateStatusLine();
+
+    document.getElementById("brandButtons").innerHTML = BRANDS.map(b =>
+      `<button class="brand-btn ${b === state.activeBrand ? "active" : ""}" onclick="selectBrand('${b}')">${b.toUpperCase()}</button>`
+    ).join("");
+
+    document.getElementById("newMachineBrand").innerHTML = BRANDS.map(b =>
+      `<option value="${b}" ${b === state.activeBrand ? "selected" : ""}>${b}</option>`
+    ).join("");
+
+    const brandMachines = state.machines.filter(m => m.brand === state.activeBrand);
+    document.getElementById("brandMachinesBody").innerHTML = brandMachines.length > 0
+      ? brandMachines.map(m =>
+          `<tr>
+            <td>${getRegionName(m)}</td>
+            <td><strong>${m.code}</strong></td>
+            <td>${m.name}</td>
+            <td>${m.brand}</td>
+            <td>${m.gunCode || "—"}</td>
+            <td><button class="btn-primary" onclick="openMachinePins('${m.id}')">PİNLERİ AÇ</button></td>
+          </tr>`
+        ).join("")
+      : `<tr><td colspan="6" style="color:var(--muted);">Bu markaya ait kayıtlı makine yok.</td></tr>`;
+
+    document.getElementById("machinesTotalLabel").textContent = state.machines.length;
+    document.getElementById("machinesTableBody").innerHTML = state.machines.length > 0
+      ? state.machines.map(m =>
+          `<tr>
+            <td>${getRegionName(m)}</td>
+            <td><strong>${m.code}</strong></td>
+            <td>${m.name}</td>
+            <td>${m.brand}</td>
+            <td>${m.gunCode || "—"}</td>
+            <td style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button class="btn-primary" onclick="openMachinePins('${m.id}')">PİNLER</button>
+              <button class="btn-del" onclick="deleteMachine('${m.id}')">SİL</button>
+            </td>
+          </tr>`
+        ).join("")
+      : `<tr><td colspan="6" style="color:var(--muted);">Henüz makine eklenmemiş.</td></tr>`;
+
+    renderMachineLists();
+
+    const pinSel = document.getElementById("pinMachineSelect");
+    pinSel.innerHTML = `<option value="">-- ${state.activeBrand} Marka Şablonu --</option>` +
+      state.machines.map(m =>
+        `<option value="${m.id}" ${m.id === state.selectedMachineId ? "selected" : ""}>[${getRegionName(m)}] ${m.code} — ${m.name} (${m.brand})</option>`
+      ).join("");
+
+    const activeMachine = state.machines.find(m => m.id === state.selectedMachineId);
+    const gunInp = document.getElementById("pinGunCodeInput");
+    gunInp.value = activeMachine ? (activeMachine.gunCode || "") : "";
+    gunInp.disabled = !activeMachine;
+
+    const pins = activeMachine ? activeMachine.pins : (state.templates[state.activeBrand] || []);
+    document.getElementById("pinsTableBody").innerHTML = pins.map(p =>
+      `<tr>
+        <td><strong>${p.pin}</strong></td>
+        <td>${p.group}</td>
+        <td>${p.sig}</td>
+        <td>${p.desc}</td>
+        <td><input class="edit-input" value="${p.addr || ""}" placeholder="Kablo / Adres" onchange="updatePinAddr(${p.pin}, this.value)"></td>
+      </tr>`
+    ).join("");
+  }
+
+  loadInitialData();
+</script>
+</body>
+</html>
