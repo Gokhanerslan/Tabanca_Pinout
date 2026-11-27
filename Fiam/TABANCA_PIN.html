@@ -1146,18 +1146,28 @@ function connectorSVG(type, pins, shell, view, selKey, showWire, bi) {
   const pin = (cx, cy, num) => { const p = find(num), k = p ? pinKey(p) : "|" + num; return pinSVG(cx, cy, num, p, k === selKey, showWire, k); };
 
   if (/^DB\d+$/.test(type)) {
-    const N = +type.slice(2), top = Math.ceil(N / 2), pitch = 43, x0 = 152, W = 304 + (top - 1) * pitch, H = 220;
+    // T: üstteki yazı alanı, B: alttaki yazı alanı — pinlerin isim ve açıklaması eğik yazılır
+    const N = +type.slice(2), top = Math.ceil(N / 2), pitch = 43, x0 = 152, T = 175, B = 175;
+    const W = 304 + (top - 1) * pitch + 70, H = 220 + T + B, yt = T + 80, yb = T + 140;
+    const label = (cx, cy, num, up) => {
+      const p = find(num); if (!p) return "";
+      // yazı gövdenin dışından başlar; pine ince çizgiyle bağlanır
+      const k = pinKey(p), ang = up ? -58 : 58, x = cx, y = up ? T + 8 : T + 212;
+      const line = `<line x1="${cx}" y1="${up ? cy - 17 : cy + 17}" x2="${cx}" y2="${up ? y + 2 : y - 4}" stroke="${k === selKey ? "#FBBF24" : "#64748B"}" stroke-width="1.3" stroke-dasharray="${up ? "0" : "0"}"/>`;
+      return `<g class="pin-g" data-svgpin="${esc(k)}">${line}<text class="lbl" x="${x}" y="${y}" font-size="12.5" font-weight="700" fill="${k === selKey ? "#FBBF24" : "#F1F5F9"}" transform="rotate(${ang} ${x} ${y})">${esc(trunc(p.sig, 20))}${p.desc ? `<tspan class="lbl2" font-size="10.5" font-weight="400" fill="#94A3B8"> · ${esc(trunc(p.desc, 24))}</tspan>` : ""}</text></g>`;
+    };
     const one = v => {
       const t = range(1, top), b = range(top + 1, N);
       if (v === "rear") { t.reverse(); b.reverse(); }
       const title = v === "rear" ? `ARKA YÜZ — LEHİM TARAFI (Üst: ${top} → 1 | Alt: ${N} → ${top + 1})`
                                  : `ÖN YÜZ — FİŞ TARAFI (Üst: 1 → ${top} | Alt: ${top + 1} → ${N})`;
-      let s = `<rect x="20" y="20" width="${W - 40}" height="180" rx="22" fill="#CBD5E1" stroke="#64748B" stroke-width="3"/>
-        <circle cx="62" cy="110" r="18" fill="#1E1F26" stroke="#475569" stroke-width="3"/>
-        <circle cx="${W - 62}" cy="110" r="18" fill="#1E1F26" stroke="#475569" stroke-width="3"/>
-        <polygon points="105,37 ${W - 105},37 ${W - 125},183 125,183" fill="${shell}" stroke="#E2E8F0" stroke-width="4"/>`;
-      t.forEach((num, i) => s += pin(x0 + i * pitch, 80, num));
-      b.forEach((num, i) => s += pin(x0 + pitch / 2 + i * pitch, 140, num));
+      const Wb = W - 70;   // gövde genişliği (sağda yazılar için 70 boşluk)
+      let s = `<rect x="20" y="${T + 20}" width="${Wb - 40}" height="180" rx="22" fill="#CBD5E1" stroke="#64748B" stroke-width="3"/>
+        <circle cx="62" cy="${T + 110}" r="18" fill="#1E1F26" stroke="#475569" stroke-width="3"/>
+        <circle cx="${Wb - 62}" cy="${T + 110}" r="18" fill="#1E1F26" stroke="#475569" stroke-width="3"/>
+        <polygon points="105,${T + 37} ${Wb - 105},${T + 37} ${Wb - 125},${T + 183} 125,${T + 183}" fill="${shell}" stroke="#E2E8F0" stroke-width="4"/>`;
+      t.forEach((num, i) => { const cx = x0 + i * pitch; s += pin(cx, yt, num) + label(cx, yt, num, true); });
+      b.forEach((num, i) => { const cx = x0 + pitch / 2 + i * pitch; s += pin(cx, yb, num) + label(cx, yb, num, false); });
       return card(title, W, H, s);
     };
     if (view === "both") return `<div class="diagrams dual">${one("rear")}${one("front")}</div>`;
