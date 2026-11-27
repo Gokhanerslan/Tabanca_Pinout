@@ -22,7 +22,9 @@ Bundan sonra yapılan her değişiklik doğrudan `Fiam/src/tabanca_makine_verile
   Sütun başlığına tıklayınca sıralanır, bölge düğmeleriyle süzülür, **🖨️ Listeyi yazdır** ile çıktısı alınır. İstenirse kart görünümüne geçilir.
 - Düzenleme modunda iki adım vardır:
   1. **➕ Makine ekle** — sadece bölge, kod ve ad girilir (bölge listeden seçilebilir).
-  2. **🔫 Makineye tabanca ata** — makine listeden seçilir, marka ve tabanca kodu girilir; markanın uç listesi makineye kendiliğinden gelir.
+  2. **🔫 Makineye tabanca ata** — ① bölge seçilir, ② o bölgenin makineleri listelenir ve makine seçilir (istenirse sadece tabancası olmayanlar),
+     ③ marka ve tabanca kodu girilir. **Ata ve şemayı aç** deyince markanın uç listesi makineye gelir ve bağlantı şeması hemen açılır.
+- Yeni makine eklerken marka da seçilirse makine eklenir, tabanca atanır ve bağlantı şeması tek adımda açılır.
 - Tabancası olmayan makineler listede **🔫 Tabanca yok** olarak görünür ve filtrelenebilir.
 - Fabrikadaki **290 makine** (`MAKINELER_2026.xlsx`) listeye yüklendi; Excel'deki "Kritik = EVET" olanlar **⚠️ Kritik** olarak görünür ve süzülebilir.
 - **Yeni makine geldiğinde:** düzenleme modunda **➕ Makine ekle** ile tek tek, ya da **⬆️ Excel'den makine yükle** ile toplu eklenir.

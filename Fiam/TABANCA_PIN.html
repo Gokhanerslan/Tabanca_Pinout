@@ -101,6 +101,7 @@
   .m-prog { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; }
   .bar { height: 8px; border-radius: 99px; background: var(--input); overflow: hidden; flex: 1; min-width: 60px; }
   .bar > div { height: 100%; background: linear-gradient(90deg, #22C55E, #4ADE80); }
+  .step-no { width: 26px; height: 26px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
   .assign-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   @media (max-width: 1000px) { .assign-grid { grid-template-columns: 1fr; } }
   .region-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
@@ -288,7 +289,7 @@
   <section class="page" id="page-machines">
     <div class="assign-grid edit-only">
       <div class="panel">
-        <div class="panel-title">➕ 1. Makine ekle</div>
+        <div class="panel-title">➕ Yeni makine ekle</div>
         <div class="row">
           <input type="text" id="nmRegion" list="regionList" placeholder="📍 Bölge (listeden seç veya yaz)" style="flex:1 1 200px;">
           <input type="text" id="nmCode" placeholder="Kod (M-01)" style="width:130px;">
@@ -297,8 +298,13 @@
         <div class="row" style="margin-top:8px;">
           <input type="text" id="nmNote" placeholder="Açıklama (isteğe bağlı)" style="flex:1 1 260px;">
           <label class="row" style="gap:6px;cursor:pointer"><input type="checkbox" id="nmCrit" style="min-height:0;width:18px;height:18px"> ⚠️ Kritik</label>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <select id="nmBrand" title="İstersen tabancayı hemen ata"></select>
+          <input type="text" id="nmGun" placeholder="Tabanca kodu" style="width:140px;">
           <button class="btn-add" onclick="addMachine()">➕ Ekle</button>
         </div>
+        <div class="muted" style="margin-top:6px;">Marka seçersen makine eklenir, tabanca atanır ve bağlantı şeması hemen açılır.</div>
         <div class="row" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
           <button onclick="document.getElementById('mxInput').click()">⬆️ Excel'den makine yükle</button>
           <input type="file" id="mxInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="importMachinesFile(event)">
@@ -307,14 +313,22 @@
         <datalist id="regionList"></datalist>
       </div>
       <div class="panel">
-        <div class="panel-title">🔫 2. Makineye tabanca ata</div>
+        <div class="panel-title">🔫 Makineye tabanca ata</div>
         <div class="row">
+          <span class="step-no">1</span>
+          <select id="agRegion" style="flex:1 1 220px;"></select>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <span class="step-no">2</span>
           <select id="agMachine" style="flex:1 1 260px;"></select>
+        </div>
+        <label class="row muted" style="gap:6px;margin:6px 0 0 36px;cursor:pointer"><input type="checkbox" id="agOnlyFree" checked style="min-height:0;width:16px;height:16px"> Sadece tabancası olmayanları göster</label>
+        <div class="row" style="margin-top:8px;">
+          <span class="step-no">3</span>
           <select id="agBrand"></select>
           <input type="text" id="agGun" placeholder="Tabanca kodu" style="width:140px;">
-          <button class="btn-primary" onclick="assignGun()">🔫 Ata</button>
+          <button class="btn-primary" onclick="assignGun()">🔫 Ata ve şemayı aç</button>
         </div>
-        <div class="muted" style="margin-top:6px;">Makineyi listeden seç, markayı seç. Markanın uç listesi makineye kendiliğinden gelir.</div>
       </div>
     </div>
 
@@ -993,16 +1007,8 @@ function brandOptions(sel, withEmpty) {
 function renderMachines() {
   const regions = [...new Set(db.machines.map(regionOf))].sort((a, b) => a.localeCompare(b, "tr"));
   $("regionList").innerHTML = regions.map(r => `<option value="${esc(r)}">`).join("");
-  const ms = [...db.machines].sort((a, b) => (a.brand ? 1 : 0) - (b.brand ? 1 : 0) ||
-    regionOf(a).localeCompare(regionOf(b), "tr") || String(a.code).localeCompare(String(b.code), "tr", { numeric: true }));
-  const agSel = $("agMachine"), prevAg = ui.assignId || agSel.value;
-  agSel.innerHTML = ms.length ? ms.map(m => `<option value="${m.id}">${m.brand ? "✅" : "🔫"} [${esc(regionOf(m))}] ${esc(m.code)} — ${esc(m.name)}${m.brand ? ` (${esc(m.brand)}${m.gunCode ? " · " + esc(m.gunCode) : ""})` : " — tabanca yok"}</option>`).join("")
-    : `<option value="">Önce makine ekle</option>`;
-  if (prevAg && getMachine(prevAg)) agSel.value = prevAg;
-  ui.assignId = null;
-  const agB = $("agBrand"), prevB = agB.value;
-  agB.innerHTML = `<option value="">🏷️ Marka seç</option>` + brandOptions(null);
-  agB.value = prevB;
+  renderAssign();
+  $("nmBrand").innerHTML = `<option value="">🔫 Tabanca markası (sonra da atanabilir)</option>` + brandOptions(null);
 
   const keep = (id, html) => { const el = $(id), v = el.value; el.innerHTML = html; el.value = v; if (el.value !== v) el.value = ""; };
   keep("fRegion", `<option value="">📍 Tüm bölgeler</option>` + regions.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join(""));
@@ -1064,6 +1070,32 @@ function machineRow(m) {
     </td></tr>`;
 }
 
+/* Tabanca atama kutusu: 1) bölge → 2) makine → 3) marka */
+function renderAssign() {
+  const rs = $("agRegion"), ms = $("agMachine");
+  const pre = ui.assignId && getMachine(ui.assignId); ui.assignId = null;
+  if (pre && pre.brand) $("agOnlyFree").checked = false;
+  const regions = [...new Set(db.machines.map(regionOf))].sort((a, b) => a.localeCompare(b, "tr"));
+  const cur = pre ? regionOf(pre) : (rs.value || rs.dataset.v || "");
+  rs.innerHTML = `<option value="">📍 Önce bölge seç</option>` + regions.map(r => {
+    const all = db.machines.filter(m => regionOf(m) === r), free = all.filter(m => !m.brand).length;
+    return `<option value="${esc(r)}">📍 ${esc(r)} — ${all.length} makine${free ? ` (${free} tabancasız)` : ""}</option>`;
+  }).join("");
+  rs.value = regions.includes(cur) ? cur : ""; rs.dataset.v = rs.value;
+  const onlyFree = $("agOnlyFree").checked;
+  const list = db.machines.filter(m => regionOf(m) === rs.value && (!onlyFree || !m.brand || (pre && m.id === pre.id)))
+    .sort((a, b) => String(a.code).localeCompare(String(b.code), "tr", { numeric: true }));
+  const prevM = pre ? pre.id : ms.value;
+  ms.disabled = !rs.value || !list.length;
+  ms.innerHTML = !rs.value ? `<option value="">🏭 Önce yukarıdan bölge seç</option>`
+    : !list.length ? `<option value="">Bu bölgede tabancası olmayan makine yok</option>`
+    : `<option value="">🏭 Makine seç (${list.length})</option>` + list.map(m => `<option value="${m.id}">${m.brand ? "✅" : "🔫"} ${esc(m.code)} — ${esc(m.name)}${m.brand ? ` (${esc(m.brand)}${m.gunCode ? " · " + esc(m.gunCode) : ""})` : ""}</option>`).join("");
+  if (prevM && list.some(m => m.id === prevM)) ms.value = prevM;
+  const agB = $("agBrand"), prevB = agB.value;
+  agB.innerHTML = `<option value="">🏷️ Marka seç</option>` + brandOptions(null);
+  agB.value = prevB;
+}
+
 function addMachine() {
   const name = $("nmName").value.trim();
   if (!name) { alert("Lütfen makine adını yaz."); $("nmName").focus(); return; }
@@ -1075,7 +1107,8 @@ function addMachine() {
   db.machines.push(m);
   ui.machineId = m.id; ui.assignId = m.id; saveUI();
   ["nmCode", "nmName", "nmNote"].forEach(id => $(id).value = ""); $("nmCrit").checked = false;
-  changed(); render(); toast(`✅ ${code} eklendi. Şimdi sağdan tabanca atayabilirsin.`); $("nmName").focus();
+  if ($("nmBrand").value) { const b = $("nmBrand"); assignGun(m.id, b, $("nmGun")); b.value = ""; return; }
+  changed(); render(); toast(`✅ ${code} eklendi. Tabancayı sağdaki kutudan atayabilirsin.`); $("nmName").focus();
 }
 
 function assignGun(machineId, brandSel, gunInput) {
@@ -1088,8 +1121,9 @@ function assignGun(machineId, brandSel, gunInput) {
   if (m.brand !== brand || !m.pins.length) { m.pins = freshPins(brand); m.bridges = normBridges(db.brandInfo[brand]?.bridges); m.done = false; }
   m.brand = brand; m.gunCode = gun;
   (gunInput || $("agGun")).value = "";
-  ui.machineId = m.id; ui.assignId = m.id; saveUI();
-  changed(); render(); toast(`🔫 ${m.code} makinesine ${brand}${gun ? " (" + gun + ")" : ""} atandı.`);
+  ui.machineId = m.id; ui.selPin = null; saveUI();
+  changed(); openPage("pins");
+  toast(`🔫 ${m.code} makinesine ${brand}${gun ? " (" + gun + ")" : ""} atandı. Şimdi kabloları gir.`);
 }
 
 function setMachineField(id, field, value) {
@@ -2150,6 +2184,8 @@ document.addEventListener("change", e => {
   }
   if (t.id === "pinMachineSelect") { ui.machineId = t.value; ui.selPin = null; saveUI(); render(); }
   if (["fRegion", "fBrand", "fPin"].includes(t.id)) renderMachines();
+  if (t.id === "agRegion") { t.dataset.v = t.value; renderAssign(); $("agMachine").focus(); }
+  if (t.id === "agOnlyFree") renderAssign();
 });
 
 // tablodaki bir satıra girince şemada o pini işaretle
@@ -2169,6 +2205,7 @@ document.addEventListener("keydown", e => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); if (EDIT) { document.activeElement?.blur(); saveNow(); } }
   if (e.key === "Enter" && ["nmName", "nmCode", "nmRegion", "nmNote"].includes(e.target.id)) addMachine();
   if (e.key === "Enter" && e.target.id === "agGun") assignGun();
+  if (e.key === "Enter" && e.target.id === "nmGun") addMachine();
   if (e.key === "Enter" && e.target.id === "newBrandName") addBrand();
   if (e.key === "Enter" && e.target.id === "ncName") addColor();
   if (e.key === "Enter" && ["soSig", "soDesc"].includes(e.target.id)) addSignalOption();
