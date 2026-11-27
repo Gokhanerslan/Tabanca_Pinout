@@ -63,6 +63,32 @@ if ($EDIT_PASSWORD !== '') {
     }
 }
 
+// ---- Görsel yükleme: POST kaydet.php?gorsel=1  {name, data: "data:image/jpeg;base64,..."} ----
+if (isset($_GET['gorsel'])) {
+    $raw = file_get_contents('php://input');
+    if (strlen($raw) > 12 * 1024 * 1024) cevap(413, array('status' => 'error', 'message' => 'Görsel çok büyük.'));
+    $in = json_decode($raw, true);
+    $data = isset($in['data']) ? $in['data'] : '';
+    if (!preg_match('#^data:image/(jpeg|png|webp);base64,#', $data, $m)) {
+        cevap(400, array('status' => 'error', 'message' => 'Sadece JPG, PNG veya WEBP yüklenebilir.'));
+    }
+    $bin = base64_decode(substr($data, strpos($data, ',') + 1), true);
+    if ($bin === false || (function_exists('getimagesizefromstring') && @getimagesizefromstring($bin) === false)) {
+        cevap(400, array('status' => 'error', 'message' => 'Görsel dosyası okunamadı.'));
+    }
+    $ext  = $m[1] === 'jpeg' ? 'jpg' : $m[1];
+    $base = preg_replace('/[^a-z0-9_-]+/i', '_', isset($in['name']) ? $in['name'] : 'gorsel');
+    $base = substr(trim($base, '_'), 0, 40);
+    if ($base === '') $base = 'gorsel';
+    $name = $base . '_' . date('Ymd_His') . '_' . substr(md5($bin), 0, 6) . '.' . $ext;
+    $dir  = __DIR__ . '/gorseller';
+    if (!is_dir($dir)) @mkdir($dir, 0775, true);
+    if (!is_dir($dir) || file_put_contents($dir . '/' . $name, $bin) === false) {
+        cevap(500, array('status' => 'error', 'message' => 'Görsel kaydedilemedi (gorseller klasörü yazma iznini kontrol edin).'));
+    }
+    cevap(200, array('status' => 'ok', 'path' => 'gorseller/' . $name));
+}
+
 // ---- Gelen veriyi doğrula ----
 $raw = file_get_contents('php://input');
 if (strlen($raw) > $MAX_BYTES) {

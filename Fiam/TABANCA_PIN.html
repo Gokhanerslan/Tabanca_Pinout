@@ -75,7 +75,7 @@
   td input.pin-no { width: 64px; font-weight: 700; }
   td.actions { white-space: nowrap; }
   td.actions button { margin-right: 4px; }
-  tr.filled td input.addr { border-color: rgba(16,185,129,.55); }
+  tr.used td input.addr { border-color: rgba(16,185,129,.55); }
   .empty { color: var(--muted); padding: 14px; }
 
   .progress { height: 6px; background: var(--card2); border-radius: 4px; overflow: hidden; min-width: 70px; }
@@ -84,6 +84,34 @@
   #toast { position: fixed; bottom: 18px; right: 18px; background: var(--card); border: 1px solid var(--border);
     padding: 10px 16px; border-radius: 8px; font-size: 13px; opacity: 0; transition: .25s; pointer-events: none; z-index: 99; }
   #toast.show { opacity: 1; }
+
+  /* --- Soket şeması / kablo renkleri --- */
+  .diagrams { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .diagrams.dual { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 960px) { .diagrams.dual { grid-template-columns: 1fr; } }
+  .diagram-wrap { background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 10px; text-align: center; }
+  .diagram-wrap svg { width: 100%; max-width: 780px; height: auto; display: block; margin: 0 auto; }
+  .view-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 11.5px; margin-bottom: 8px; background: var(--bg); border: 1px solid var(--border); }
+  .pin-g { cursor: pointer; }
+  .pin-g:hover circle { filter: brightness(1.2); }
+  .view-btns button.on { background: var(--green); border-color: var(--green); color: #fff; }
+  .info-box { margin-top: 10px; padding: 9px 14px; background: var(--card2); border-radius: 8px; border: 1px solid var(--border); font-size: 13px;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; text-align: center; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .legend > span { display: inline-flex; align-items: center; gap: 5px; }
+  .swatch { display: inline-block; width: 16px; height: 16px; border-radius: 4px; border: 1px solid #fff; flex-shrink: 0; }
+  .dual-swatch { display: inline-flex; width: 22px; height: 16px; border-radius: 4px; overflow: hidden; border: 1px solid #fff; flex-shrink: 0; }
+  .dual-swatch span { flex: 1; height: 100%; }
+  .wire-badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 6px; background: var(--bg); border: 1px solid var(--border); font-size: 12px; }
+  .num-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; background: #111827; color: #F9FAFB; border: 1px solid #6B7280; }
+  .wire-edit { display: flex; gap: 4px; align-items: center; }
+  .wire-edit select { width: auto; padding: 5px 4px; }
+  tr.used td { background: rgba(59,130,246,.10); }
+  tr.flash td { background: rgba(251,191,36,.22) !important; }
+  .img-box { text-align: center; }
+  .img-box img { max-width: 100%; max-height: 380px; border-radius: 8px; border: 1px solid var(--border); background: #fff; cursor: zoom-in; }
+  .brand-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; align-items: start; }
+  @media (max-width: 960px) { .brand-grid { grid-template-columns: 1fr; } }
 
   .print-only { display: none; }
   @media print {
@@ -96,11 +124,20 @@
     td, th { border: 1px solid #999; color: #000; }
     td input { background: none; border: none; color: #000; padding: 0; }
     td.actions, th.actions { display: none; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    td select { appearance: none; -webkit-appearance: none; background: none; border: none; color: #000; padding: 0; }
+    .diagrams.dual { grid-template-columns: 1fr 1fr; }
+    .diagram-wrap { background: #fff; border: 1px solid #999; padding: 4px; }
+    .view-badge { background: #f3f4f6; color: #000; border: 1px solid #ccc; }
+    .info-box, .legend { display: none !important; }
+    tr.used td, tr.flash td { background: #dbeafe !important; }
+    .wire-edit .swatch, .wire-edit .dual-swatch { border-color: #000; }
   }
 </style>
 </head>
 <body>
 <div class="container">
+  <div class="print-only" id="printHeader"></div>
   <header>
     <div>
       <h1>Tabanca & Makine Rehberi</h1>
@@ -235,9 +272,9 @@
     </div>
   </section>
 
-  <div class="print-only" id="printHeader"></div>
 </div>
 <div id="toast"></div>
+<input type="file" id="imgInput" accept="image/*" style="display:none">
 
 <script src="src/veri.js"></script>
 <script>
@@ -254,7 +291,7 @@ let dirHandle = null;   // dosya modunda bağlanan src klasörü
 
 /* ================== DURUM ================== */
 let db = { _rev: 0, templates: {}, machines: [] };   // sunucuya giden veri
-let ui = { page: "home", brand: null, machineId: null };
+let ui = { page: "home", brand: null, machineId: null, view: "rear", selPin: null };
 let dirty = false, saving = false, serverOnline = false, saveTimer = null, lastSavedAt = null;
 
 const $ = id => document.getElementById(id);
@@ -265,10 +302,69 @@ const regionOf = m => (m.region || "").trim() || "BÖLGESİZ";
 const uid = () => "m_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const cmpPin = (a, b) => (parseFloat(a.pin) || 0) - (parseFloat(b.pin) || 0) || String(a.pin).localeCompare(String(b.pin));
 
+/* ================== KABLO RENKLERİ & SOKET TİPLERİ ================== */
+const BASE_COLORS = [
+  { name: "Boş", hex: "" }, { name: "Kahverengi", hex: "#795548" }, { name: "Siyah", hex: "#111827" },
+  { name: "Beyaz", hex: "#F9FAFB" }, { name: "Yeşil", hex: "#16A34A" }, { name: "Kırmızı", hex: "#DC2626" },
+  { name: "Turuncu", hex: "#F97316" }, { name: "Sarı", hex: "#EAB308" }, { name: "Gri", hex: "#9CA3AF" },
+  { name: "Mavi", hex: "#2563EB" }, { name: "Mor", hex: "#9333EA" }, { name: "Pembe", hex: "#EC4899" }
+];
+const CONNECTORS = {
+  "": "Belirtilmedi",
+  DB9: "D-Sub 9 pin (DB9)", DB15: "D-Sub 15 pin (DB15)", DB25: "D-Sub 25 pin (DB25)", DB37: "D-Sub 37 pin (DB37)",
+  KLEMENS: "Klemens / terminal sırası", DAIRESEL: "Dairesel (M12 / M8 vb.) — şematik"
+};
+const WIRE_FIELDS = ["addr", "wireType", "color", "color2", "wireNo"];
+const DEFAULT_SHELL = "#2563EB";
+
+function isLight(hex) {
+  const c = String(hex || "").replace("#", "");
+  if (c.length !== 6) return false;
+  return (0.299 * parseInt(c.slice(0, 2), 16) + 0.587 * parseInt(c.slice(2, 4), 16) + 0.114 * parseInt(c.slice(4, 6), 16)) > 155;
+}
+function palette() {
+  const m = new Map(BASE_COLORS.map(c => [c.name, { ...c }]));
+  (db.colors || []).forEach(c => { if (c?.name) m.set(c.name, { name: c.name, hex: c.hex || "" }); });
+  return [...m.values()];
+}
+const colorObj = n => palette().find(c => c.name === n) || BASE_COLORS[0];
+
+function isPinUsed(p) {
+  if (!p) return false;
+  if (String(p.addr || "").trim()) return true;
+  if (p.wireType === "numbered") return !!String(p.wireNo || "").trim();
+  return !!p.color && p.color !== "Boş";
+}
 function pinStats(m) {
   const pins = Array.isArray(m.pins) ? m.pins : [];
-  const filled = pins.filter(p => String(p.addr || "").trim() !== "").length;
+  const filled = pins.filter(isPinUsed).length;
   return { total: pins.length, filled, state: filled === 0 ? "none" : (filled === pins.length ? "full" : "partial") };
+}
+function wireSummary(p) {
+  if (p.wireType === "numbered") return p.wireNo ? `Siyah kablo No: ${p.wireNo}` : "Siyah kablo (No girilmedi)";
+  if (p.wireType === "dual") return `${p.color} | ${p.color2} (çift renk)`;
+  return p.color === "Boş" ? "" : p.color;
+}
+function wireBadge(p) {
+  if (p.wireType === "numbered")
+    return `<span class="wire-badge"><span class="swatch" style="background:#111827"></span><span class="num-tag">No: ${esc(p.wireNo || "?")}</span></span>`;
+  const c1 = colorObj(p.color);
+  if (p.wireType === "dual") {
+    const c2 = colorObj(p.color2);
+    return `<span class="wire-badge"><span class="dual-swatch"><span style="background:${c1.hex || "#475569"}"></span><span style="background:${c2.hex || "#475569"}"></span></span>${esc(p.color)} | ${esc(p.color2)}</span>`;
+  }
+  if (p.color === "Boş") return `<span class="muted">Kablo yok</span>`;
+  return `<span class="wire-badge"><span class="swatch" style="background:${c1.hex || "#475569"}"></span>${esc(p.color)}</span>`;
+}
+const connectorOf = brand => db.brandInfo?.[brand]?.connector || "";
+const freshPins = brand => (db.templates[brand] || []).map(p => ({ ...p, addr: "", wireType: "single", color: "Boş", color2: "Beyaz", wireNo: "" }));
+function applyTemplateKeeping(m, tpl) {   // aynı pin numarasındaki adres ve kablo bilgisini koru
+  const old = new Map(m.pins.map(p => [String(p.pin), p]));
+  m.pins = tpl.map(t => {
+    const o = old.get(String(t.pin)), n = { ...t, addr: "", wireType: "single", color: "Boş", color2: "Beyaz", wireNo: "" };
+    if (o) WIRE_FIELDS.forEach(k => n[k] = o[k]);
+    return n;
+  });
 }
 
 function toast(msg) {
@@ -278,21 +374,43 @@ function toast(msg) {
 
 /* ================== VERİ NORMALİZASYONU ================== */
 function normalize(raw) {
-  const out = { _rev: parseInt(raw?._rev) || 0, updatedAt: raw?.updatedAt || null, templates: {}, machines: [] };
-  const normPin = p => ({ pin: p.pin ?? "", group: p.group || "", sig: p.sig || "", desc: p.desc || "", addr: p.addr || p.code || "" });
+  const out = { _rev: parseInt(raw?._rev) || 0, updatedAt: raw?.updatedAt || null, templates: {}, brandInfo: {}, colors: [], machines: [] };
+  const normPin = p => ({
+    pin: p.pin ?? "", group: p.group || "", sig: p.sig || "", desc: p.desc || p.tr || "", addr: p.addr || p.code || "",
+    wireType: ["single", "dual", "numbered"].includes(p.wireType) ? p.wireType : "single",
+    color: p.color || "Boş", color2: p.color2 || "Beyaz", wireNo: p.wireNo || ""
+  });
   if (raw?.templates && typeof raw.templates === "object") {
     for (const [b, pins] of Object.entries(raw.templates)) out.templates[b] = Array.isArray(pins) ? pins.map(normPin) : [];
   }
+  if (raw?.brandInfo && typeof raw.brandInfo === "object") {
+    for (const [b, i] of Object.entries(raw.brandInfo)) out.brandInfo[b] = { connector: CONNECTORS[i?.connector] !== undefined ? i.connector : "", image: i?.image || "" };
+  }
+  if (Array.isArray(raw?.colors)) out.colors = raw.colors.filter(c => c?.name).map(c => ({ name: String(c.name), hex: c.hex || "" }));
   if (Array.isArray(raw?.machines)) {
     out.machines = raw.machines.map(m => ({
       id: m.id || uid(), region: (m.region || m.section || "").trim(), code: m.code || "", name: m.name || "",
       brand: m.brand || "", gunCode: m.gunCode || "", note: m.note || "",
+      shellColor: /^#[0-9a-f]{6}$/i.test(m.shellColor || "") ? m.shellColor : DEFAULT_SHELL, image: m.image || "",
       pins: Array.isArray(m.pins) ? m.pins.map(normPin) : []
     }));
   }
   // makinede kullanılıp şablonda olmayan markaları ekle
   out.machines.forEach(m => { if (m.brand && !out.templates[m.brand]) out.templates[m.brand] = []; });
   return out;
+}
+
+/* Eski "FIAM TPU-C3 — DB25 Bağlantı Rehberi" JSON'unu ({colors, zones}) makinelere çevir */
+function convertLegacy(raw) {
+  const zones = Array.isArray(raw) ? raw : raw.zones;
+  const colors = Array.isArray(raw?.colors) ? raw.colors.filter(c => c?.name && !BASE_COLORS.some(b => b.name === c.name)) : [];
+  return {
+    colors,
+    machines: zones.map((z, i) => normalize({ machines: [{
+      id: uid() + i, region: z.name || "", code: z.machineId || "", name: z.machineName || z.name || "Makine " + (i + 1),
+      brand: "FIAM", shellColor: z.shellColor, pins: Array.isArray(z.pins) ? z.pins : []
+    }] }).machines[0])
+  };
 }
 
 /* ================== KAYDETME / YÜKLEME ==================
@@ -496,11 +614,22 @@ function importJSON(e) {
   const file = e.target.files?.[0]; if (!file) return;
   const r = new FileReader();
   r.onload = () => {
-    try {
-      const parsed = normalize(JSON.parse(r.result));
-      if (!confirm(`${parsed.machines.length} makine ve ${Object.keys(parsed.templates).length} marka içeren dosya yüklenecek. Mevcut verinin yerine geçecek. Emin misin?`)) return;
-      parsed._rev = db._rev; db = parsed; changed(); render(); toast("JSON yüklendi.");
-    } catch (err) { alert("Geçersiz JSON dosyası."); }
+    let raw;
+    try { raw = JSON.parse(r.result); } catch (err) { alert("Geçersiz JSON dosyası."); return; }
+    // Eski FIAM DB25 rehberi formatı ({colors, zones} veya dizi) → mevcut veriye EKLE
+    if (Array.isArray(raw) || Array.isArray(raw?.zones)) {
+      const conv = convertLegacy(raw);
+      if (!confirm(`Eski FIAM DB25 rehberi dosyası algılandı.\n${conv.machines.length} makine FIAM markasıyla mevcut listeye EKLENECEK (mevcut veriler silinmez). Devam?`)) return;
+      if (!db.templates.FIAM) db.templates.FIAM = [];
+      if (!db.brandInfo.FIAM?.connector) db.brandInfo.FIAM = { ...(db.brandInfo.FIAM || { image: "" }), connector: "DB25" };
+      conv.colors.forEach(c => { if (!db.colors.some(x => x.name === c.name)) db.colors.push({ name: c.name, hex: c.hex || "" }); });
+      db.machines.push(...conv.machines);
+      changed(); render(); toast(`${conv.machines.length} makine eklendi.`);
+      return;
+    }
+    const parsed = normalize(raw);
+    if (!confirm(`${parsed.machines.length} makine ve ${Object.keys(parsed.templates).length} marka içeren dosya yüklenecek. Mevcut verinin yerine geçecek. Emin misin?`)) return;
+    parsed._rev = db._rev; db = parsed; changed(); render(); toast("JSON yüklendi.");
   };
   r.readAsText(file); e.target.value = "";
 }
@@ -551,6 +680,7 @@ function render() {
   if (!ui.brand || !db.templates[ui.brand]) ui.brand = brands()[0] || null;
   if (ui.machineId && !getMachine(ui.machineId)) ui.machineId = null;
   if (!ui.machineId && db.machines.length) ui.machineId = db.machines[0].id;
+  if (!["rear", "front", "both"].includes(ui.view)) ui.view = "rear";
 
   document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("active", b.dataset.page === ui.page));
   document.querySelectorAll(".page").forEach(s => s.classList.toggle("active", s.id === "page-" + ui.page));
@@ -654,7 +784,7 @@ function addMachine() {
   if (db.machines.some(m => m.code.toLocaleLowerCase("tr") === code.toLocaleLowerCase("tr")) &&
       !confirm(`"${code}" kodlu bir makine zaten var. Yine de eklensin mi?`)) return;
   const m = { id: uid(), region: $("nmRegion").value.trim(), code, name, brand, gunCode: $("nmGun").value.trim(), note: "",
-              pins: (db.templates[brand] || []).map(p => ({ ...p, addr: "" })) };
+              shellColor: DEFAULT_SHELL, image: "", pins: freshPins(brand) };
   db.machines.push(m);
   ui.machineId = m.id; ui.brand = brand; saveUI();
   ["nmCode", "nmName", "nmGun"].forEach(id => $(id).value = "");
@@ -668,11 +798,12 @@ function setMachineField(id, field, value) {
     const hasData = pinStats(m).filled > 0;
     const msg = `Marka "${value}" olarak değişiyor.\n\nTAMAM → Pin listesini yeni markanın şablonuyla değiştir` +
                 (hasData ? " (girilen kablo/adres bilgileri silinir!)" : "") + `\nİPTAL → Sadece marka adını değiştir, pinlere dokunma`;
-    if (confirm(msg)) m.pins = (db.templates[value] || []).map(p => ({ ...p, addr: "" }));
+    if (confirm(msg)) m.pins = freshPins(value);
   }
   m[field] = value;
   changed();
   if (field === "region" || field === "brand") render();
+  else if (field === "shellColor") renderPinDiagram();
 }
 
 function duplicateMachine(id) {
@@ -691,30 +822,50 @@ function deleteMachine(id) {
 }
 
 function exportMachinesCSV() {
-  const rows = [["Bölge", "Makine Kodu", "Makine Adı", "Marka", "Tabanca Kodu", "Pin", "Grup", "Sinyal", "Açıklama", "Kablo / Adres"]];
+  const rows = [["Bölge", "Makine Kodu", "Makine Adı", "Marka", "Tabanca Kodu", "Pin", "Grup", "Sinyal", "Açıklama", "Kablo / Adres", "Kablo"]];
   db.machines.forEach(m => {
     if (!m.pins.length) rows.push([m.region, m.code, m.name, m.brand, m.gunCode]);
-    m.pins.forEach(p => rows.push([m.region, m.code, m.name, m.brand, m.gunCode, p.pin, p.group, p.sig, p.desc, p.addr]));
+    m.pins.forEach(p => rows.push([m.region, m.code, m.name, m.brand, m.gunCode, p.pin, p.group, p.sig, p.desc, p.addr, wireSummary(p)]));
   });
   download(toCSV(rows), "makine_pin_listesi.csv", "text/csv;charset=utf-8");
 }
 
 /* ---------- PİN TABLOSU (makine ve şablon için ortak) ---------- */
+function wireCell(p, ctx, i) {
+  const a = (k) => `data-ctx="${ctx}" data-i="${i}" data-pf="${k}"`;
+  const opts = sel => palette().map(c => `<option value="${esc(c.name)}" ${c.name === sel ? "selected" : ""}>${esc(c.name)}</option>`).join("");
+  let h = `<select ${a("wireType")} title="Kablo tipi">
+      <option value="single" ${p.wireType === "single" ? "selected" : ""}>Tek renk</option>
+      <option value="dual" ${p.wireType === "dual" ? "selected" : ""}>Çift renk</option>
+      <option value="numbered" ${p.wireType === "numbered" ? "selected" : ""}>Siyah + No</option></select>`;
+  if (p.wireType === "numbered") h += `<input ${a("wireNo")} value="${esc(p.wireNo)}" placeholder="No" style="width:64px">`;
+  else {
+    h += `<select ${a("color")}>${opts(p.color)}</select>`;
+    if (p.wireType === "dual") h += `<select ${a("color2")}>${opts(p.color2)}</select>`;
+  }
+  const c1 = colorObj(p.color), c2 = colorObj(p.color2);
+  const sw = p.wireType === "numbered" ? `<span class="swatch" style="background:#111827"></span>`
+    : p.wireType === "dual" ? `<span class="dual-swatch"><span style="background:${c1.hex || "transparent"}"></span><span style="background:${c2.hex || "transparent"}"></span></span>`
+    : `<span class="swatch" style="background:${c1.hex || "transparent"}"></span>`;
+  return `<div class="wire-edit">${sw}${h}</div>`;
+}
+
 function pinTable(pins, ctx, withAddr) {
+  const cols = withAddr ? 7 : 5;
   return `<div class="table-wrap"><table>
-    <thead><tr><th style="width:80px">Pin</th><th style="width:150px">Grup</th><th style="width:160px">Sinyal</th><th>Açıklama</th>
-      ${withAddr ? `<th style="width:200px">Kablo / Adres</th>` : ""}<th class="actions" style="width:120px">İşlem</th></tr></thead>
+    <thead><tr><th style="width:80px">Pin</th><th style="width:140px">Grup</th><th style="width:150px">Sinyal</th><th>Açıklama</th>
+      ${withAddr ? `<th style="width:150px">Kablo / Adres</th><th style="width:270px">Kablo Rengi / No</th>` : ""}<th class="actions" style="width:120px">İşlem</th></tr></thead>
     <tbody>${pins.length ? pins.map((p, i) => {
       const f = (k, cls = "") => `<input class="${cls}" data-ctx="${ctx}" data-i="${i}" data-pf="${k}" value="${esc(p[k])}">`;
-      return `<tr class="${String(p.addr || "").trim() ? "filled" : ""}">
+      return `<tr data-rowpin="${esc(p.pin)}" class="${withAddr && isPinUsed(p) ? "used" : ""} ${withAddr && String(p.pin) === ui.selPin ? "flash" : ""}">
         <td>${f("pin", "pin-no")}</td><td>${f("group")}</td><td>${f("sig")}</td><td>${f("desc")}</td>
-        ${withAddr ? `<td>${f("addr", "addr")}</td>` : ""}
+        ${withAddr ? `<td>${f("addr", "addr")}</td><td>${wireCell(p, ctx, i)}</td>` : ""}
         <td class="actions">
           <button class="btn-sm" data-ctx="${ctx}" data-pmove="${i}" data-dir="-1" title="Yukarı">▲</button>
           <button class="btn-sm" data-ctx="${ctx}" data-pmove="${i}" data-dir="1" title="Aşağı">▼</button>
           <button class="btn-del btn-sm" data-ctx="${ctx}" data-pdel="${i}" title="Sil">✕</button>
         </td></tr>`;
-    }).join("") : `<tr><td colspan="6" class="empty">Pin tanımlı değil.</td></tr>`}</tbody>
+    }).join("") : `<tr><td colspan="${cols}" class="empty">Pin tanımlı değil.</td></tr>`}</tbody>
   </table></div>
   <div class="row no-print" style="margin-top:8px;">
     <button class="btn-add btn-sm" data-ctx="${ctx}" data-padd="1">+ PİN SATIRI EKLE</button>
@@ -727,6 +878,148 @@ function pinsOf(ctx) {   // ctx: "m:<id>" veya "t:<marka sırası>"
 }
 function parsePinNo(v) { v = v.trim(); return /^\d+$/.test(v) ? parseInt(v, 10) : v; }
 
+/* ---------- SOKET ŞEMASI (SVG) ---------- */
+let svgSeq = 0;
+function pinSVG(cx, cy, num, p, sel, showWire) {
+  const n = esc(num), r = 16;
+  const tip = `<title>Pin ${n}${p ? " — " + esc(p.sig) + (p.desc ? " (" + esc(p.desc) + ")" : "") + (p.addr ? " · " + esc(p.addr) : "") : " — tanımsız"}</title>`;
+  const ring = sel ? `<circle cx="${cx}" cy="${cy}" r="${r + 5}" fill="none" stroke="#FBBF24" stroke-width="3"/>` : "";
+  const txt = (t, fill, size = 13, outline = false) =>
+    `<text x="${cx}" y="${cy + size * 0.38}" text-anchor="middle" font-size="${size}" font-weight="bold" fill="${fill}"${outline ? ` stroke="#111827" stroke-width="3" paint-order="stroke"` : ""}>${t}</text>`;
+  let body;
+  if (!p) {
+    body = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#2A2D38" stroke="#64748B" stroke-width="1" stroke-dasharray="3 3"/>` + txt(n, "#64748B");
+  } else if (!showWire || !isPinUsed(p)) {
+    body = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#475569" stroke="#FFFFFF" stroke-width="1"/>` + txt(n, "#CBD5E1");
+  } else if (p.wireType === "numbered") {
+    const t = esc(p.wireNo || num);
+    body = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#111827" stroke="#FBBF24" stroke-width="2.5"/>` + txt(t, "#FFFFFF", t.length > 3 ? 9.5 : 12);
+  } else if (p.wireType === "dual") {
+    const f1 = colorObj(p.color).hex || "#475569", f2 = colorObj(p.color2).hex || "#475569", id = "cl" + (++svgSeq);
+    body = `<defs><clipPath id="${id}"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath></defs>
+      <g clip-path="url(#${id})"><rect x="${cx - r}" y="${cy - r}" width="${r}" height="${2 * r}" fill="${f1}"/><rect x="${cx}" y="${cy - r}" width="${r}" height="${2 * r}" fill="${f2}"/>
+      <line x1="${cx}" y1="${cy - r}" x2="${cx}" y2="${cy + r}" stroke="#FFFFFF" stroke-width="1.2"/></g>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#FFFFFF" stroke-width="2.5"/>` + txt(n, "#FFFFFF", 12.5, true);
+  } else {
+    const c = colorObj(p.color), hex = c.hex || "#475569";
+    body = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${hex}" stroke="#FFFFFF" stroke-width="2.5"/>` + txt(n, isLight(hex) ? "#111827" : "#FFFFFF");
+  }
+  return `<g class="pin-g" data-svgpin="${n}">${tip}${body}${ring}</g>`;
+}
+
+const card = (title, W, H, inner) =>
+  `<div class="diagram-wrap"><div class="view-badge">${title}</div><svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${inner}</svg></div>`;
+const range = (a, b) => Array.from({ length: Math.max(0, b - a + 1) }, (_, i) => a + i);
+const maxPinNo = pins => Math.max(0, ...pins.map(p => parseInt(p.pin)).filter(n => !isNaN(n)));
+
+/* type: CONNECTORS anahtarı, view: rear | front | both */
+function connectorSVG(type, pins, shell, view, selPin, showWire) {
+  const find = num => pins.find(p => String(p.pin) === String(num));
+  const pin = (cx, cy, num) => pinSVG(cx, cy, num, find(num), String(num) === selPin, showWire);
+
+  if (/^DB\d+$/.test(type)) {
+    const N = +type.slice(2), top = Math.ceil(N / 2), pitch = 43, x0 = 152, W = 304 + (top - 1) * pitch, H = 220;
+    const one = v => {
+      const t = range(1, top), b = range(top + 1, N);
+      if (v === "rear") { t.reverse(); b.reverse(); }
+      const title = v === "rear" ? `ARKA YÜZ — LEHİM TARAFI (Üst: ${top} → 1 | Alt: ${N} → ${top + 1})`
+                                 : `ÖN YÜZ — FİŞ TARAFI (Üst: 1 → ${top} | Alt: ${top + 1} → ${N})`;
+      let s = `<rect x="20" y="20" width="${W - 40}" height="180" rx="22" fill="#CBD5E1" stroke="#64748B" stroke-width="3"/>
+        <circle cx="62" cy="110" r="18" fill="#1E1F26" stroke="#475569" stroke-width="3"/>
+        <circle cx="${W - 62}" cy="110" r="18" fill="#1E1F26" stroke="#475569" stroke-width="3"/>
+        <polygon points="105,37 ${W - 105},37 ${W - 125},183 125,183" fill="${shell}" stroke="#E2E8F0" stroke-width="4"/>`;
+      t.forEach((num, i) => s += pin(x0 + i * pitch, 80, num));
+      b.forEach((num, i) => s += pin(x0 + pitch / 2 + i * pitch, 140, num));
+      return card(title, W, H, s);
+    };
+    if (view === "both") return `<div class="diagrams dual">${one("rear")}${one("front")}</div>`;
+    return `<div class="diagrams">${one(view === "front" ? "front" : "rear")}</div>`;
+  }
+
+  const N = maxPinNo(pins);
+  if (!N) return `<div class="empty">Şema çizmek için pin numaraları sayı olmalı.</div>`;
+
+  if (type === "KLEMENS") {
+    const per = 16, cw = 52, rows = Math.ceil(N / per), W = 40 + Math.min(N, per) * cw, H = 30 + rows * 86;
+    let s = `<rect x="10" y="10" width="${W - 20}" height="${H - 20}" rx="10" fill="#CBD5E1" stroke="#64748B" stroke-width="3"/>`;
+    range(1, N).forEach((num, k) => {
+      const x = 20 + (k % per) * cw, y = 20 + Math.floor(k / per) * 86;
+      s += `<rect x="${x + 3}" y="${y}" width="${cw - 6}" height="76" rx="5" fill="${shell}" stroke="#E2E8F0" stroke-width="2"/>`;
+      s += pin(x + cw / 2, y + 38, num);
+    });
+    return `<div class="diagrams">${card(`KLEMENS SIRASI (1 → ${N})`, W, H, s)}</div>`;
+  }
+
+  // DAIRESEL — şematik: pinler saat yönünde, 5-12 pinde son pin ortada
+  const center = N >= 5 && N <= 12, ringN = center ? N - 1 : N, R = ringN > 12 ? 120 : 85, S = 2 * R + 120, c = S / 2;
+  let s = `<circle cx="${c}" cy="${c}" r="${R + 45}" fill="#CBD5E1" stroke="#64748B" stroke-width="3"/>
+    <circle cx="${c}" cy="${c}" r="${R + 30}" fill="${shell}" stroke="#E2E8F0" stroke-width="4"/>
+    <rect x="${c - 10}" y="${c - R - 48}" width="20" height="22" rx="3" fill="#1E1F26"/>`;
+  range(1, ringN).forEach((num, k) => {
+    const a = -Math.PI / 2 + (2 * Math.PI * k) / ringN;
+    s += pin(c + R * Math.cos(a), c + R * Math.sin(a), num);
+  });
+  if (center) s += pin(c, c, N);
+  return `<div class="diagrams">${card(`DAİRESEL SOKET — ŞEMATİK (gerçek yerleşim için soket üzerindeki numaralara bakın)`, S, S, s)}</div>`;
+}
+
+/* ---------- GÖRSELLER ---------- */
+let pendingImgTarget = null;
+function imgBox(path, target, fallback) {
+  const shown = path || fallback;
+  return `<div class="img-box">
+    ${shown ? `<a href="src/${esc(shown)}" target="_blank" title="Büyük aç"><img src="src/${esc(shown)}" alt="Soket görseli"></a>
+               ${!path && fallback ? `<div class="muted" style="margin-top:4px">(Marka görseli gösteriliyor)</div>` : ""}`
+            : `<div class="muted">Görsel eklenmemiş.</div>`}
+    <div class="row no-print" style="margin-top:8px;justify-content:center">
+      <button class="btn-primary btn-sm" data-imgup="${target}">${path ? "GÖRSELİ DEĞİŞTİR" : "GÖRSEL YÜKLE"}</button>
+      ${path ? `<button class="btn-del btn-sm" data-imgdel="${target}">KALDIR</button>` : ""}
+    </div></div>`;
+}
+function resizeImage(file, max = 1600) {
+  return createImageBitmap(file).then(img => {
+    const s = Math.min(1, max / Math.max(img.width, img.height));
+    const c = document.createElement("canvas"); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+    const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+    return new Promise(r => c.toBlob(r, "image/jpeg", 0.85));
+  });
+}
+const slug = s => String(s || "gorsel").toLocaleLowerCase("tr").replace(/[çğıöşü]/g, ch => ({ ç: "c", ğ: "g", ı: "i", ö: "o", ş: "s", ü: "u" }[ch])).replace(/[^a-z0-9]+/g, "_").slice(0, 40) || "gorsel";
+
+async function uploadImage(file, baseName) {
+  let blob;
+  try { blob = await resizeImage(file); } catch (e) { alert("Görsel okunamadı. JPG veya PNG seçin."); return null; }
+  if (MODE === "file") {
+    if (!window.showDirectoryPicker) { alert("Bu tarayıcı dosyaya yazamıyor. Chrome veya Edge kullanın."); return null; }
+    if (!(await folderReady())) { alert("Görsel kaydetmek için önce üstteki KLASÖRE BAĞLAN butonuyla src klasörünü seçin."); return null; }
+    const name = `${slug(baseName)}_${Date.now()}.jpg`;
+    const gd = await dirHandle.getDirectoryHandle("gorseller", { create: true });
+    await writeFile(gd, name, blob);
+    return "gorseller/" + name;
+  }
+  const data = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+  for (;;) {
+    const headers = { "Content-Type": "application/json" };
+    const key = localStorage.getItem(LS_KEY); if (key) headers["X-Edit-Key"] = key;
+    let res, out;
+    try { res = await fetch(API_URL + "?gorsel=1", { method: "POST", headers, body: JSON.stringify({ name: slug(baseName), data }) }); out = await res.json().catch(() => ({})); }
+    catch (e) { alert("Sunucuya ulaşılamadı, görsel yüklenemedi."); return null; }
+    if (res.ok && out.path) return out.path;
+    if (res.status === 401) { const k = prompt("Kaydetmek için şifre girin:"); if (k === null) return null; localStorage.setItem(LS_KEY, k); continue; }
+    alert("Görsel yüklenemedi: " + (out.message || res.status)); return null;
+  }
+}
+function imgTargetSet(target, path) {
+  const [kind, id] = [target[0], target.slice(2)];
+  if (kind === "m") { const m = getMachine(id); if (m) m.image = path; }
+  else { const b = brands()[+id]; if (b) (db.brandInfo[b] ||= { connector: "", image: "" }).image = path; }
+}
+function imgTargetName(target) {
+  const id = target.slice(2);
+  if (target[0] === "m") { const m = getMachine(id); return m ? `${m.code}_${m.name}` : "makine"; }
+  return (brands()[+id] || "marka") + "_soket";
+}
+
 /* ---------- PİN & BAĞLANTI ---------- */
 function renderPins() {
   const sel = $("pinMachineSelect");
@@ -736,55 +1029,118 @@ function renderPins() {
 
   const m = getMachine(ui.machineId);
   if (!m) { $("pinsContent").innerHTML = `<div class="panel empty">Önce "Makineler" sayfasından makine ekleyin.</div>`; return; }
-  const s = pinStats(m);
-  $("printHeader").innerHTML = `<h2>${esc(m.code)} — ${esc(m.name)}</h2><p>Bölge: ${esc(regionOf(m))} · Marka: ${esc(m.brand)} · Tabanca: ${esc(m.gunCode || "-")}</p>`;
+  const s = pinStats(m), type = connectorOf(m.brand), isDsub = /^DB/.test(type), bi = db.brandInfo[m.brand] || {};
+  $("printHeader").innerHTML = `<h2>${esc(m.code)} — ${esc(m.name)}</h2><p>Bölge: ${esc(regionOf(m))} · Marka: ${esc(m.brand)} · Tabanca: ${esc(m.gunCode || "-")} · Soket: ${esc(CONNECTORS[type])}</p>`;
   $("pinsContent").innerHTML = `
     <div class="panel no-print">
       <div class="panel-title"><span>Makine Bilgisi</span>
-        <span class="badge ${s.state === "full" ? "b-green" : s.state === "partial" ? "b-amber" : "b-red"}">${s.filled}/${s.total} PİN ATANMIŞ</span></div>
+        <span class="badge ${s.state === "full" ? "b-green" : s.state === "partial" ? "b-amber" : "b-red"}" id="pinBadge">${s.filled}/${s.total} PİN ATANMIŞ</span></div>
       <div class="row">
         <label class="muted">Bölge<br><input data-mid="${m.id}" data-mf="region" list="regionList" value="${esc(m.region)}" style="width:150px"></label>
         <label class="muted">Makine Kodu<br><input data-mid="${m.id}" data-mf="code" value="${esc(m.code)}" style="width:130px"></label>
         <label class="muted">Makine Adı<br><input data-mid="${m.id}" data-mf="name" value="${esc(m.name)}" style="width:220px"></label>
         <label class="muted">Marka<br><select data-mid="${m.id}" data-mf="brand">${brandOptions(m.brand)}</select></label>
         <label class="muted">Tabanca Kodu<br><input data-mid="${m.id}" data-mf="gunCode" value="${esc(m.gunCode)}" style="width:150px"></label>
+        <label class="muted">Gövde Rengi<br><input type="color" data-mid="${m.id}" data-mf="shellColor" value="${esc(m.shellColor)}" style="width:60px;padding:2px"></label>
         <label class="muted" style="flex:1 1 220px">Not<br><input data-mid="${m.id}" data-mf="note" value="${esc(m.note)}" style="width:100%"></label>
       </div>
       <div class="row" style="margin-top:10px;">
-        <button class="btn-sm" onclick="window.print()">YAZDIR</button>
+        <button class="btn-sm" style="background:#6366F1;border-color:#6366F1;color:#fff" onclick="printPins()">YAZDIR / PDF</button>
         <button class="btn-sm" onclick="exportMachinePinsCSV()">EXCEL (CSV) İNDİR</button>
         <button class="btn-sm" onclick="syncFromTemplate()">ŞABLONDAN GÜNCELLE</button>
         <button class="btn-sm" onclick="saveAsTemplate()">BUNU MARKA ŞABLONU YAP</button>
+        <span style="flex:1"></span>
+        <input type="text" id="ncName" placeholder="Yeni kablo rengi adı" style="width:170px">
+        <input type="color" id="ncHex" value="#1E3A8A" style="width:46px;padding:2px">
+        <button class="btn-add btn-sm" onclick="addColor()">+ RENK</button>
       </div>
     </div>
+
+    <div class="panel">
+      <div class="panel-title"><span>Soket Şeması — ${esc(CONNECTORS[type])}</span>
+        ${isDsub ? `<span class="row no-print view-btns">
+          <button class="btn-sm ${ui.view === "rear" ? "on" : ""}" data-view="rear">ARKA (LEHİM)</button>
+          <button class="btn-sm ${ui.view === "front" ? "on" : ""}" data-view="front">ÖN (FİŞ)</button>
+          <button class="btn-sm ${ui.view === "both" ? "on" : ""}" data-view="both">ÖN + ARKA</button></span>` : ""}</div>
+      <div id="diagramArea"></div>
+      <div class="info-box" id="pinInfo"></div>
+      <div class="legend no-print">
+        <span><span class="swatch" style="background:#475569"></span> Boş pin</span>
+        <span><span class="swatch" style="background:#16A34A"></span> Kablo rengi</span>
+        <span><span class="dual-swatch"><span style="background:#DC2626"></span><span style="background:#F9FAFB"></span></span> Çift renk</span>
+        <span><span class="swatch" style="background:#111827;border-color:#FBBF24"></span> Siyah + No</span>
+        <span><span class="swatch" style="background:#2A2D38;border-style:dashed"></span> Listede olmayan pin</span>
+      </div>
+    </div>
+
+    <div class="panel no-print">
+      <div class="panel-title"><span>Soket Görseli</span><span class="muted" style="text-transform:none;font-weight:400">Kılavuzdan çizim veya sahadan fotoğraf</span></div>
+      ${imgBox(m.image, "m:" + m.id, bi.image)}
+    </div>
+
     ${pinTable(m.pins, "m:" + m.id, true)}`;
+  renderPinDiagram();
+}
+
+function renderPinDiagram() {
+  const area = $("diagramArea"), m = getMachine(ui.machineId);
+  if (!area || !m) return;
+  const type = connectorOf(m.brand);
+  area.innerHTML = type
+    ? connectorSVG(type, m.pins, m.shellColor || DEFAULT_SHELL, ui.view, ui.selPin, true)
+    : `<div class="empty">"${esc(m.brand)}" markası için soket tipi seçilmemiş.
+         <button class="btn-primary btn-sm" data-brandgo="${esc(brands().indexOf(m.brand))}">SOKET TİPİNİ SEÇ</button></div>`;
+  const p = m.pins.find(x => String(x.pin) === ui.selPin), box = $("pinInfo");
+  box.innerHTML = !ui.selPin ? "Detay için şemadaki bir pine veya tablodaki satıra tıklayın."
+    : !p ? `<b>Pin ${esc(ui.selPin)}:</b> bu makinenin pin listesinde yok.`
+    : `${isPinUsed(p) ? wireBadge(p) : ""} <b>Pin ${esc(p.pin)} — ${esc(p.sig)}</b> ${p.desc ? "(" + esc(p.desc) + ")" : ""}
+       · Grup: ${esc(p.group || "-")} · Adres: <b>${esc(p.addr || "-")}</b>${isPinUsed(p) ? "" : " · <span class='muted'>Boş pin</span>"}`;
+}
+
+function selectPin(num, scroll) {
+  ui.selPin = String(num);
+  renderPinDiagram();
+  document.querySelectorAll("#pinsContent tr[data-rowpin]").forEach(tr => tr.classList.toggle("flash", tr.dataset.rowpin === ui.selPin));
+  if (scroll) document.querySelector(`#pinsContent tr.flash`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+}
+
+function printPins() {
+  const prev = ui.view; ui.view = "both"; renderPinDiagram();
+  setTimeout(() => { window.print(); ui.view = prev; renderPinDiagram(); }, 150);
+}
+
+function addColor() {
+  const name = $("ncName").value.trim(), hex = $("ncHex").value;
+  if (!name) { alert("Renk adı yazın."); return; }
+  const ex = db.colors.find(c => c.name.toLocaleLowerCase("tr") === name.toLocaleLowerCase("tr"));
+  if (ex) ex.hex = hex; else db.colors.push({ name, hex });
+  changed(); renderPins(); toast(`"${name}" rengi eklendi.`);
 }
 
 function stepMachine(d) {
   if (!db.machines.length) return;
   const i = db.machines.findIndex(m => m.id === ui.machineId);
   ui.machineId = db.machines[(i + d + db.machines.length) % db.machines.length].id;
-  saveUI(); render();
+  ui.selPin = null; saveUI(); render();
 }
 
 function syncFromTemplate() {
   const m = getMachine(ui.machineId); if (!m) return;
   const tpl = db.templates[m.brand] || [];
-  if (!confirm(`${m.brand} şablonu (${tpl.length} pin) bu makineye uygulanacak.\nAynı pin numarasındaki kablo/adres bilgileri korunur, şablonda olmayan pinler kaldırılır. Devam?`)) return;
-  const old = new Map(m.pins.map(p => [String(p.pin), p.addr]));
-  m.pins = tpl.map(p => ({ ...p, addr: old.get(String(p.pin)) || "" }));
+  if (!confirm(`${m.brand} şablonu (${tpl.length} pin) bu makineye uygulanacak.\nAynı pin numarasındaki kablo/adres/renk bilgileri korunur, şablonda olmayan pinler kaldırılır. Devam?`)) return;
+  applyTemplateKeeping(m, tpl);
   changed(); render(); toast("Şablondan güncellendi.");
 }
 function saveAsTemplate() {
   const m = getMachine(ui.machineId); if (!m) return;
-  if (!confirm(`Bu makinenin pin listesi "${m.brand}" markasının şablonu olarak kaydedilsin mi? (Kablo/adres bilgileri şablona alınmaz.)`)) return;
-  db.templates[m.brand] = m.pins.map(p => ({ ...p, addr: "" }));
+  if (!confirm(`Bu makinenin pin listesi "${m.brand}" markasının şablonu olarak kaydedilsin mi? (Kablo/adres/renk bilgileri şablona alınmaz.)`)) return;
+  db.templates[m.brand] = m.pins.map(p => ({ ...p, addr: "", wireType: "single", color: "Boş", color2: "Beyaz", wireNo: "" }));
   changed(); toast("Şablon güncellendi.");
 }
 function exportMachinePinsCSV() {
   const m = getMachine(ui.machineId); if (!m) return;
-  const rows = [["Makine", `${m.code} — ${m.name}`], ["Bölge", regionOf(m)], ["Marka", m.brand], ["Tabanca Kodu", m.gunCode], [],
-                ["Pin", "Grup", "Sinyal", "Açıklama", "Kablo / Adres"], ...m.pins.map(p => [p.pin, p.group, p.sig, p.desc, p.addr])];
+  const rows = [["Makine", `${m.code} — ${m.name}`], ["Bölge", regionOf(m)], ["Marka", m.brand], ["Tabanca Kodu", m.gunCode], ["Soket", CONNECTORS[connectorOf(m.brand)]], [],
+                ["Pin", "Grup", "Sinyal", "Açıklama", "Kablo / Adres", "Kablo"], ...m.pins.map(p => [p.pin, p.group, p.sig, p.desc, p.addr, wireSummary(p)])];
   download(toCSV(rows), `${m.code || "makine"}_pinler.csv`, "text/csv;charset=utf-8");
 }
 
@@ -796,9 +1152,20 @@ function renderBrands() {
 
   const b = ui.brand;
   if (!b) { $("templateContent").innerHTML = ""; return; }
-  const idx = brands().indexOf(b);
+  const idx = brands().indexOf(b), bi = db.brandInfo[b] || {}, type = bi.connector || "";
   const machines = db.machines.filter(m => m.brand === b);
   $("templateContent").innerHTML = `
+    <div class="panel">
+      <div class="panel-title"><span>${esc(b)} — Soket Tipi & Görsel</span></div>
+      <div class="row" style="margin-bottom:10px">
+        <label class="muted">Soket tipi<br><select data-bf="connector">${Object.entries(CONNECTORS).map(([k, v]) => `<option value="${k}" ${k === type ? "selected" : ""}>${esc(v)}</option>`).join("")}</select></label>
+        <span class="muted" style="flex:1 1 260px">Soket tipi bu markanın tüm makinelerinde şemayı belirler. Gerçek soketinize uygun olanı seçin; emin değilseniz kılavuza bakın.</span>
+      </div>
+      <div class="brand-grid">
+        <div>${type ? connectorSVG(type, db.templates[b], DEFAULT_SHELL, "front", null, false) : `<div class="empty">Soket tipi seçilince şema burada görünür.</div>`}</div>
+        <div>${imgBox(bi.image, "b:" + idx, "")}</div>
+      </div>
+    </div>
     <div class="panel">
       <div class="panel-title"><span>${esc(b)} — Pin Şablonu (${db.templates[b].length} pin)</span>
         <span class="row">
@@ -822,9 +1189,9 @@ function addBrand() {
   const name = $("newBrandName").value.trim();
   if (!name) return;
   if (brands().some(b => b.toLocaleLowerCase("tr") === name.toLocaleLowerCase("tr"))) { alert("Bu marka zaten var."); return; }
-  db.templates[name] = [];
+  db.templates[name] = []; db.brandInfo[name] = { connector: "", image: "" };
   ui.brand = name; saveUI(); $("newBrandName").value = "";
-  changed(); render(); toast(`${name} eklendi. Şimdi pinlerini tanımlayabilirsin.`);
+  changed(); render(); toast(`${name} eklendi. Şimdi soket tipini ve pinlerini tanımlayabilirsin.`);
 }
 function renameBrand() {
   const old = ui.brand, name = (prompt("Yeni marka adı:", old) || "").trim();
@@ -832,6 +1199,7 @@ function renameBrand() {
   if (brands().includes(name)) { alert("Bu marka zaten var."); return; }
   const t = {}; for (const b of brands()) t[b === old ? name : b] = db.templates[b];
   db.templates = t;
+  if (db.brandInfo[old]) { db.brandInfo[name] = db.brandInfo[old]; delete db.brandInfo[old]; }
   db.machines.forEach(m => { if (m.brand === old) m.brand = name; });
   ui.brand = name; saveUI(); changed(); render();
 }
@@ -839,36 +1207,55 @@ function deleteBrand() {
   const b = ui.brand, n = db.machines.filter(m => m.brand === b).length;
   if (n) { alert(`Bu markayı kullanan ${n} makine var. Önce o makinelerin markasını değiştirin veya silin.`); return; }
   if (!confirm(`"${b}" markası ve pin şablonu silinsin mi?`)) return;
-  delete db.templates[b]; ui.brand = null; changed(); render();
+  delete db.templates[b]; delete db.brandInfo[b]; ui.brand = null; changed(); render();
 }
 function applyTemplateToAll() {
   const b = ui.brand, list = db.machines.filter(m => m.brand === b);
   if (!list.length) { alert("Bu markaya ait makine yok."); return; }
-  if (!confirm(`Şablon ${list.length} makineye uygulanacak. Aynı pin numarasındaki kablo/adres bilgileri korunur. Devam?`)) return;
-  list.forEach(m => {
-    const old = new Map(m.pins.map(p => [String(p.pin), p.addr]));
-    m.pins = db.templates[b].map(p => ({ ...p, addr: old.get(String(p.pin)) || "" }));
-  });
+  if (!confirm(`Şablon ${list.length} makineye uygulanacak. Aynı pin numarasındaki kablo/adres/renk bilgileri korunur. Devam?`)) return;
+  list.forEach(m => applyTemplateKeeping(m, db.templates[b]));
   changed(); toast(`${list.length} makine güncellendi.`);
 }
 
 /* ================== OLAY YÖNETİMİ ================== */
 document.addEventListener("change", e => {
   const t = e.target, d = t.dataset;
-  if (d.mf) return setMachineField(d.mid, d.mf, t.value);
-  if (d.pf) {
-    const pins = pinsOf(d.ctx); if (!pins) return;
-    pins[+d.i][d.pf] = d.pf === "pin" ? parsePinNo(t.value) : t.value.trim();
-    if (d.pf === "addr") t.closest("tr").classList.toggle("filled", !!t.value.trim());
-    changed();
-    if (d.pf === "addr" && ui.page === "pins") { // rozet sayısını güncelle, odak kaybolmasın
-      const m = getMachine(ui.machineId), s = pinStats(m), bd = document.querySelector("#pinsContent .panel-title .badge");
-      if (bd) { bd.textContent = `${s.filled}/${s.total} PİN ATANMIŞ`; bd.className = "badge " + (s.state === "full" ? "b-green" : s.state === "partial" ? "b-amber" : "b-red"); }
-    }
+  if (t.id === "imgInput") {
+    const file = t.files?.[0], target = pendingImgTarget; t.value = "";
+    if (!file || !target) return;
+    toast("Görsel yükleniyor...");
+    uploadImage(file, imgTargetName(target)).then(path => {
+      if (!path) return;
+      imgTargetSet(target, path); changed(); render(); toast("Görsel eklendi.");
+    });
     return;
   }
-  if (t.id === "pinMachineSelect") { ui.machineId = t.value; saveUI(); render(); }
+  if (d.mf) return setMachineField(d.mid, d.mf, t.value);
+  if (d.bf) { (db.brandInfo[ui.brand] ||= { connector: "", image: "" })[d.bf] = t.value; changed(); return renderBrands(); }
+  if (d.pf) {
+    const pins = pinsOf(d.ctx); if (!pins) return;
+    const p = pins[+d.i];
+    p[d.pf] = d.pf === "pin" ? parsePinNo(t.value) : t.value.trim();
+    changed();
+    if (!d.ctx.startsWith("m:")) { if (d.pf === "pin") renderBrands(); return; }
+    if (["wireType", "color", "color2"].includes(d.pf)) { ui.selPin = String(p.pin); return renderPins(); }
+    // metin alanı: odağı kaybetmemek için sadece şemayı, satır rengini ve rozeti güncelle
+    const tr = t.closest("tr"); tr.classList.toggle("used", isPinUsed(p)); tr.dataset.rowpin = p.pin;
+    renderPinDiagram();
+    const s = pinStats(getMachine(ui.machineId)), bd = $("pinBadge");
+    if (bd) { bd.textContent = `${s.filled}/${s.total} PİN ATANMIŞ`; bd.className = "badge " + (s.state === "full" ? "b-green" : s.state === "partial" ? "b-amber" : "b-red"); }
+    return;
+  }
+  if (t.id === "pinMachineSelect") { ui.machineId = t.value; ui.selPin = null; saveUI(); render(); }
   if (["fRegion", "fBrand", "fPin"].includes(t.id)) renderMachines();
+});
+
+// tablodaki bir satıra girince şemada o pini işaretle
+document.addEventListener("focusin", e => {
+  const d = e.target.dataset;
+  if (!d?.ctx?.startsWith("m:") || d.i === undefined) return;
+  const p = pinsOf(d.ctx)?.[+d.i];
+  if (p && String(p.pin) !== ui.selPin) selectPin(p.pin, false);
 });
 
 document.addEventListener("input", e => {
@@ -880,26 +1267,37 @@ document.addEventListener("keydown", e => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); document.activeElement?.blur(); saveNow(); }
   if (e.key === "Enter" && ["nmName", "nmCode", "nmGun", "nmRegion"].includes(e.target.id)) addMachine();
   if (e.key === "Enter" && e.target.id === "newBrandName") addBrand();
-  if (e.key === "Enter" && e.target.dataset.pf) {   // Enter → alttaki satırın aynı hücresine geç
+  if (e.key === "Enter" && e.target.id === "ncName") addColor();
+  if (e.key === "Enter" && e.target.tagName === "INPUT" && e.target.dataset.pf) {   // Enter → alttaki satırın aynı hücresine geç
     const next = document.querySelector(`[data-ctx="${e.target.dataset.ctx}"][data-i="${+e.target.dataset.i + 1}"][data-pf="${e.target.dataset.pf}"]`);
-    e.target.blur(); if (next) { next.focus(); next.select(); }
+    e.target.blur(); if (next) { next.focus(); next.select?.(); }
   }
 });
 
 document.addEventListener("click", e => {
+  const g = e.target.closest("[data-svgpin]");
+  if (g && g.closest("#pinsContent")) return selectPin(g.dataset.svgpin, true);
   const t = e.target.closest("button, .stat"); if (!t) return;
   const d = t.dataset;
   if (d.page) return openPage(d.page);
   if (d.goto) { if (d.pinfilter !== undefined) { $("fPin").value = d.pinfilter; } return openPage(d.goto); }
-  if (d.openpins) { ui.machineId = d.openpins; return openPage("pins"); }
+  if (d.openpins) { ui.machineId = d.openpins; ui.selPin = null; return openPage("pins"); }
   if (d.dup) return duplicateMachine(d.dup);
   if (d.delm) return deleteMachine(d.delm);
+  if (d.view) { ui.view = d.view; saveUI(); return renderPins(); }
+  if (d.brandgo !== undefined) { ui.brand = brands()[+d.brandgo] || ui.brand; return openPage("brands"); }
+  if (d.imgup) { pendingImgTarget = d.imgup; return $("imgInput").click(); }
+  if (d.imgdel) {
+    if (!confirm("Görsel bu kayıttan kaldırılsın mı? (Dosya klasörde kalır.)")) return;
+    imgTargetSet(d.imgdel, ""); changed(); return render();
+  }
   if (d.brand !== undefined) { ui.brand = brands()[+d.brand]; saveUI(); return render(); }
   if (d.ctx) {
     const pins = pinsOf(d.ctx); if (!pins) return;
     if (d.padd) {
       const last = pins[pins.length - 1];
-      pins.push({ pin: last && typeof last.pin === "number" ? last.pin + 1 : "", group: last?.group || "", sig: "", desc: "", addr: "" });
+      pins.push({ pin: last && typeof last.pin === "number" ? last.pin + 1 : "", group: last?.group || "", sig: "", desc: "", addr: "",
+                  wireType: "single", color: "Boş", color2: "Beyaz", wireNo: "" });
     } else if (d.pdel !== undefined) {
       const p = pins[+d.pdel];
       if (!confirm(`Pin ${p.pin} (${p.sig || "-"}) silinsin mi?`)) return;
