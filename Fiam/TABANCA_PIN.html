@@ -704,11 +704,37 @@ async function fileSave(data, force) {
   return { ok: true, rev: out._rev, updatedAt: out.updatedAt };
 }
 
+const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+/* Klasöre kaydedilemeyen durumlarda: güncel veri dosyalarını indir, kullanıcı src klasörüne koysun */
+function downloadDataFiles() {
+  const out = { ...db, updatedAt: new Date().toISOString() };
+  const json = JSON.stringify(out, null, 2);
+  download(json, DATA_NAME, "application/json");
+  setTimeout(() => download("// Otomatik oluşturulur, elle düzenlemeyin. Asıl veri: " + DATA_NAME + "\nwindow.TABANCA_VERI = " + json + ";\n", "veri.js", "text/javascript"), 400);
+  toast("⬇️ 2 dosya indirildi: " + DATA_NAME + " ve veri.js");
+}
+function showFolderHelp(kind, err) {
+  const why = kind === "unsupported"
+    ? (IS_MOBILE
+        ? "Telefon ve tablet tarayıcıları, web sayfasının klasöre dosya yazmasına <b>izin vermiyor</b>. Bu yüzden klasör seçme penceresi açılmıyor."
+        : "Bu tarayıcı klasöre dosya yazmayı <b>desteklemiyor</b> (ör. Firefox, Safari, Brave).")
+    : `Klasör seçme penceresi açılamadı. Tarayıcı veya şirket ayarları buna izin vermiyor olabilir.${err ? `<br><span class="muted">(${esc(err.name)}: ${esc(err.message)})</span>` : ""}`;
+  openModal(`<div class="modal-icon">${IS_MOBILE ? "📱" : "📁"}</div><h2>Klasöre kaydedilemiyor</h2>
+    <div class="help" style="text-align:left;font-size:14px">${why}<br><br>
+      ✅ Yaptığın değişiklikler <b>bu tarayıcıda saklanıyor</b>, kaybolmaz.<br><br>
+      <b>Ne yapabilirsin?</b><br>
+      1️⃣ Sayfayı <b>bilgisayarda Chrome veya Edge</b> ile aç, <b>📁 Klasöre bağlan</b>'a bas ve <b>src</b> klasörünü seç.<br>
+      2️⃣ Ya da <b>⬇️ Dosyaları indir</b>'e bas; inen <b>${DATA_NAME}</b> ve <b>veri.js</b> dosyalarını bilgisayarda <b>Fiam/src</b> klasörüne, eskilerinin yerine koy.<br>
+      3️⃣ Telefondan da düzenlemek istiyorsan sayfayı <b>PHP'li bir sunucuya</b> koymak gerekir; o zaman klasör seçmeye gerek kalmaz.</div>
+    <div class="modal-actions" style="margin-top:14px"><button id="fhClose">Kapat</button><button class="btn-add" id="fhDl">⬇️ Dosyaları indir</button></div>`);
+  $("fhClose").onclick = () => closeModal();
+  $("fhDl").onclick = () => { downloadDataFiles(); closeModal(); };
+}
+
 async function connectFolder() {
-  if (!window.showDirectoryPicker) {
-    alert("Bu tarayıcı dosyaya doğrudan yazmayı desteklemiyor.\nLütfen sayfayı Google Chrome veya Microsoft Edge ile açın.");
-    return;
-  }
+  if (!window.showDirectoryPicker) return showFolderHelp("unsupported");
+  const started = Date.now();
   try {
     if (!(dirHandle && (await dirHandle.requestPermission({ mode: "readwrite" })) === "granted")) {
       let h = await window.showDirectoryPicker({ id: "tabanca", mode: "readwrite" });
@@ -728,7 +754,8 @@ async function connectFolder() {
     else { render(); changed(); }
     toast("Klasöre bağlandı. Değişiklikler artık dosyaya kaydediliyor.");
   } catch (e) {
-    if (e.name !== "AbortError") alert("Klasöre bağlanılamadı: " + e.message);
+    // Kullanıcı pencereyi kapattıysa sessiz geç; pencere hiç açılmadan anında hata geldiyse açıkla
+    if (e.name !== "AbortError" || Date.now() - started < 700) showFolderHelp("error", e);
     updateStatus();
   }
 }
@@ -859,9 +886,11 @@ function updateStatus() {
     $("fileBannerText").innerHTML = window.showDirectoryPicker
       ? `📁 <b>Kaydetmek için bir kez klasör seçmen gerekiyor.</b> Butona bas ve <b>src</b> klasörünü seç.` +
         (dirty ? ` <span style="color:#FCD34D">Kaydedilmemiş değişikliklerin bu tarayıcıda bekliyor.</span>` : "")
-      : `<b>Bu tarayıcı dosyaya doğrudan yazamıyor.</b> Kaydetmek için sayfayı <b>Chrome</b> veya <b>Edge</b> ile aç. ` +
-        `(Değişiklikler bu tarayıcıda saklanır; "Veri / Yedek" sayfasından JSON indirebilirsin.)`;
-    $("fileBannerBtn").style.display = window.showDirectoryPicker ? "" : "none";
+      : (IS_MOBILE ? "📱 <b>Telefonda klasöre kaydedilemiyor.</b> " : "<b>Bu tarayıcı klasöre kaydedemiyor.</b> ") +
+        `Değişiklikler bu tarayıcıda saklanıyor. Kalıcı kaydetmek için bilgisayarda <b>Chrome / Edge</b> kullan ya da dosyaları indirip <b>src</b> klasörüne koy.`;
+    const fb = $("fileBannerBtn");
+    fb.textContent = window.showDirectoryPicker ? "📁 Klasöre bağlan" : "⬇️ Dosyaları indir";
+    fb.onclick = window.showDirectoryPicker ? connectFolder : downloadDataFiles;
   }
 
   const m = getMachine(ui.machineId);
