@@ -22,7 +22,9 @@ Bundan sonra yapılan her değişiklik doğrudan `Fiam/src/tabanca_makine_verile
   Sütun başlığına tıklayınca sıralanır, bölge düğmeleriyle süzülür, **🖨️ Listeyi yazdır** ile çıktısı alınır. İstenirse kart görünümüne geçilir.
 - Düzenleme modunda iki adım vardır:
   1. **➕ Makine ekle** — sadece bölge, kod ve ad girilir (bölge listeden seçilebilir).
-  2. **🔫 Makineye tabanca ata** — makine listeden seçilir, marka ve tabanca kodu girilir; markanın uç listesi makineye kendiliğinden gelir.
+  2. **🔫 Makineye tabanca ata** — ① bölge seçilir, ② o bölgenin makineleri listelenir ve makine seçilir (istenirse sadece tabancası olmayanlar),
+     ③ marka ve tabanca kodu girilir. **Ata ve şemayı aç** deyince markanın uç listesi makineye gelir ve bağlantı şeması hemen açılır.
+- Yeni makine eklerken marka da seçilirse makine eklenir, tabanca atanır ve bağlantı şeması tek adımda açılır.
 - Tabancası olmayan makineler listede **🔫 Tabanca yok** olarak görünür ve filtrelenebilir.
 - Fabrikadaki **290 makine** (`MAKINELER_2026.xlsx`) listeye yüklendi; Excel'deki "Kritik = EVET" olanlar **⚠️ Kritik** olarak görünür ve süzülebilir.
 - **Yeni makine geldiğinde:** düzenleme modunda **➕ Makine ekle** ile tek tek, ya da **⬆️ Excel'den makine yükle** ile toplu eklenir.
@@ -84,7 +86,7 @@ Hepsi **Markalar & Şablonlar** sayfasından değiştirilebilir, pin eklenip sil
 
 - **Markalar & Şablonlar** sayfasında her markaya soket tipi seçilir: D-Sub 9/15/25/37, klemens sırası veya dairesel (şematik).
   Seçilen tipe göre **Pin & Bağlantı** sayfasında soketin çizimi otomatik oluşur.
-- D-Sub soketlerde **Arka (lehim)**, **Ön (fiş)** veya **Ön + Arka** görünümü seçilebilir.
+- Bütün soketler sadece **arka (kablo / lehim) tarafından** çizilir; PDF ve yazdırmada da yalnız arka görünüm çıkar.
 - **Klemens blokları** (Desoutter, Kilews gibi): markaya istediğin kadar blok tanımlanır (örn. `INPUT`, `OUTPUT`),
   her bloğa klemens etiketleri sırayla yazılır (`GND, +24V, 0VE, STOP, n.c., 1-8`), yerleşim dikey veya yatay seçilir.
   Şemada her klemensin yanında İngilizce sinyal adı ve Türkçe açıklaması görünür. Pin tablosundaki **Blok** sütunu pinin hangi bloğa ait olduğunu belirler.
