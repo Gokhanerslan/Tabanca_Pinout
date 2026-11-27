@@ -5,129 +5,211 @@ window.TABANCA_VERI = {
   "templates": {
     "Desoutter": [
       {
-        "pin": 1,
-        "group": "INPUT",
+        "pin": "GND",
+        "block": "INPUT",
+        "group": "BESLEME",
         "sig": "GND",
-        "desc": "Giriş GND",
+        "desc": "Giriş GND (0V)",
         "addr": ""
       },
       {
-        "pin": 2,
-        "group": "INPUT",
+        "pin": "+24V",
+        "block": "INPUT",
+        "group": "BESLEME",
         "sig": "+24V",
-        "desc": "Giriş +24V",
+        "desc": "+24V besleme (STOP kontağı buradan)",
         "addr": ""
       },
       {
-        "pin": 3,
-        "group": "INPUT",
+        "pin": "0VE",
+        "block": "INPUT",
+        "group": "BESLEME",
         "sig": "0VE",
-        "desc": "Harici Besleme 0V Ortak",
+        "desc": "Harici 0V ortak — panodan gelen (-) ile köprüle",
         "addr": ""
       },
       {
-        "pin": 4,
-        "group": "INPUT",
+        "pin": "STOP",
+        "block": "INPUT",
+        "group": "GİRİŞ",
         "sig": "STOP",
-        "desc": "Durdurma Girişi",
+        "desc": "Durdurma girişi (+24V – STOP arası kontak)",
         "addr": ""
       },
       {
-        "pin": 6,
-        "group": "INPUT IN1",
+        "pin": "n.c.",
+        "block": "INPUT",
+        "group": "—",
+        "sig": "n.c.",
+        "desc": "Bağlantı yok",
+        "addr": ""
+      },
+      {
+        "pin": "1",
+        "block": "INPUT",
+        "group": "GİRİŞ",
         "sig": "CYC1",
-        "desc": "Çevrim / Program Seçimi 1",
+        "desc": "Program seçimi 1",
         "addr": ""
       },
       {
-        "pin": 7,
-        "group": "INPUT IN2",
+        "pin": "2",
+        "block": "INPUT",
+        "group": "GİRİŞ",
         "sig": "CYC2",
-        "desc": "Çevrim / Program Seçimi 2",
+        "desc": "Program seçimi 2",
         "addr": ""
       },
       {
-        "pin": 8,
-        "group": "INPUT IN3",
+        "pin": "3",
+        "block": "INPUT",
+        "group": "GİRİŞ",
         "sig": "CYC4",
-        "desc": "Çevrim / Program Seçimi 4",
+        "desc": "Program seçimi 4",
         "addr": ""
       },
       {
-        "pin": 9,
-        "group": "INPUT IN4",
+        "pin": "4",
+        "block": "INPUT",
+        "group": "GİRİŞ",
         "sig": "VALSP",
-        "desc": "Sıkma Onay / Start İzni",
+        "desc": "Sıkma izni — sinyal gelince çalış komutu",
         "addr": ""
       },
       {
-        "pin": 10,
-        "group": "INPUT IN5",
+        "pin": "5",
+        "block": "INPUT",
+        "group": "GİRİŞ",
         "sig": "ACKNOW",
-        "desc": "Hata / Uyarı Onayı",
+        "desc": "Hata / uyarı onayı",
         "addr": ""
       },
       {
-        "pin": 11,
-        "group": "INPUT IN6",
+        "pin": "6",
+        "block": "INPUT",
+        "group": "GİRİŞ",
         "sig": "SCY",
-        "desc": "Çevrim Başlatma",
+        "desc": "Çevrim başlatma",
         "addr": ""
       },
       {
-        "pin": 12,
-        "group": "INPUT IN7",
+        "pin": "7",
+        "block": "INPUT",
+        "group": "GİRİŞ",
         "sig": "DIR",
-        "desc": "Dönüş Yönü Seçimi",
+        "desc": "Dönüş yönü seçimi",
         "addr": ""
       },
       {
-        "pin": 13,
-        "group": "INPUT IN8",
+        "pin": "8",
+        "block": "INPUT",
+        "group": "GİRİŞ",
         "sig": "RESET",
-        "desc": "Sıfırlama Girişi",
+        "desc": "Sıfırlama",
         "addr": ""
       },
       {
-        "pin": 17,
-        "group": "OUTPUT",
+        "pin": "GND",
+        "block": "OUTPUT",
+        "group": "BESLEME",
+        "sig": "GND",
+        "desc": "Çıkış GND (0V)",
+        "addr": ""
+      },
+      {
+        "pin": "+24V",
+        "block": "OUTPUT",
+        "group": "BESLEME",
+        "sig": "+24V",
+        "desc": "+24V besleme",
+        "addr": ""
+      },
+      {
+        "pin": "0VE",
+        "block": "OUTPUT",
+        "group": "BESLEME",
+        "sig": "0VE",
+        "desc": "Harici 0V ortak — giriş 0VE ile köprülü",
+        "addr": ""
+      },
+      {
+        "pin": "COM1",
+        "block": "OUTPUT",
+        "group": "ORTAK",
         "sig": "COM1",
-        "desc": "Çıkış Ortak Ucu 1",
+        "desc": "Çıkış 1–4 ortak ucu",
         "addr": ""
       },
       {
-        "pin": 21,
-        "group": "OUTPUT OUT4",
+        "pin": "1",
+        "block": "OUTPUT",
+        "group": "ÇIKIŞ",
+        "sig": "CYC1",
+        "desc": "Seçili program geri bildirimi 1",
+        "addr": ""
+      },
+      {
+        "pin": "2",
+        "block": "OUTPUT",
+        "group": "ÇIKIŞ",
+        "sig": "CYC2",
+        "desc": "Seçili program geri bildirimi 2",
+        "addr": ""
+      },
+      {
+        "pin": "3",
+        "block": "OUTPUT",
+        "group": "ÇIKIŞ",
+        "sig": "CYC4",
+        "desc": "Seçili program geri bildirimi 4",
+        "addr": ""
+      },
+      {
+        "pin": "4",
+        "block": "OUTPUT",
+        "group": "ÇIKIŞ",
         "sig": "READY",
-        "desc": "Sistem Hazır",
+        "desc": "Sistem hazır",
         "addr": ""
       },
       {
-        "pin": 22,
-        "group": "OUTPUT OUT5",
+        "pin": "5",
+        "block": "OUTPUT",
+        "group": "ÇIKIŞ",
         "sig": "INCYC",
-        "desc": "Sıkma Devam Ediyor",
+        "desc": "Sıkma devam ediyor",
         "addr": ""
       },
       {
-        "pin": 23,
-        "group": "OUTPUT OUT6",
+        "pin": "6",
+        "block": "OUTPUT",
+        "group": "ÇIKIŞ",
         "sig": "ACCRP",
-        "desc": "Sıkma Kabul / OK",
+        "desc": "Sıkma OK",
         "addr": ""
       },
       {
-        "pin": 24,
-        "group": "OUTPUT OUT7",
+        "pin": "7",
+        "block": "OUTPUT",
+        "group": "ÇIKIŞ",
         "sig": "REJRP",
-        "desc": "Sıkma Red / NOK",
+        "desc": "Sıkma NOK",
         "addr": ""
       },
       {
-        "pin": 25,
-        "group": "OUTPUT OUT8",
-        "sig": "NCYOK / COM2",
-        "desc": "Toplu Çevrim OK / Çıkış Ortak 2",
+        "pin": "8",
+        "block": "OUTPUT",
+        "group": "ÇIKIŞ",
+        "sig": "NCYOK",
+        "desc": "Toplu çevrim OK",
+        "addr": ""
+      },
+      {
+        "pin": "COM2",
+        "block": "OUTPUT",
+        "group": "ORTAK",
+        "sig": "COM2",
+        "desc": "Çıkış 5–8 ortak ucu — +24V verilecek",
         "addr": ""
       }
     ],
@@ -137,404 +219,669 @@ window.TABANCA_VERI = {
         "group": "OUTPUTS (A)",
         "sig": "Run",
         "desc": "Çalışıyor",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 2,
         "group": "OUTPUTS (A)",
         "sig": "Screw OK",
         "desc": "Vida Tamam",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 3,
         "group": "OUTPUTS (A)",
         "sig": "Ready",
         "desc": "Hazır",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 4,
         "group": "OUTPUTS (A)",
         "sig": "Reject",
         "desc": "Red",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 5,
         "group": "OUTPUTS (A)",
         "sig": "Screw NOK",
         "desc": "Vida Hatalı",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 6,
         "group": "OUTPUTS (A)",
         "sig": "Prg bit0",
         "desc": "Program bitleri",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 7,
         "group": "OUTPUTS (A)",
         "sig": "Prg bit1",
         "desc": "Program bitleri",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 8,
         "group": "OUTPUTS (A)",
         "sig": "Prg bit2",
         "desc": "Program bitleri",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 9,
         "group": "GROUND (C)",
         "sig": "Inputs Com",
         "desc": "Girişler Ortak (-)",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 10,
         "group": "GROUND (C)",
         "sig": "Inputs Com",
         "desc": "Girişler Ortak (-)",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 11,
         "group": "GROUND (C)",
         "sig": "Inputs Com",
         "desc": "Girişler Ortak (-)",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 12,
         "group": "GROUND (C)",
         "sig": "Inputs Com",
         "desc": "Girişler Ortak (-)",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 13,
         "group": "GROUND (C)",
         "sig": "Inputs Com",
         "desc": "Girişler Ortak (-)",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 14,
         "group": "INPUTS (B)",
         "sig": "Tighten",
         "desc": "Sıkma",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 15,
         "group": "INPUTS (B)",
         "sig": "Untighten",
         "desc": "Gevşetme",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 16,
         "group": "INPUTS (B)",
         "sig": "Stop",
         "desc": "Durdurma",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 17,
         "group": "INPUTS (B)",
         "sig": "Unlock",
         "desc": "Kilit Açma",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 18,
         "group": "INPUTS (B)",
         "sig": "Sel. Seq",
         "desc": "Sekans Seçimi",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 19,
         "group": "INPUTS (B)",
         "sig": "Prg bit0",
         "desc": "Program bitleri",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 20,
         "group": "INPUTS (B)",
         "sig": "Prg bit1",
         "desc": "Program bitleri",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 21,
         "group": "INPUTS (B)",
         "sig": "Prg bit2",
         "desc": "Program bitleri",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 22,
         "group": "+24V (D)",
         "sig": "Outputs Com",
         "desc": "Çıkışlar Ortak (+24V)",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 23,
         "group": "+24V (D)",
         "sig": "Outputs Com",
         "desc": "Çıkışlar Ortak (+24V)",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 24,
         "group": "+24V (D)",
         "sig": "Outputs Com",
         "desc": "Çıkışlar Ortak (+24V)",
-        "addr": ""
+        "addr": "",
+        "block": ""
       },
       {
         "pin": 25,
         "group": "+24V (D)",
         "sig": "Outputs Com",
         "desc": "Çıkışlar Ortak (+24V)",
-        "addr": ""
+        "addr": "",
+        "block": ""
       }
     ],
     "Doğa": [
       {
         "pin": 1,
-        "group": "INPUT",
+        "block": "",
+        "group": "GİRİŞ",
         "sig": "Torque select IN1",
-        "desc": "Tork Seçimi IN1",
+        "desc": "Tork seçimi 1",
         "addr": ""
       },
       {
         "pin": 2,
-        "group": "INPUT",
+        "block": "",
+        "group": "GİRİŞ",
         "sig": "Torque select IN2",
-        "desc": "Tork Seçimi IN2",
+        "desc": "Tork seçimi 2",
+        "addr": ""
+      },
+      {
+        "pin": 3,
+        "block": "",
+        "group": "GİRİŞ",
+        "sig": "Torque select IN3",
+        "desc": "Tork seçimi 3",
         "addr": ""
       },
       {
         "pin": 4,
-        "group": "INPUT",
+        "block": "",
+        "group": "GİRİŞ",
         "sig": "START",
-        "desc": "Başlatma",
+        "desc": "Başlat",
         "addr": ""
       },
       {
         "pin": 5,
-        "group": "INPUT",
+        "block": "",
+        "group": "GİRİŞ",
         "sig": "LOCK",
-        "desc": "Kilitleme",
+        "desc": "Kilit",
         "addr": ""
       },
       {
         "pin": 6,
-        "group": "INPUT",
+        "block": "",
+        "group": "GİRİŞ",
         "sig": "F/R",
-        "desc": "İleri / Geri Yön",
+        "desc": "İleri / geri (ileri 0, geri 1)",
+        "addr": ""
+      },
+      {
+        "pin": 7,
+        "block": "",
+        "group": "GİRİŞ",
+        "sig": "Model select IN3 / Screw type",
+        "desc": "Model seçimi 3 veya vida yönü (saat yönü 0, ters 1)",
+        "addr": ""
+      },
+      {
+        "pin": 8,
+        "block": "",
+        "group": "GİRİŞ",
+        "sig": "Torque select IN4",
+        "desc": "Tork seçimi 4 (çoklu sekans)",
         "addr": ""
       },
       {
         "pin": 9,
-        "group": "INPUT",
-        "sig": "Reset",
-        "desc": "Sıfırlama",
+        "block": "",
+        "group": "GİRİŞ",
+        "sig": "Reset / Work-piece OUT",
+        "desc": "Reset (çevrim dahil) veya parça alandan çıktı (P76 = 3)",
+        "addr": ""
+      },
+      {
+        "pin": 10,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "Error code OUT1",
+        "desc": "Hata kodu 1",
+        "addr": ""
+      },
+      {
+        "pin": 11,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "Error code OUT2",
+        "desc": "Hata kodu 2",
+        "addr": ""
+      },
+      {
+        "pin": 12,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "Error code OUT3",
+        "desc": "Hata kodu 3",
+        "addr": ""
+      },
+      {
+        "pin": 13,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "Error code OUT4",
+        "desc": "Hata kodu 4",
+        "addr": ""
+      },
+      {
+        "pin": 14,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "F/R status OUT",
+        "desc": "İleri / geri durumu (ileri 0, geri 1)",
+        "addr": ""
+      },
+      {
+        "pin": 15,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "Torque up",
+        "desc": "Torka ulaşıldı",
+        "addr": ""
+      },
+      {
+        "pin": 16,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "Motor run OUT",
+        "desc": "Motor çalışıyor",
         "addr": ""
       },
       {
         "pin": 17,
-        "group": "OUTPUT",
+        "block": "",
+        "group": "ÇIKIŞ",
         "sig": "READY",
-        "desc": "Hazır Çıkışı",
+        "desc": "Hazır",
         "addr": ""
       },
       {
         "pin": 18,
-        "group": "OUTPUT",
+        "block": "",
+        "group": "ÇIKIŞ",
         "sig": "ALARM (NG)",
-        "desc": "Alarm / Hata Çıkışı",
+        "desc": "Alarm (NOK)",
+        "addr": ""
+      },
+      {
+        "pin": 19,
+        "block": "",
+        "group": "GİRİŞ",
+        "sig": "Work-piece IN",
+        "desc": "Parça alana girdi",
+        "addr": ""
+      },
+      {
+        "pin": 20,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "Cycle count complete",
+        "desc": "Sayım tamamlandı",
         "addr": ""
       },
       {
         "pin": 21,
-        "group": "COMMON",
+        "block": "",
+        "group": "ORTAK",
         "sig": "Output COM",
-        "desc": "Çıkış Ortak Ucu",
+        "desc": "Çıkış ortak",
         "addr": ""
       },
       {
         "pin": 22,
-        "group": "COMMON",
+        "block": "",
+        "group": "ORTAK",
         "sig": "Input COM",
-        "desc": "Giriş Ortak Ucu",
+        "desc": "Giriş ortak",
+        "addr": ""
+      },
+      {
+        "pin": 23,
+        "block": "",
+        "group": "GİRİŞ",
+        "sig": "Model select IN1",
+        "desc": "Model seçimi 1",
+        "addr": ""
+      },
+      {
+        "pin": 24,
+        "block": "",
+        "group": "GİRİŞ",
+        "sig": "Model select IN2",
+        "desc": "Model seçimi 2",
         "addr": ""
       },
       {
         "pin": 25,
-        "group": "OUTPUT",
+        "block": "",
+        "group": "ÇIKIŞ",
         "sig": "Fastening OK OUT",
-        "desc": "Sıkma Başarılı Çıkışı",
+        "desc": "Sıkma OK",
         "addr": ""
       }
     ],
     "Sehan": [
       {
         "pin": 1,
-        "group": "INPUT",
+        "block": "",
+        "group": "GİRİŞ",
         "sig": "Torque select IN1",
-        "desc": "Tork Seçimi IN1",
+        "desc": "Tork seçimi 1",
         "addr": ""
       },
       {
         "pin": 2,
-        "group": "INPUT",
+        "block": "",
+        "group": "GİRİŞ",
         "sig": "Torque select IN2",
-        "desc": "Tork Seçimi IN2",
+        "desc": "Tork seçimi 2",
+        "addr": ""
+      },
+      {
+        "pin": 3,
+        "block": "",
+        "group": "GİRİŞ",
+        "sig": "Torque select IN3",
+        "desc": "Tork seçimi 3",
         "addr": ""
       },
       {
         "pin": 4,
-        "group": "INPUT",
+        "block": "",
+        "group": "GİRİŞ",
         "sig": "START",
-        "desc": "Başlatma",
+        "desc": "Başlat",
         "addr": ""
       },
       {
         "pin": 5,
-        "group": "INPUT",
+        "block": "",
+        "group": "GİRİŞ",
         "sig": "LOCK",
-        "desc": "Kilitleme",
+        "desc": "Kilit",
         "addr": ""
       },
       {
         "pin": 6,
-        "group": "INPUT",
+        "block": "",
+        "group": "GİRİŞ",
         "sig": "F/R",
-        "desc": "İleri / Geri Yön",
+        "desc": "İleri / geri (ileri 0, geri 1)",
+        "addr": ""
+      },
+      {
+        "pin": 7,
+        "block": "",
+        "group": "GİRİŞ",
+        "sig": "Model select IN3 / Screw type",
+        "desc": "Model seçimi 3 veya vida yönü (saat yönü 0, ters 1)",
+        "addr": ""
+      },
+      {
+        "pin": 8,
+        "block": "",
+        "group": "GİRİŞ",
+        "sig": "Torque select IN4",
+        "desc": "Tork seçimi 4 (çoklu sekans)",
         "addr": ""
       },
       {
         "pin": 9,
-        "group": "INPUT",
-        "sig": "Reset",
-        "desc": "Sıfırlama",
+        "block": "",
+        "group": "GİRİŞ",
+        "sig": "Reset / Work-piece OUT",
+        "desc": "Reset (çevrim dahil) veya parça alandan çıktı (P76 = 3)",
+        "addr": ""
+      },
+      {
+        "pin": 10,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "Error code OUT1",
+        "desc": "Hata kodu 1",
+        "addr": ""
+      },
+      {
+        "pin": 11,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "Error code OUT2",
+        "desc": "Hata kodu 2",
+        "addr": ""
+      },
+      {
+        "pin": 12,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "Error code OUT3",
+        "desc": "Hata kodu 3",
+        "addr": ""
+      },
+      {
+        "pin": 13,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "Error code OUT4",
+        "desc": "Hata kodu 4",
+        "addr": ""
+      },
+      {
+        "pin": 14,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "F/R status OUT",
+        "desc": "İleri / geri durumu (ileri 0, geri 1)",
+        "addr": ""
+      },
+      {
+        "pin": 15,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "Torque up",
+        "desc": "Torka ulaşıldı",
+        "addr": ""
+      },
+      {
+        "pin": 16,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "Motor run OUT",
+        "desc": "Motor çalışıyor",
         "addr": ""
       },
       {
         "pin": 17,
-        "group": "OUTPUT",
+        "block": "",
+        "group": "ÇIKIŞ",
         "sig": "READY",
-        "desc": "Hazır Çıkışı",
+        "desc": "Hazır",
         "addr": ""
       },
       {
         "pin": 18,
-        "group": "OUTPUT",
+        "block": "",
+        "group": "ÇIKIŞ",
         "sig": "ALARM (NG)",
-        "desc": "Alarm / Hata Çıkışı",
+        "desc": "Alarm (NOK)",
+        "addr": ""
+      },
+      {
+        "pin": 19,
+        "block": "",
+        "group": "GİRİŞ",
+        "sig": "Work-piece IN",
+        "desc": "Parça alana girdi",
+        "addr": ""
+      },
+      {
+        "pin": 20,
+        "block": "",
+        "group": "ÇIKIŞ",
+        "sig": "Cycle count complete",
+        "desc": "Sayım tamamlandı",
         "addr": ""
       },
       {
         "pin": 21,
-        "group": "COMMON",
+        "block": "",
+        "group": "ORTAK",
         "sig": "Output COM",
-        "desc": "Çıkış Ortak Ucu",
+        "desc": "Çıkış ortak",
         "addr": ""
       },
       {
         "pin": 22,
-        "group": "COMMON",
+        "block": "",
+        "group": "ORTAK",
         "sig": "Input COM",
-        "desc": "Giriş Ortak Ucu",
+        "desc": "Giriş ortak",
+        "addr": ""
+      },
+      {
+        "pin": 23,
+        "block": "",
+        "group": "GİRİŞ",
+        "sig": "Model select IN1",
+        "desc": "Model seçimi 1",
+        "addr": ""
+      },
+      {
+        "pin": 24,
+        "block": "",
+        "group": "GİRİŞ",
+        "sig": "Model select IN2",
+        "desc": "Model seçimi 2",
         "addr": ""
       },
       {
         "pin": 25,
-        "group": "OUTPUT",
+        "block": "",
+        "group": "ÇIKIŞ",
         "sig": "Fastening OK OUT",
-        "desc": "Sıkma Başarılı Çıkışı",
+        "desc": "Sıkma OK",
         "addr": ""
       }
     ],
     "Kilews": [
       {
-        "pin": 1,
-        "group": "OUTPUT",
-        "sig": "Vdc (+24V / +12V)",
-        "desc": "Kontrolör Voltaj Çıkışı",
+        "pin": "1",
+        "block": "OUTPUT",
+        "group": "BESLEME",
+        "sig": "Vdc",
+        "desc": "+24V çıkışı (varsayılan 24V/50mA, 12V/100mA olabilir)",
         "addr": ""
       },
       {
-        "pin": 2,
-        "group": "OUTPUT",
+        "pin": "2",
+        "block": "OUTPUT",
+        "group": "BESLEME",
         "sig": "GND",
-        "desc": "Güç Çıkışı GND",
+        "desc": "Çıkış besleme GND",
         "addr": ""
       },
       {
-        "pin": 3,
-        "group": "OUTPUT",
-        "sig": "OK / Output Ch1",
-        "desc": "Programlanabilir Çıkış 1",
+        "pin": "3",
+        "block": "OUTPUT",
+        "group": "ÇIKIŞ",
+        "sig": "OUT (örn. OK)",
+        "desc": "Çıkış — durumu ayarlanabilir (OK, NG, Running…)",
         "addr": ""
       },
       {
-        "pin": 4,
-        "group": "OUTPUT",
+        "pin": "4",
+        "block": "OUTPUT",
+        "group": "ORTAK",
         "sig": "COM",
-        "desc": "Çıkış Ortak Ucu",
+        "desc": "3. pin çıkışının ortağı (3+4 kontak)",
         "addr": ""
       },
       {
-        "pin": 5,
-        "group": "OUTPUT",
-        "sig": "NG",
-        "desc": "Hatalı Çıkışı",
+        "pin": "1",
+        "block": "INPUT",
+        "group": "BESLEME",
+        "sig": "V+",
+        "desc": "+24V besleme (CN1)",
         "addr": ""
       },
       {
-        "pin": 7,
-        "group": "OUTPUT",
-        "sig": "Tool Running",
-        "desc": "Motor Çalışıyor",
-        "addr": ""
-      },
-      {
-        "pin": 9,
-        "group": "INPUT",
+        "pin": "3",
+        "block": "INPUT",
+        "group": "GİRİŞ",
         "sig": "START IN",
-        "desc": "Başlatma Girişi",
+        "desc": "Başlat — 3+4 kapalıyken çalışır (örnek)",
         "addr": ""
       },
       {
-        "pin": 10,
-        "group": "INPUT",
+        "pin": "4",
+        "block": "INPUT",
+        "group": "ORTAK",
         "sig": "GND",
-        "desc": "Giriş Referans GND",
+        "desc": "GND (giriş ortağı)",
         "addr": ""
       },
       {
-        "pin": 11,
-        "group": "INPUT",
-        "sig": "Reverse / Disable",
-        "desc": "Gevşetme / Devre Dışı",
-        "addr": ""
-      },
-      {
-        "pin": 12,
-        "group": "INPUT",
-        "sig": "Confirm / Clear",
-        "desc": "Onay / Sıfırla",
+        "pin": "14",
+        "block": "INPUT",
+        "group": "BESLEME",
+        "sig": "GND",
+        "desc": "GND (CN14)",
         "addr": ""
       }
     ]
@@ -548,154 +895,443 @@ window.TABANCA_VERI = {
       "gunCode": "",
       "pins": [
         {
-          "pin": 1,
-          "group": "INPUT",
+          "pin": "GND",
+          "block": "INPUT",
+          "group": "BESLEME",
           "sig": "GND",
-          "desc": "Giriş GND",
-          "addr": ""
+          "desc": "Giriş GND (0V)",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 2,
-          "group": "INPUT",
+          "pin": "+24V",
+          "block": "INPUT",
+          "group": "BESLEME",
           "sig": "+24V",
-          "desc": "Giriş +24V",
-          "addr": ""
+          "desc": "+24V besleme (STOP kontağı buradan)",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 3,
-          "group": "INPUT",
+          "pin": "0VE",
+          "block": "INPUT",
+          "group": "BESLEME",
           "sig": "0VE",
-          "desc": "Harici Besleme 0V Ortak",
-          "addr": ""
+          "desc": "Harici 0V ortak — panodan gelen (-) ile köprüle",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 4,
-          "group": "INPUT",
+          "pin": "STOP",
+          "block": "INPUT",
+          "group": "GİRİŞ",
           "sig": "STOP",
-          "desc": "Durdurma Girişi",
-          "addr": ""
+          "desc": "Durdurma girişi (+24V – STOP arası kontak)",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 6,
-          "group": "INPUT IN1",
+          "pin": "n.c.",
+          "block": "INPUT",
+          "group": "—",
+          "sig": "n.c.",
+          "desc": "Bağlantı yok",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
+        },
+        {
+          "pin": "1",
+          "block": "INPUT",
+          "group": "GİRİŞ",
           "sig": "CYC1",
-          "desc": "Çevrim / Program Seçimi 1",
-          "addr": ""
+          "desc": "Program seçimi 1",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 7,
-          "group": "INPUT IN2",
+          "pin": "2",
+          "block": "INPUT",
+          "group": "GİRİŞ",
           "sig": "CYC2",
-          "desc": "Çevrim / Program Seçimi 2",
-          "addr": ""
+          "desc": "Program seçimi 2",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 8,
-          "group": "INPUT IN3",
+          "pin": "3",
+          "block": "INPUT",
+          "group": "GİRİŞ",
           "sig": "CYC4",
-          "desc": "Çevrim / Program Seçimi 4",
-          "addr": ""
+          "desc": "Program seçimi 4",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 9,
-          "group": "INPUT IN4",
+          "pin": "4",
+          "block": "INPUT",
+          "group": "GİRİŞ",
           "sig": "VALSP",
-          "desc": "Sıkma Onay / Start İzni",
-          "addr": ""
+          "desc": "Sıkma izni — sinyal gelince çalış komutu",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 10,
-          "group": "INPUT IN5",
+          "pin": "5",
+          "block": "INPUT",
+          "group": "GİRİŞ",
           "sig": "ACKNOW",
-          "desc": "Hata / Uyarı Onayı",
-          "addr": ""
+          "desc": "Hata / uyarı onayı",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 11,
-          "group": "INPUT IN6",
+          "pin": "6",
+          "block": "INPUT",
+          "group": "GİRİŞ",
           "sig": "SCY",
-          "desc": "Çevrim Başlatma",
-          "addr": ""
+          "desc": "Çevrim başlatma",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 12,
-          "group": "INPUT IN7",
+          "pin": "7",
+          "block": "INPUT",
+          "group": "GİRİŞ",
           "sig": "DIR",
-          "desc": "Dönüş Yönü Seçimi",
-          "addr": ""
+          "desc": "Dönüş yönü seçimi",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 13,
-          "group": "INPUT IN8",
+          "pin": "8",
+          "block": "INPUT",
+          "group": "GİRİŞ",
           "sig": "RESET",
-          "desc": "Sıfırlama Girişi",
-          "addr": ""
+          "desc": "Sıfırlama",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 17,
-          "group": "OUTPUT",
+          "pin": "GND",
+          "block": "OUTPUT",
+          "group": "BESLEME",
+          "sig": "GND",
+          "desc": "Çıkış GND (0V)",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
+        },
+        {
+          "pin": "+24V",
+          "block": "OUTPUT",
+          "group": "BESLEME",
+          "sig": "+24V",
+          "desc": "+24V besleme",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
+        },
+        {
+          "pin": "0VE",
+          "block": "OUTPUT",
+          "group": "BESLEME",
+          "sig": "0VE",
+          "desc": "Harici 0V ortak — giriş 0VE ile köprülü",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
+        },
+        {
+          "pin": "COM1",
+          "block": "OUTPUT",
+          "group": "ORTAK",
           "sig": "COM1",
-          "desc": "Çıkış Ortak Ucu 1",
-          "addr": ""
+          "desc": "Çıkış 1–4 ortak ucu",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 21,
-          "group": "OUTPUT OUT4",
+          "pin": "1",
+          "block": "OUTPUT",
+          "group": "ÇIKIŞ",
+          "sig": "CYC1",
+          "desc": "Seçili program geri bildirimi 1",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
+        },
+        {
+          "pin": "2",
+          "block": "OUTPUT",
+          "group": "ÇIKIŞ",
+          "sig": "CYC2",
+          "desc": "Seçili program geri bildirimi 2",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
+        },
+        {
+          "pin": "3",
+          "block": "OUTPUT",
+          "group": "ÇIKIŞ",
+          "sig": "CYC4",
+          "desc": "Seçili program geri bildirimi 4",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
+        },
+        {
+          "pin": "4",
+          "block": "OUTPUT",
+          "group": "ÇIKIŞ",
           "sig": "READY",
-          "desc": "Sistem Hazır",
-          "addr": ""
+          "desc": "Sistem hazır",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 22,
-          "group": "OUTPUT OUT5",
+          "pin": "5",
+          "block": "OUTPUT",
+          "group": "ÇIKIŞ",
           "sig": "INCYC",
-          "desc": "Sıkma Devam Ediyor",
-          "addr": ""
+          "desc": "Sıkma devam ediyor",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 23,
-          "group": "OUTPUT OUT6",
+          "pin": "6",
+          "block": "OUTPUT",
+          "group": "ÇIKIŞ",
           "sig": "ACCRP",
-          "desc": "Sıkma Kabul / OK",
-          "addr": ""
+          "desc": "Sıkma OK",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 24,
-          "group": "OUTPUT OUT7",
+          "pin": "7",
+          "block": "OUTPUT",
+          "group": "ÇIKIŞ",
           "sig": "REJRP",
-          "desc": "Sıkma Red / NOK",
-          "addr": ""
+          "desc": "Sıkma NOK",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         },
         {
-          "pin": 25,
-          "group": "OUTPUT OUT8",
-          "sig": "NCYOK / COM2",
-          "desc": "Toplu Çevrim OK / Çıkış Ortak 2",
-          "addr": ""
+          "pin": "8",
+          "block": "OUTPUT",
+          "group": "ÇIKIŞ",
+          "sig": "NCYOK",
+          "desc": "Toplu çevrim OK",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
+        },
+        {
+          "pin": "COM2",
+          "block": "OUTPUT",
+          "group": "ORTAK",
+          "sig": "COM2",
+          "desc": "Çıkış 5–8 ortak ucu — +24V verilecek",
+          "addr": "",
+          "wireType": "single",
+          "color": "Boş",
+          "color2": "Beyaz",
+          "wireNo": ""
         }
       ]
     }
   ],
   "brandInfo": {
     "Desoutter": {
-      "connector": "",
-      "image": ""
+      "connector": "KLEMENS",
+      "image": "",
+      "note": "Giriş ve çıkış iki ayrı klemens bloğu. 0VE uçları köprülü; COM2'ye +24V verilir.",
+      "orientation": "v",
+      "blocks": [
+        {
+          "name": "INPUT",
+          "terminals": [
+            "GND",
+            "+24V",
+            "0VE",
+            "STOP",
+            "n.c.",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8"
+          ]
+        },
+        {
+          "name": "OUTPUT",
+          "terminals": [
+            "GND",
+            "+24V",
+            "0VE",
+            "COM1",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "COM2"
+          ]
+        }
+      ]
     },
     "FIAM": {
       "connector": "DB25",
-      "image": ""
+      "image": "",
+      "note": "TPU-C3, DB25",
+      "orientation": "v",
+      "blocks": []
     },
     "Doğa": {
-      "connector": "",
-      "image": ""
+      "connector": "DB25",
+      "image": "",
+      "note": "HDC serisi 25P I/O — P64 = 1 (PLC uzaktan kontrol)",
+      "orientation": "v",
+      "blocks": []
     },
     "Sehan": {
-      "connector": "",
-      "image": ""
+      "connector": "DB25",
+      "image": "",
+      "note": "HDC serisi 25P I/O — P64 = 1 (PLC uzaktan kontrol)",
+      "orientation": "v",
+      "blocks": []
     },
     "Kilews": {
-      "connector": "",
-      "image": ""
+      "connector": "KLEMENS",
+      "image": "",
+      "note": "Çıkış ve giriş iki ayrı 20'li klemens. Kılavuzda sadece işaretli pinler açık tanımlı; diğerlerini kılavuza göre ekleyin.",
+      "orientation": "h",
+      "blocks": [
+        {
+          "name": "OUTPUT",
+          "terminals": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"
+          ]
+        },
+        {
+          "name": "INPUT",
+          "terminals": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"
+          ]
+        }
+      ]
     }
   },
   "colors": []

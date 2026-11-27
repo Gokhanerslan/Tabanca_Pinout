@@ -16,11 +16,25 @@ Bundan sonra yapılan her değişiklik doğrudan `Fiam/src/tabanca_makine_verile
 
 `Fiam` klasörünün içeriğini hostinge yükle, `src` klasörüne yazma izni ver, sayfayı adresinden aç. Kayıt `src/kaydet.php` üzerinden yapılır. Kaydetmeyi şifrelemek için `kaydet.php` içindeki `$EDIT_PASSWORD` değerini doldur.
 
+## Varsayılan marka tanımları
+
+| Marka | Soket | Kaynak |
+|---|---|---|
+| Desoutter | 2 klemens bloğu (INPUT 13, OUTPUT 13), dikey | Kılavuz sayfası (VALSP'li) |
+| FIAM | DB25 | TPU-C3 rehberi |
+| Doğa, Sehan | DB25 | HDC serisi 25P I/O, P64 = 1 (PLC) |
+| Kilews | 2 klemens bloğu (OUTPUT 20, INPUT 20), yatay | Kılavuz s. 46–47 — sadece açık tanımlı pinler girildi |
+
+Hepsi **Markalar & Şablonlar** sayfasından değiştirilebilir, pin eklenip silinebilir.
+
 ## Soket şeması ve görseller
 
 - **Markalar & Şablonlar** sayfasında her markaya soket tipi seçilir: D-Sub 9/15/25/37, klemens sırası veya dairesel (şematik).
   Seçilen tipe göre **Pin & Bağlantı** sayfasında soketin çizimi otomatik oluşur.
 - D-Sub soketlerde **Arka (lehim)**, **Ön (fiş)** veya **Ön + Arka** görünümü seçilebilir.
+- **Klemens blokları** (Desoutter, Kilews gibi): markaya istediğin kadar blok tanımlanır (örn. `INPUT`, `OUTPUT`),
+  her bloğa klemens etiketleri sırayla yazılır (`GND, +24V, 0VE, STOP, n.c., 1-8`), yerleşim dikey veya yatay seçilir.
+  Şemada her klemensin yanında İngilizce sinyal adı ve Türkçe açıklaması görünür. Pin tablosundaki **Blok** sütunu pinin hangi bloğa ait olduğunu belirler.
 - Pinler, tablodaki **kablo rengine** göre renklenir: tek renk, yan yana çift renk veya siyah kablo + numara. Boş pinler gri kalır.
   Şemadaki bir pine tıklayınca tablodaki satırı gösterilir; tablodaki satıra girince de şemada işaretlenir.
 - Her makinenin soket gövde rengi ayrı seçilebilir. Pin tablosunun üstündeki alandan yeni kablo rengi eklenebilir.
