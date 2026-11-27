@@ -822,167 +822,7 @@ window.TABANCA_VERI = {
     "Kilews": [
       {
         "pin": "1",
-        "block": "OUTPUT",
-        "group": "BESLEME",
-        "sig": "Vdc",
-        "desc": "+24V çıkış (varsayılan 24V/50mA; 12V/100mA olabilir)",
-        "addr": ""
-      },
-      {
-        "pin": "2",
-        "block": "OUTPUT",
-        "group": "BESLEME",
-        "sig": "GND",
-        "desc": "Besleme çıkışı GND",
-        "addr": ""
-      },
-      {
-        "pin": "3",
-        "block": "OUTPUT",
-        "group": "ÇIKIŞ",
-        "sig": "OUT1 (OK)",
-        "desc": "Çıkış 1 — varsayılan OK; olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
-        "addr": ""
-      },
-      {
-        "pin": "4",
-        "block": "OUTPUT",
-        "group": "ORTAK",
-        "sig": "COM1",
-        "desc": "OUT1 ortak ucu (3+4 kontak çifti)",
-        "addr": ""
-      },
-      {
-        "pin": "5",
-        "block": "OUTPUT",
-        "group": "ÇIKIŞ",
-        "sig": "OUT2",
-        "desc": "Çıkış 2 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
-        "addr": ""
-      },
-      {
-        "pin": "6",
-        "block": "OUTPUT",
-        "group": "ORTAK",
-        "sig": "COM2",
-        "desc": "OUT2 ortak ucu (5+6 kontak çifti)",
-        "addr": ""
-      },
-      {
-        "pin": "7",
-        "block": "OUTPUT",
-        "group": "ÇIKIŞ",
-        "sig": "OUT3",
-        "desc": "Çıkış 3 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
-        "addr": ""
-      },
-      {
-        "pin": "8",
-        "block": "OUTPUT",
-        "group": "ORTAK",
-        "sig": "COM3",
-        "desc": "OUT3 ortak ucu (7+8 kontak çifti)",
-        "addr": ""
-      },
-      {
-        "pin": "9",
-        "block": "OUTPUT",
-        "group": "ÇIKIŞ",
-        "sig": "OUT4",
-        "desc": "Çıkış 4 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
-        "addr": ""
-      },
-      {
-        "pin": "10",
-        "block": "OUTPUT",
-        "group": "ORTAK",
-        "sig": "COM4",
-        "desc": "OUT4 ortak ucu (9+10 kontak çifti)",
-        "addr": ""
-      },
-      {
-        "pin": "11",
-        "block": "OUTPUT",
-        "group": "ÇIKIŞ",
-        "sig": "OUT5",
-        "desc": "Çıkış 5 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
-        "addr": ""
-      },
-      {
-        "pin": "12",
-        "block": "OUTPUT",
-        "group": "ORTAK",
-        "sig": "COM5",
-        "desc": "OUT5 ortak ucu (11+12 kontak çifti)",
-        "addr": ""
-      },
-      {
-        "pin": "13",
-        "block": "OUTPUT",
-        "group": "ÇIKIŞ",
-        "sig": "OUT6",
-        "desc": "Çıkış 6 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
-        "addr": ""
-      },
-      {
-        "pin": "14",
-        "block": "OUTPUT",
-        "group": "ORTAK",
-        "sig": "COM6",
-        "desc": "OUT6 ortak ucu (13+14 kontak çifti)",
-        "addr": ""
-      },
-      {
-        "pin": "15",
-        "block": "OUTPUT",
-        "group": "ÇIKIŞ",
-        "sig": "OUT7",
-        "desc": "Çıkış 7 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
-        "addr": ""
-      },
-      {
-        "pin": "16",
-        "block": "OUTPUT",
-        "group": "ORTAK",
-        "sig": "COM7",
-        "desc": "OUT7 ortak ucu (15+16 kontak çifti)",
-        "addr": ""
-      },
-      {
-        "pin": "17",
-        "block": "OUTPUT",
-        "group": "ÇIKIŞ",
-        "sig": "OUT8",
-        "desc": "Çıkış 8 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
-        "addr": ""
-      },
-      {
-        "pin": "18",
-        "block": "OUTPUT",
-        "group": "ORTAK",
-        "sig": "COM8",
-        "desc": "OUT8 ortak ucu (17+18 kontak çifti)",
-        "addr": ""
-      },
-      {
-        "pin": "19",
-        "block": "OUTPUT",
-        "group": "ÇIKIŞ",
-        "sig": "OUT9",
-        "desc": "Çıkış 9 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
-        "addr": ""
-      },
-      {
-        "pin": "20",
-        "block": "OUTPUT",
-        "group": "ORTAK",
-        "sig": "COM9",
-        "desc": "OUT9 ortak ucu (19+20 kontak çifti)",
-        "addr": ""
-      },
-      {
-        "pin": "1",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_1",
         "desc": "Giriş 1 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary JOB modunda: kısa devre = binary mod",
@@ -990,7 +830,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "2",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
         "desc": "IN_1 ortak (GND)",
@@ -998,7 +838,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "3",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_2 (START)",
         "desc": "Giriş 2 — örnek: START IN, 3+4 kapalı = çalışır; binary modda JOB değiştir onayı",
@@ -1006,7 +846,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "4",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
         "desc": "IN_2 ortak (GND)",
@@ -1014,7 +854,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "5",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_3",
         "desc": "Giriş 3 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 8",
@@ -1022,7 +862,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "6",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
         "desc": "IN_3 ortak (GND)",
@@ -1030,7 +870,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "7",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_4",
         "desc": "Giriş 4 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 7",
@@ -1038,7 +878,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "8",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
         "desc": "IN_4 ortak (GND)",
@@ -1046,7 +886,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "9",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_5",
         "desc": "Giriş 5 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 6",
@@ -1054,7 +894,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "10",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
         "desc": "IN_5 ortak (GND)",
@@ -1062,7 +902,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "11",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_6",
         "desc": "Giriş 6 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 5",
@@ -1070,7 +910,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "12",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
         "desc": "IN_6 ortak (GND)",
@@ -1078,7 +918,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "13",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_7",
         "desc": "Giriş 7 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 4",
@@ -1086,7 +926,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "14",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
         "desc": "IN_7 ortak (GND)",
@@ -1094,7 +934,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "15",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_8",
         "desc": "Giriş 8 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 3",
@@ -1102,7 +942,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "16",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
         "desc": "IN_8 ortak (GND)",
@@ -1110,7 +950,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "17",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_9",
         "desc": "Giriş 9 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 2",
@@ -1118,7 +958,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "18",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
         "desc": "IN_9 ortak (GND)",
@@ -1126,7 +966,7 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "19",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_10",
         "desc": "Giriş 10 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 1",
@@ -1134,10 +974,170 @@ window.TABANCA_VERI = {
       },
       {
         "pin": "20",
-        "block": "INPUT",
+        "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
         "desc": "IN_10 ortak (GND)",
+        "addr": ""
+      },
+      {
+        "pin": "1",
+        "block": "OUTPUTS",
+        "group": "BESLEME",
+        "sig": "Vdc",
+        "desc": "+24V çıkış (varsayılan 24V/50mA; 12V/100mA olabilir)",
+        "addr": ""
+      },
+      {
+        "pin": "2",
+        "block": "OUTPUTS",
+        "group": "BESLEME",
+        "sig": "GND",
+        "desc": "Besleme çıkışı GND",
+        "addr": ""
+      },
+      {
+        "pin": "3",
+        "block": "OUTPUTS",
+        "group": "ÇIKIŞ",
+        "sig": "OUT1 (OK)",
+        "desc": "Çıkış 1 — varsayılan OK; olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "addr": ""
+      },
+      {
+        "pin": "4",
+        "block": "OUTPUTS",
+        "group": "ORTAK",
+        "sig": "COM1",
+        "desc": "OUT1 ortak ucu (3+4 kontak çifti)",
+        "addr": ""
+      },
+      {
+        "pin": "5",
+        "block": "OUTPUTS",
+        "group": "ÇIKIŞ",
+        "sig": "OUT2",
+        "desc": "Çıkış 2 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "addr": ""
+      },
+      {
+        "pin": "6",
+        "block": "OUTPUTS",
+        "group": "ORTAK",
+        "sig": "COM2",
+        "desc": "OUT2 ortak ucu (5+6 kontak çifti)",
+        "addr": ""
+      },
+      {
+        "pin": "7",
+        "block": "OUTPUTS",
+        "group": "ÇIKIŞ",
+        "sig": "OUT3",
+        "desc": "Çıkış 3 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "addr": ""
+      },
+      {
+        "pin": "8",
+        "block": "OUTPUTS",
+        "group": "ORTAK",
+        "sig": "COM3",
+        "desc": "OUT3 ortak ucu (7+8 kontak çifti)",
+        "addr": ""
+      },
+      {
+        "pin": "9",
+        "block": "OUTPUTS",
+        "group": "ÇIKIŞ",
+        "sig": "OUT4",
+        "desc": "Çıkış 4 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "addr": ""
+      },
+      {
+        "pin": "10",
+        "block": "OUTPUTS",
+        "group": "ORTAK",
+        "sig": "COM4",
+        "desc": "OUT4 ortak ucu (9+10 kontak çifti)",
+        "addr": ""
+      },
+      {
+        "pin": "11",
+        "block": "OUTPUTS",
+        "group": "ÇIKIŞ",
+        "sig": "OUT5",
+        "desc": "Çıkış 5 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "addr": ""
+      },
+      {
+        "pin": "12",
+        "block": "OUTPUTS",
+        "group": "ORTAK",
+        "sig": "COM5",
+        "desc": "OUT5 ortak ucu (11+12 kontak çifti)",
+        "addr": ""
+      },
+      {
+        "pin": "13",
+        "block": "OUTPUTS",
+        "group": "ÇIKIŞ",
+        "sig": "OUT6",
+        "desc": "Çıkış 6 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "addr": ""
+      },
+      {
+        "pin": "14",
+        "block": "OUTPUTS",
+        "group": "ORTAK",
+        "sig": "COM6",
+        "desc": "OUT6 ortak ucu (13+14 kontak çifti)",
+        "addr": ""
+      },
+      {
+        "pin": "15",
+        "block": "OUTPUTS",
+        "group": "ÇIKIŞ",
+        "sig": "OUT7",
+        "desc": "Çıkış 7 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "addr": ""
+      },
+      {
+        "pin": "16",
+        "block": "OUTPUTS",
+        "group": "ORTAK",
+        "sig": "COM7",
+        "desc": "OUT7 ortak ucu (15+16 kontak çifti)",
+        "addr": ""
+      },
+      {
+        "pin": "17",
+        "block": "OUTPUTS",
+        "group": "ÇIKIŞ",
+        "sig": "OUT8",
+        "desc": "Çıkış 8 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "addr": ""
+      },
+      {
+        "pin": "18",
+        "block": "OUTPUTS",
+        "group": "ORTAK",
+        "sig": "COM8",
+        "desc": "OUT8 ortak ucu (17+18 kontak çifti)",
+        "addr": ""
+      },
+      {
+        "pin": "19",
+        "block": "OUTPUTS",
+        "group": "ÇIKIŞ",
+        "sig": "OUT9",
+        "desc": "Çıkış 9 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "addr": ""
+      },
+      {
+        "pin": "20",
+        "block": "OUTPUTS",
+        "group": "ORTAK",
+        "sig": "COM9",
+        "desc": "OUT9 ortak ucu (19+20 kontak çifti)",
         "addr": ""
       }
     ]
@@ -1534,11 +1534,11 @@ window.TABANCA_VERI = {
     "Kilews": {
       "connector": "KLEMENS",
       "image": "",
-      "note": "KL-GTCS — OUTPUT: 1 Vdc, 2 GND, OUT1–9 kontak çiftleri (3-4 … 19-20). INPUT: IN_1–10 (1-2 … 19-20), çift numaralı pinler GND. Olaylar cihazdaki I/O Input / I/O Output menüsünden atanır. Islak kontak kullanılırsa girişe seri 10K direnç bağlanmalı.",
+      "note": "KL-GTCS — OUTPUTS: 1 Vdc, 2 GND, OUT1–9 kontak çiftleri (3-4 … 19-20). INPUTS: IN_1–10 (1-2 … 19-20), çift numaralı pinler GND. Olaylar cihazdaki I/O Input / I/O Output menüsünden atanır. Islak kontak kullanılırsa girişe seri 10K direnç bağlanmalı.",
       "orientation": "h",
       "blocks": [
         {
-          "name": "OUTPUT",
+          "name": "INPUTS",
           "terminals": [
             "1",
             "2",
@@ -1563,7 +1563,7 @@ window.TABANCA_VERI = {
           ]
         },
         {
-          "name": "INPUT",
+          "name": "OUTPUTS",
           "terminals": [
             "1",
             "2",
