@@ -86,7 +86,7 @@ Hepsi **Markalar & Şablonlar** sayfasından değiştirilebilir, pin eklenip sil
 
 - **Markalar & Şablonlar** sayfasında her markaya soket tipi seçilir: D-Sub 9/15/25/37, klemens sırası veya dairesel (şematik).
   Seçilen tipe göre **Pin & Bağlantı** sayfasında soketin çizimi otomatik oluşur.
-- D-Sub soketlerde **Arka (lehim)**, **Ön (fiş)** veya **Ön + Arka** görünümü seçilebilir.
+- Bütün soketler sadece **arka (kablo / lehim) tarafından** çizilir; PDF ve yazdırmada da yalnız arka görünüm çıkar.
 - **Klemens blokları** (Desoutter, Kilews gibi): markaya istediğin kadar blok tanımlanır (örn. `INPUT`, `OUTPUT`),
   her bloğa klemens etiketleri sırayla yazılır (`GND, +24V, 0VE, STOP, n.c., 1-8`), yerleşim dikey veya yatay seçilir.
   Şemada her klemensin yanında İngilizce sinyal adı ve Türkçe açıklaması görünür. Pin tablosundaki **Blok** sütunu pinin hangi bloğa ait olduğunu belirler.

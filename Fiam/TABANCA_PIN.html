@@ -958,7 +958,7 @@ function render() {
   if (!ui.brand || !db.templates[ui.brand]) ui.brand = brands()[0] || null;
   if (ui.machineId && !getMachine(ui.machineId)) ui.machineId = null;
   if (!ui.machineId && db.machines.length) ui.machineId = db.machines[0].id;
-  if (!["rear", "front", "both"].includes(ui.view)) ui.view = "rear";
+  ui.view = "rear";   // her sokette sadece arka (kablo tarafı) görünüm
 
   document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("active", b.dataset.page === ui.page));
   document.querySelectorAll(".page").forEach(s => s.classList.toggle("active", s.id === "page-" + ui.page));
@@ -1612,10 +1612,7 @@ function renderPins() {
 
     <div class="panel">
       <div class="panel-title"><span>🔌 Soket — ${esc(CONNECTORS[type])}</span>
-        ${isDsub ? `<span class="row no-print view-btns">
-          <button class="btn-sm ${ui.view === "rear" ? "on" : ""}" data-view="rear">Arka</button>
-          <button class="btn-sm ${ui.view === "front" ? "on" : ""}" data-view="front">Ön</button>
-          <button class="btn-sm ${ui.view === "both" ? "on" : ""}" data-view="both">İkisi</button></span>` : ""}</div>
+        <span class="muted" style="font-weight:400">Arka görünüm (kablo tarafı)</span></div>
       ${bi.note ? `<div class="muted" style="margin-bottom:8px">${esc(bi.note)}</div>` : ""}
       <div id="diagramArea"></div>
       <div class="info-box" id="pinInfo"></div>
@@ -1675,10 +1672,7 @@ function selectPin(key, scroll) {
   if (scroll) document.querySelector(`#pinsContent tr.flash`)?.scrollIntoView({ block: "center", behavior: "smooth" });
 }
 
-function printPins() {
-  const prev = ui.view; ui.view = "both"; renderPinDiagram();
-  setTimeout(() => { window.print(); ui.view = prev; renderPinDiagram(); }, 150);
-}
+function printPins() { ui.view = "rear"; renderPinDiagram(); setTimeout(() => window.print(), 100); }   // PDF'te sadece arka görünüm
 
 function addColor() {
   const name = $("ncName").value.trim(), hex = $("ncHex").value;
@@ -2065,6 +2059,7 @@ function pinCardHTML(p, key, bridges) {
 }
 
 function renderPinsView(m) {
+  $("printHeader").innerHTML = "";   // bakma modunda makine başlığı zaten sayfada var; PDF'te iki kez çıkmasın
   const s = pinStats(m), type = connectorOf(m.brand), isDsub = /^DB/.test(type), bi = db.brandInfo[m.brand] || {};
   const img = m.image || bi.image;
   $("pinsContent").innerHTML = `
@@ -2083,10 +2078,7 @@ function renderPinsView(m) {
     </div>
     <div class="panel">
       <div class="panel-title"><span>🔌 Soket — ${esc(CONNECTORS[type])}</span>
-        ${isDsub ? `<span class="row no-print view-btns">
-          <button class="btn-sm ${ui.view === "rear" ? "on" : ""}" data-view="rear">Arka</button>
-          <button class="btn-sm ${ui.view === "front" ? "on" : ""}" data-view="front">Ön</button>
-          <button class="btn-sm ${ui.view === "both" ? "on" : ""}" data-view="both">İkisi</button></span>` : ""}</div>
+        <span class="muted" style="font-weight:400">Arka görünüm (kablo tarafı)</span></div>
       <div class="hint no-print">👆 Bir uca dokun, bilgisi aşağıda çıksın.</div>
       ${bi.note ? `<div class="muted" style="margin-bottom:8px">ℹ️ ${esc(bi.note)}</div>` : ""}
       <div id="diagramArea"></div>
