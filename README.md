@@ -16,6 +16,28 @@ Bundan sonra yapılan her değişiklik doğrudan `Fiam/src/tabanca_makine_verile
 
 `Fiam` klasörünün içeriğini hostinge yükle, `src` klasörüne yazma izni ver, sayfayı adresinden aç. Kayıt `src/kaydet.php` üzerinden yapılır. Kaydetmeyi şifrelemek için `kaydet.php` içindeki `$EDIT_PASSWORD` değerini doldur.
 
+## Makine listesi ve tabanca atama
+
+- **🏭 Makine Listesi** sayfası fabrikadaki bütün makineleri tek tabloda gösterir: bölge, kod, ad, marka, tabanca, soket ve bağlantı durumu.
+  Sütun başlığına tıklayınca sıralanır, bölge düğmeleriyle süzülür, **🖨️ Listeyi yazdır** ile çıktısı alınır. İstenirse kart görünümüne geçilir.
+- Düzenleme modunda iki adım vardır:
+  1. **➕ Makine ekle** — sadece bölge, kod ve ad girilir (bölge listeden seçilebilir).
+  2. **🔫 Makineye tabanca ata** — makine listeden seçilir, marka ve tabanca kodu girilir; markanın uç listesi makineye kendiliğinden gelir.
+- Tabancası olmayan makineler listede **🔫 Tabanca yok** olarak görünür ve filtrelenebilir.
+- Fabrikadaki **290 makine** (`MAKINELER_2026.xlsx`) listeye yüklendi; Excel'deki "Kritik = EVET" olanlar **⚠️ Kritik** olarak görünür ve süzülebilir.
+- **Yeni makine geldiğinde:** düzenleme modunda **➕ Makine ekle** ile tek tek, ya da **⬆️ Excel'den makine yükle** ile toplu eklenir.
+  Excel/CSV'de *Makine Kodu, Makine Adı, Hat / Bölüm, Açıklama, Kritik* sütunları olmalı. Yeni kodlar eklenir, var olan kodların
+  adı/bölgesi/açıklaması güncellenir; tabanca ve bağlantı bilgilerine dokunulmaz. Aynı dosya tekrar yüklenirse makine çoğalmaz.
+- Excel okuyucu (SheetJS, Apache-2.0) `Fiam/src/lib/` içindedir, internet olmadan da çalışır.
+
+## Sinyal seçenekleri (elle yazma sadece adreste)
+
+- Makine sayfasında **sadece adres elle yazılır**. Sinyal (isim + açıklama) ve kablo rengi listeden seçilir.
+- Seçenekler markaya göredir ve **🏷️ Markalar → 📚 Sinyal seçenekleri** bölümünde düzenlenir (düzenleme modunda).
+  Varsayılan olarak markanın uç listesinden gelir; Kilews için kılavuzdaki olaylar (OK, NG, NG-High, Start IN, Confirm…) da hazırdır.
+- **Grup** alanı, seçeneğin hangi uçlarda çıkacağını belirler (ör. ÇIKIŞ seçenekleri sadece çıkış uçlarında). Boş bırakılırsa her uçta çıkar.
+- Marka uç listesine yeni sinyal yazıldığında seçeneklere de kendiliğinden eklenir.
+
 ## Şifre
 
 - **Bakmak için şifre gerekmez.** Değiştirmek için sağ üstteki **🔒 Düzenle** butonuna basıp şifre girilir.

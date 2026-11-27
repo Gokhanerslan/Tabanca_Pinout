@@ -101,6 +101,16 @@
   .m-prog { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; }
   .bar { height: 8px; border-radius: 99px; background: var(--input); overflow: hidden; flex: 1; min-width: 60px; }
   .bar > div { height: 100%; background: linear-gradient(90deg, #22C55E, #4ADE80); }
+  .assign-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 1000px) { .assign-grid { grid-template-columns: 1fr; } }
+  .region-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .region-chips:empty { display: none; }
+  .region-chip { padding: 6px 12px; min-height: 34px; border-radius: 999px; background: var(--card2); font-size: 13.5px; }
+  .region-chip b { margin-left: 4px; color: #93C5FD; }
+  .region-chip.on { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .region-chip.on b { color: #fff; }
+  .mlist th[data-msort]:hover { color: var(--text); }
+  .mlist .m-prog span { white-space: nowrap; }
   .m-head-main { display: flex; gap: 14px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
   .m-code.big { font-size: 20px; padding: 8px 14px; }
   .m-name.big { font-size: 23px; }
@@ -182,10 +192,10 @@
     .tabs button { padding: 9px 12px; font-size: 14px; }
     .hero { padding: 16px; } .hero h2 { font-size: 19px; }
     /* telefonda uç listesi kart gibi */
-    .view-table { min-width: 0; }
-    .view-table thead { display: none; }
-    .view-table tr { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; padding: 10px 12px; border-bottom: 1px solid var(--border); align-items: center; }
-    .view-table td { border: none; padding: 0; font-size: 14px; }
+    .view-table:not(.mlist) { min-width: 0; }
+    .view-table:not(.mlist) thead { display: none; }
+    .view-table:not(.mlist) tr { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; padding: 10px 12px; border-bottom: 1px solid var(--border); align-items: center; }
+    .view-table:not(.mlist) td { border: none; padding: 0; font-size: 14px; }
     .view-table td.opt { display: none; }
     .pin-card { flex-direction: column; text-align: center; }
     .pc-meta { justify-content: center; }
@@ -194,8 +204,15 @@
   .print-only { display: none; }
   @media print {
     body { background: #fff; color: #000; padding: 0; }
-    .topbar, .tabs, .edit-bar, .no-print, .page:not(#page-pins), #fileBanner { display: none !important; }
-    #page-pins { display: block !important; }
+    .topbar, .tabs, .edit-bar, .no-print, #fileBanner { display: none !important; }
+    body:not(.print-list) .page:not(#page-pins) { display: none !important; }
+    body:not(.print-list) #page-pins { display: block !important; }
+    body.print-list .page:not(#page-machines) { display: none !important; }
+    body.print-list #page-machines { display: block !important; }
+    body.print-list .panel.edit-only { display: none !important; }
+    table.mlist { min-width: 0; }
+    .m-code { background: none; padding: 0; }
+    .bar { border: 1px solid #999; background: #fff; }
     .print-only { display: block; }
     .panel, .table-wrap { background: #fff; border: none; box-shadow: none; }
     th { background: #eee; color: #000; }
@@ -244,7 +261,7 @@
 
   <nav class="tabs" id="nav">
     <button data-page="home"><span>🏠</span>Ana Sayfa</button>
-    <button data-page="machines"><span>🏭</span>Makineler</button>
+    <button data-page="machines"><span>🏭</span>Makine Listesi</button>
     <button data-page="pins"><span>🔌</span>Bağlantı Şeması</button>
     <button data-page="brands"><span>🏷️</span>Markalar</button>
     <button data-page="data"><span>⚙️</span>Ayarlar</button>
@@ -271,26 +288,52 @@
 
   <!-- MAKİNELER -->
   <section class="page" id="page-machines">
-    <div class="panel edit-only">
-      <div class="panel-title">➕ Yeni makine ekle</div>
-      <div class="row">
-        <input type="text" id="nmRegion" list="regionList" placeholder="Bölge" style="width:150px;">
-        <input type="text" id="nmCode" placeholder="Makine kodu (M-01)" style="width:170px;">
-        <input type="text" id="nmName" placeholder="Makine adı *" style="width:220px;">
-        <select id="nmBrand"></select>
-        <input type="text" id="nmGun" placeholder="Tabanca kodu" style="width:150px;">
-        <button class="btn-add" onclick="addMachine()">➕ Ekle</button>
+    <div class="assign-grid edit-only">
+      <div class="panel">
+        <div class="panel-title">➕ 1. Makine ekle</div>
+        <div class="row">
+          <input type="text" id="nmRegion" list="regionList" placeholder="📍 Bölge (listeden seç veya yaz)" style="flex:1 1 200px;">
+          <input type="text" id="nmCode" placeholder="Kod (M-01)" style="width:130px;">
+          <input type="text" id="nmName" placeholder="Makine adı *" style="flex:1 1 200px;">
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <input type="text" id="nmNote" placeholder="Açıklama (isteğe bağlı)" style="flex:1 1 260px;">
+          <label class="row" style="gap:6px;cursor:pointer"><input type="checkbox" id="nmCrit" style="min-height:0;width:18px;height:18px"> ⚠️ Kritik</label>
+          <button class="btn-add" onclick="addMachine()">➕ Ekle</button>
+        </div>
+        <div class="row" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+          <button onclick="document.getElementById('mxInput').click()">⬆️ Excel'den makine yükle</button>
+          <input type="file" id="mxInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="importMachinesFile(event)">
+          <span class="muted">Sütunlar: Makine Kodu, Makine Adı, Hat / Bölüm, Açıklama, Kritik. Yeni kodlar eklenir, var olanlar güncellenir.</span>
+        </div>
+        <datalist id="regionList"></datalist>
       </div>
-      <div class="muted" style="margin-top:6px;">Yeni makineye seçtiğin markanın uç listesi kendiliğinden gelir.</div>
-      <datalist id="regionList"></datalist>
+      <div class="panel">
+        <div class="panel-title">🔫 2. Makineye tabanca ata</div>
+        <div class="row">
+          <select id="agMachine" style="flex:1 1 260px;"></select>
+          <select id="agBrand"></select>
+          <input type="text" id="agGun" placeholder="Tabanca kodu" style="width:140px;">
+          <button class="btn-primary" onclick="assignGun()">🔫 Ata</button>
+        </div>
+        <div class="muted" style="margin-top:6px;">Makineyi listeden seç, markayı seç. Markanın uç listesi makineye kendiliğinden gelir.</div>
+      </div>
     </div>
 
     <div class="panel">
       <div class="panel-title">
-        <span>🏭 Makineler (<span id="mTotal">0</span>)</span>
-        <button class="btn-sm" onclick="exportMachinesCSV()">📊 Excel'e aktar</button>
+        <span>🏭 Fabrikadaki makineler (<span id="mTotal">0</span>)</span>
+        <span class="row no-print">
+          <span class="row view-btns view-only" id="mviewBtns">
+            <button class="btn-sm" data-mview="list">📋 Liste</button>
+            <button class="btn-sm" data-mview="cards">🔲 Kartlar</button>
+          </span>
+          <button class="btn-sm" onclick="printMachines()">🖨️ Listeyi yazdır</button>
+          <button class="btn-sm" onclick="exportMachinesCSV()">📊 Excel'e aktar</button>
+        </span>
       </div>
-      <div class="row" style="margin-bottom:6px;">
+      <div class="region-chips no-print" id="regionSummary"></div>
+      <div class="row no-print" style="margin-bottom:6px;">
         <select id="fRegion"></select>
         <select id="fBrand"></select>
         <select id="fPin">
@@ -298,6 +341,8 @@
           <option value="full">✅ Tamamlanan</option>
           <option value="partial">🟡 Yarım kalan</option>
           <option value="none">⚪ Hiç bağlanmamış</option>
+          <option value="nogun">🔫 Tabanca atanmamış</option>
+          <option value="critical">⚠️ Sadece kritik</option>
         </select>
         <input type="text" id="fSearch" placeholder="🔍 Ara…" style="flex:1 1 200px;">
       </div>
@@ -441,6 +486,7 @@ function isPinUsed(p) {
 function pinStats(m) {
   const pins = Array.isArray(m.pins) ? m.pins : [];
   const filled = pins.filter(isPinUsed).length;
+  if (!m.brand) return { total: 0, filled: 0, state: "nogun" };
   return { total: pins.length, filled, state: filled === 0 ? "none" : (filled === pins.length ? "full" : "partial") };
 }
 function wireSummary(p) {
@@ -462,6 +508,13 @@ function wireBadge(p) {
 const connectorOf = brand => db.brandInfo?.[brand]?.connector || "";
 const pinKey = p => (p.block || "") + "|" + p.pin;
 const keyLabel = k => String(k || "").replace("|", " ").trim();
+function wrap2(t, n) {   // metni en fazla 2 satıra böl (kelime sınırından)
+  t = String(t || "").trim();
+  if (t.length <= n) return [t, ""];
+  let cut = t.lastIndexOf(" ", n); if (cut < n * 0.5) cut = n;
+  const a = t.slice(0, cut).trim(), b = t.slice(cut).trim();
+  return [a, b.length > n ? b.slice(0, n - 1) + "…" : b];
+}
 const trunc = (t, n) => { t = String(t || ""); return t.length > n ? t.slice(0, n - 1) + "…" : t; };
 function brandBlocks(brand) {   // markanın klemens blokları (yoksa null)
   const bi = db.brandInfo?.[brand];
@@ -524,7 +577,8 @@ function normalize(raw) {
       connector: CONNECTORS[i?.connector] !== undefined ? i.connector : "", image: i?.image || "", note: i?.note || "",
       orientation: i?.orientation === "h" ? "h" : "v",
       blocks: Array.isArray(i?.blocks) ? i.blocks.filter(k => k?.name !== undefined).map(k => ({
-        name: String(k.name), terminals: (Array.isArray(k.terminals) ? k.terminals : parseTerminals(k.terminals)).map(String) })) : []
+        name: String(k.name), terminals: (Array.isArray(k.terminals) ? k.terminals : parseTerminals(k.terminals)).map(String) })) : [],
+      signals: Array.isArray(i?.signals) ? i.signals.filter(x => x && typeof x === "object").map(x => ({ group: String(x.group || ""), sig: String(x.sig || ""), desc: String(x.desc || "") })) : []
     };
   }
   if (raw?.settings?.passHash) out.settings = { passSalt: String(raw.settings.passSalt || ""), passHash: String(raw.settings.passHash) };
@@ -532,7 +586,7 @@ function normalize(raw) {
   if (Array.isArray(raw?.machines)) {
     out.machines = raw.machines.map(m => ({
       id: m.id || uid(), region: (m.region || m.section || "").trim(), code: m.code || "", name: m.name || "",
-      brand: m.brand || "", gunCode: m.gunCode || "", note: m.note || "",
+      brand: m.brand || "", gunCode: m.gunCode || "", note: m.note || "", critical: !!m.critical,
       shellColor: /^#[0-9a-f]{6}$/i.test(m.shellColor || "") ? m.shellColor : DEFAULT_SHELL, image: m.image || "",
       pins: Array.isArray(m.pins) ? m.pins.map(normPin) : []
     }));
@@ -838,7 +892,7 @@ function render() {
 
 /* ---------- ANA SAYFA ---------- */
 function renderHome() {
-  const st = { full: 0, partial: 0, none: 0 };
+  const st = { full: 0, partial: 0, none: 0, nogun: 0 };
   db.machines.forEach(m => st[pinStats(m).state]++);
   const regions = new Set(db.machines.map(regionOf));
   $("homeStats").innerHTML = [
@@ -848,6 +902,7 @@ function renderHome() {
     ["✅", "Bağlantısı tamam", st.full, "machines", "full", "ok"],
     ["🟡", "Yarım kalan", st.partial, "machines", "partial", "warn"],
     ["⚪", "Hiç bağlanmamış", st.none, "machines", "none", "none"],
+    ["🔫", "Tabanca atanmamış", st.nogun, "machines", "nogun", "none"],
   ].map(([ic, l, v, p, f, c]) => `<div class="stat ${c}" data-goto="${p}" data-pinfilter="${f}"><div class="stat-ic">${ic}</div>
       <div><div class="stat-val">${v}</div><div class="stat-label">${l}</div></div></div>`).join("");
   $("homeBrands").innerHTML = brands().map((b, i) => `<button class="brand-tile" data-brandgo="${i}">
@@ -876,7 +931,16 @@ function brandOptions(sel, withEmpty) {
 function renderMachines() {
   const regions = [...new Set(db.machines.map(regionOf))].sort((a, b) => a.localeCompare(b, "tr"));
   $("regionList").innerHTML = regions.map(r => `<option value="${esc(r)}">`).join("");
-  $("nmBrand").innerHTML = brandOptions(ui.brand);
+  const ms = [...db.machines].sort((a, b) => (a.brand ? 1 : 0) - (b.brand ? 1 : 0) ||
+    regionOf(a).localeCompare(regionOf(b), "tr") || String(a.code).localeCompare(String(b.code), "tr", { numeric: true }));
+  const agSel = $("agMachine"), prevAg = ui.assignId || agSel.value;
+  agSel.innerHTML = ms.length ? ms.map(m => `<option value="${m.id}">${m.brand ? "✅" : "🔫"} [${esc(regionOf(m))}] ${esc(m.code)} — ${esc(m.name)}${m.brand ? ` (${esc(m.brand)}${m.gunCode ? " · " + esc(m.gunCode) : ""})` : " — tabanca yok"}</option>`).join("")
+    : `<option value="">Önce makine ekle</option>`;
+  if (prevAg && getMachine(prevAg)) agSel.value = prevAg;
+  ui.assignId = null;
+  const agB = $("agBrand"), prevB = agB.value;
+  agB.innerHTML = `<option value="">🏷️ Marka seç</option>` + brandOptions(null);
+  agB.value = prevB;
 
   const keep = (id, html) => { const el = $(id), v = el.value; el.innerHTML = html; el.value = v; if (el.value !== v) el.value = ""; };
   keep("fRegion", `<option value="">📍 Tüm bölgeler</option>` + regions.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join(""));
@@ -884,10 +948,12 @@ function renderMachines() {
 
   const fr = $("fRegion").value, fb = $("fBrand").value, fp = $("fPin").value;
   const q = $("fSearch").value.trim().toLocaleLowerCase("tr");
+  $("regionSummary").innerHTML = "";
+  document.querySelectorAll("#mviewBtns button").forEach(b => b.classList.toggle("on", b.dataset.mview === (ui.mview || "list")));
   const list = db.machines.filter(m => {
     if (fr && regionOf(m) !== fr) return false;
     if (fb && m.brand !== fb) return false;
-    if (fp && pinStats(m).state !== fp) return false;
+    if (fp === "critical" ? !m.critical : fp && pinStats(m).state !== fp) return false;
     if (q && !`${m.region} ${m.code} ${m.name} ${m.brand} ${m.gunCode} ${m.note}`.toLocaleLowerCase("tr").includes(q)) return false;
     return true;
   });
@@ -898,9 +964,15 @@ function renderMachines() {
   const groups = {};
   list.forEach(m => (groups[regionOf(m)] ||= []).push(m));
   if (!EDIT) {
-    $("machinesContainer").innerHTML = Object.keys(groups).sort((a, b) => a.localeCompare(b, "tr")).map(reg => `
-      <div class="region-head"><span>📍 ${esc(reg)}</span><span class="muted">${groups[reg].length} makine</span></div>
-      <div class="m-grid">${groups[reg].map(machineCard).join("")}</div>`).join("");
+    const regs = Object.keys(groups).sort((a, b) => a.localeCompare(b, "tr"));
+    $("regionSummary").innerHTML = regs.map(r => `<button class="region-chip ${r === fr ? "on" : ""}" data-regionpick="${esc(r)}">📍 ${esc(r)} <b>${groups[r].length}</b></button>`).join("");
+    if (ui.mview === "cards") {
+      $("machinesContainer").innerHTML = regs.map(reg => `
+        <div class="region-head"><span>📍 ${esc(reg)}</span><span class="muted">${groups[reg].length} makine</span></div>
+        <div class="m-grid">${groups[reg].map(machineCard).join("")}</div>`).join("");
+    } else {
+      $("machinesContainer").innerHTML = machineListTable(list);
+    }
     return;
   }
   $("machinesContainer").innerHTML = Object.keys(groups).sort((a, b) => a.localeCompare(b, "tr")).map(reg => `
@@ -914,13 +986,14 @@ function renderMachines() {
 
 function machineRow(m) {
   const s = pinStats(m);
-  const badge = s.state === "full" ? "b-green" : s.state === "partial" ? "b-amber" : "b-red";
+  const badge = stateCls(s);
   const f = (field, w) => `<input data-mid="${m.id}" data-mf="${field}" value="${esc(m[field])}" ${w ? `list="${w}"` : ""}>`;
   return `<tr>
-    <td>${f("region", "regionList")}</td><td>${f("code")}</td><td>${f("name")}</td>
-    <td><select data-mid="${m.id}" data-mf="brand">${brandOptions(m.brand)}</select></td>
+    <td>${f("region", "regionList")}</td><td>${f("code")}</td>
+    <td><div class="row" style="flex-wrap:nowrap">${f("name")}<label title="Kritik makine" style="white-space:nowrap;cursor:pointer"><input type="checkbox" data-mid="${m.id}" data-mf="critical" ${m.critical ? "checked" : ""} style="min-height:0;width:16px;height:16px;vertical-align:middle"> ⚠️</label></div></td>
+    <td><select data-mid="${m.id}" data-mf="brand"><option value="" ${m.brand ? "" : "selected"}>— Tabanca yok —</option>${brandOptions(m.brand)}</select></td>
     <td>${f("gunCode")}</td>
-    <td><span class="badge ${badge}">${s.filled}/${s.total}</span>
+    <td><span class="badge ${badge}">${s.state === "nogun" ? "🔫 Tabanca yok" : s.filled + "/" + s.total}</span>
         <div class="progress" style="margin-top:4px"><div style="width:${s.total ? s.filled / s.total * 100 : 0}%"></div></div></td>
     <td class="actions">
       <button class="btn-primary btn-sm" data-openpins="${m.id}">🔌 Bağlantı</button>
@@ -931,23 +1004,39 @@ function machineRow(m) {
 
 function addMachine() {
   const name = $("nmName").value.trim();
-  if (!name) { alert("Lütfen makine adını girin."); $("nmName").focus(); return; }
-  const brand = $("nmBrand").value;
+  if (!name) { alert("Lütfen makine adını yaz."); $("nmName").focus(); return; }
   const code = $("nmCode").value.trim() || "M-" + String(db.machines.length + 1).padStart(2, "0");
   if (db.machines.some(m => m.code.toLocaleLowerCase("tr") === code.toLocaleLowerCase("tr")) &&
       !confirm(`"${code}" kodlu bir makine zaten var. Yine de eklensin mi?`)) return;
-  const m = { id: uid(), region: $("nmRegion").value.trim(), code, name, brand, gunCode: $("nmGun").value.trim(), note: "",
-              shellColor: DEFAULT_SHELL, image: "", pins: freshPins(brand) };
+  const m = { id: uid(), region: $("nmRegion").value.trim(), code, name, brand: "", gunCode: "", note: $("nmNote").value.trim(), critical: $("nmCrit").checked,
+              shellColor: DEFAULT_SHELL, image: "", pins: [] };
   db.machines.push(m);
-  ui.machineId = m.id; ui.brand = brand; saveUI();
-  ["nmCode", "nmName", "nmGun"].forEach(id => $(id).value = "");
-  changed(); render(); toast(`${code} eklendi.`); $("nmName").focus();
+  ui.machineId = m.id; ui.assignId = m.id; saveUI();
+  ["nmCode", "nmName", "nmNote"].forEach(id => $(id).value = ""); $("nmCrit").checked = false;
+  changed(); render(); toast(`✅ ${code} eklendi. Şimdi sağdan tabanca atayabilirsin.`); $("nmName").focus();
+}
+
+function assignGun(machineId, brandSel, gunInput) {
+  const m = getMachine(machineId || $("agMachine").value);
+  const brand = (brandSel || $("agBrand")).value, gun = (gunInput || $("agGun")).value.trim();
+  if (!m) { alert("Önce listeden bir makine seç."); return; }
+  if (!brand) { alert("Tabancanın markasını seç."); return; }
+  if (m.brand && m.brand !== brand && pinStats(m).filled > 0 &&
+      !confirm(`${m.code} makinesinde ${m.brand} tabancası var ve bağlantıları girilmiş.\n${brand} atanırsa bu bağlantılar silinir. Devam edilsin mi?`)) return;
+  if (m.brand !== brand || !m.pins.length) m.pins = freshPins(brand);
+  m.brand = brand; m.gunCode = gun;
+  (gunInput || $("agGun")).value = "";
+  ui.machineId = m.id; ui.assignId = m.id; saveUI();
+  changed(); render(); toast(`🔫 ${m.code} makinesine ${brand}${gun ? " (" + gun + ")" : ""} atandı.`);
 }
 
 function setMachineField(id, field, value) {
   const m = getMachine(id); if (!m) return;
   value = value.trim();
-  if (field === "brand" && value !== m.brand) {
+  if (field === "brand" && value === "" && m.brand) {
+    if (!confirm(`${m.code} makinesinden tabanca kaldırılsın mı? Girilen bağlantılar silinir.`)) { render(); return; }
+    m.pins = []; m.gunCode = "";
+  } else if (field === "brand" && value !== m.brand) {
     const hasData = pinStats(m).filled > 0;
     const msg = `Marka "${value}" olarak değişiyor.\n\nTAMAM → Pin listesini yeni markanın şablonuyla değiştir` +
                 (hasData ? " (girilen kablo/adres bilgileri silinir!)" : "") + `\nİPTAL → Sadece marka adını değiştir, pinlere dokunma`;
@@ -981,6 +1070,60 @@ function exportMachinesCSV() {
     m.pins.forEach(p => rows.push([m.region, m.code, m.name, m.brand, m.gunCode, p.pin, p.group, p.sig, p.desc, p.addr, wireSummary(p)]));
   });
   download(toCSV(rows), "makine_pin_listesi.csv", "text/csv;charset=utf-8");
+}
+
+/* ---------- SİNYAL SEÇENEKLERİ ----------
+   Makine sayfasında sinyal elle yazılmaz, markanın seçenek listesinden seçilir.
+   Liste Markalar sayfasında düzenlenir; boşsa şablondaki uçlardan (Kilews için kılavuzdaki olaylardan) kurulur. */
+const KILEWS_EVENTS = [
+  ["ÇIKIŞ", "OK", "Sıkma OK"], ["ÇIKIŞ", "NG", "Sıkma NOK"], ["ÇIKIŞ", "NG-High", "Üst limit aşıldı"], ["ÇIKIŞ", "NG-Low", "Alt limitin altında"],
+  ["ÇIKIŞ", "OK-Sequence", "Sekans tamamlandı"], ["ÇIKIŞ", "OK-JOB", "Job tamamlandı"], ["ÇIKIŞ", "Tool Running", "Motor çalışıyor"],
+  ["ÇIKIŞ", "Tool Trigger", "Tetik / başlatma sinyali"], ["ÇIKIŞ", "Reverse", "Ters dönüş (vida sökme)"], ["ÇIKIŞ", "UserDefine1", "Kullanıcı tanımlı 1"],
+  ["ÇIKIŞ", "UserDefine2", "Kullanıcı tanımlı 2"], ["ÇIKIŞ", "Barcode stop", "Barkod durdurma"], ["ÇIKIŞ", "CW rotation", "Saat yönünde dönüş"],
+  ["ÇIKIŞ", "CCW rotation", "Saat yönü tersine dönüş"],
+  ["GİRİŞ", "Start IN", "Başlat"], ["GİRİŞ", "Reverse", "Ters dönüş (vida sökme)"], ["GİRİŞ", "Disable", "Devre dışı"], ["GİRİŞ", "Enable", "Etkin"],
+  ["GİRİŞ", "Confirm", "Onay"], ["GİRİŞ", "Clear", "Sayacı sıfırla"], ["GİRİŞ", "Sequence Clear", "Sekansı sıfırla"], ["GİRİŞ", "Reboot", "Yeniden başlat"],
+  ["GİRİŞ", "UserDefine1", "Kullanıcı tanımlı 1"], ["GİRİŞ", "UserDefine2", "Kullanıcı tanımlı 2"], ["GİRİŞ", "Gate Once", "Tek seferlik tetik"],
+  ["GİRİŞ", "SW JOB", "Job değiştir"]
+];
+function defaultSignals(brand) {
+  const out = [], seen = new Set();
+  const add = (group, sig, desc) => { const k = group + "|" + sig + "|" + desc; if (sig && !seen.has(k)) { seen.add(k); out.push({ group, sig, desc }); } };
+  (db.templates[brand] || []).forEach(p => add(p.group || "", p.sig, p.desc));
+  if (/kilews/i.test(brand)) KILEWS_EVENTS.forEach(([g, s, d]) => add(g, s, d));
+  add("", "—", "Kullanılmıyor");
+  return out;
+}
+function signalsOf(brand) {
+  const bi = (db.brandInfo[brand] ||= { connector: "", image: "", note: "", orientation: "v", blocks: [] });
+  if (!Array.isArray(bi.signals) || !bi.signals.length) bi.signals = defaultSignals(brand);
+  return bi.signals;
+}
+function addToSignals(brand, p) {   // şablona yazılan yeni sinyal seçeneklere de eklensin
+  if (!p.sig) return;
+  const lib = signalsOf(brand);
+  if (!lib.some(x => x.sig === p.sig && x.desc === p.desc && (x.group || "") === (p.group || ""))) lib.push({ group: p.group || "", sig: p.sig, desc: p.desc || "" });
+}
+function sigOptions(brand, p) {
+  const lib = signalsOf(brand);
+  let opts = lib.filter(x => !x.group || !p.group || x.group === p.group);
+  if (!opts.length) opts = lib;
+  const cur = opts.some(x => x.sig === p.sig && x.desc === p.desc) ? [] : [{ sig: p.sig, desc: p.desc }];
+  return [...cur, ...opts].map(x => `<option value="${esc(JSON.stringify([x.sig, x.desc]))}" ${x.sig === p.sig && x.desc === p.desc ? "selected" : ""}>${esc(x.sig)}${x.desc ? " — " + esc(x.desc) : ""}</option>`).join("");
+}
+function machinePinTable(m) {
+  const blocks = brandBlocks(m.brand), ctx = "m:" + m.id;
+  if (!m.pins.length) return `<div class="empty">Uç yok. "🔄 Markanın listesinden güncelle" ile uçları getir.</div>`;
+  return `<div class="table-wrap"><table>
+    <thead><tr>${blocks ? `<th style="width:100px">Blok</th>` : ""}<th style="width:70px">Uç</th><th style="width:100px">Grup</th>
+      <th>Sinyal — listeden seç</th><th style="width:150px">✍️ Adres</th><th style="width:270px">Kablo rengi / numarası</th></tr></thead>
+    <tbody>${m.pins.map((p, i) => `<tr data-rowpin="${esc(pinKey(p))}" class="${isPinUsed(p) ? "used" : ""} ${pinKey(p) === ui.selPin ? "flash" : ""}">
+      ${blocks ? `<td>${esc(p.block || "—")}</td>` : ""}<td><span class="pin-no-badge">${esc(p.pin)}</span></td><td class="muted">${esc(p.group)}</td>
+      <td><select data-ctx="${ctx}" data-i="${i}" data-pf="sigpick" style="width:100%">${sigOptions(m.brand, p)}</select></td>
+      <td><input class="addr" data-ctx="${ctx}" data-i="${i}" data-pf="addr" value="${esc(p.addr)}" placeholder="Adres yaz"></td>
+      <td>${wireCell(p, ctx, i)}</td></tr>`).join("")}</tbody></table></div>
+    <div class="muted" style="margin-top:8px">✍️ Elle sadece <b>adres</b> yazılır. Sinyal ve renk listeden seçilir.
+      Listeye yeni sinyal eklemek için <b>🏷️ Markalar → 📚 Sinyal seçenekleri</b>, yeni renk için yukarıdaki <b>🎨 Renk ekle</b>.</div>`;
 }
 
 /* ---------- PİN TABLOSU (makine ve şablon için ortak) ---------- */
@@ -1075,18 +1218,32 @@ function connectorSVG(type, pins, shell, view, selKey, showWire, bi) {
   const pin = (cx, cy, num) => { const p = find(num), k = p ? pinKey(p) : "|" + num; return pinSVG(cx, cy, num, p, k === selKey, showWire, k); };
 
   if (/^DB\d+$/.test(type)) {
-    const N = +type.slice(2), top = Math.ceil(N / 2), pitch = 43, x0 = 152, W = 304 + (top - 1) * pitch, H = 220;
+    // T: üstteki yazı alanı, B: alttaki yazı alanı — pinlerin isim ve açıklaması eğik yazılır
+    const N = +type.slice(2), top = Math.ceil(N / 2), pitch = 43, x0 = 152, T = 235, B = 235;
+    const W = 304 + (top - 1) * pitch + 70, H = 220 + T + B, yt = T + 80, yb = T + 140;
+    const label = (cx, cy, num, up) => {
+      const p = find(num); if (!p) return "";
+      // yazı gövdenin dışından başlar; pine ince çizgiyle bağlanır
+      const k = pinKey(p), ang = up ? -58 : 58, x = cx, y = up ? T + 8 : T + 212;
+      const [d1, d2] = wrap2(p.desc, 28), sel = k === selKey;
+      const line = `<line x1="${cx}" y1="${up ? cy - 17 : cy + 17}" x2="${cx}" y2="${up ? y + 2 : y - 4}" stroke="${k === selKey ? "#FBBF24" : "#64748B"}" stroke-width="1.3" stroke-dasharray="${up ? "0" : "0"}"/>`;
+      return `<g class="pin-g" data-svgpin="${esc(k)}">${line}<text x="${x}" y="${y}" transform="rotate(${ang} ${x} ${y})">
+        <tspan class="lbl" font-size="12.5" font-weight="700" fill="${sel ? "#FBBF24" : "#F1F5F9"}">${esc(trunc(p.sig, 24))}</tspan>
+        ${d1 ? `<tspan class="lbl2" x="${x}" dy="12" font-size="10.5" fill="#94A3B8">${esc(d1)}</tspan>` : ""}
+        ${d2 ? `<tspan class="lbl2" x="${x}" dy="11" font-size="10.5" fill="#94A3B8">${esc(d2)}</tspan>` : ""}</text></g>`;
+    };
     const one = v => {
       const t = range(1, top), b = range(top + 1, N);
       if (v === "rear") { t.reverse(); b.reverse(); }
       const title = v === "rear" ? `ARKA YÜZ — LEHİM TARAFI (Üst: ${top} → 1 | Alt: ${N} → ${top + 1})`
                                  : `ÖN YÜZ — FİŞ TARAFI (Üst: 1 → ${top} | Alt: ${top + 1} → ${N})`;
-      let s = `<rect x="20" y="20" width="${W - 40}" height="180" rx="22" fill="#CBD5E1" stroke="#64748B" stroke-width="3"/>
-        <circle cx="62" cy="110" r="18" fill="#1E1F26" stroke="#475569" stroke-width="3"/>
-        <circle cx="${W - 62}" cy="110" r="18" fill="#1E1F26" stroke="#475569" stroke-width="3"/>
-        <polygon points="105,37 ${W - 105},37 ${W - 125},183 125,183" fill="${shell}" stroke="#E2E8F0" stroke-width="4"/>`;
-      t.forEach((num, i) => s += pin(x0 + i * pitch, 80, num));
-      b.forEach((num, i) => s += pin(x0 + pitch / 2 + i * pitch, 140, num));
+      const Wb = W - 70;   // gövde genişliği (sağda yazılar için 70 boşluk)
+      let s = `<rect x="20" y="${T + 20}" width="${Wb - 40}" height="180" rx="22" fill="#CBD5E1" stroke="#64748B" stroke-width="3"/>
+        <circle cx="62" cy="${T + 110}" r="18" fill="#1E1F26" stroke="#475569" stroke-width="3"/>
+        <circle cx="${Wb - 62}" cy="${T + 110}" r="18" fill="#1E1F26" stroke="#475569" stroke-width="3"/>
+        <polygon points="105,${T + 37} ${Wb - 105},${T + 37} ${Wb - 125},${T + 183} 125,${T + 183}" fill="${shell}" stroke="#E2E8F0" stroke-width="4"/>`;
+      t.forEach((num, i) => { const cx = x0 + i * pitch; s += pin(cx, yt, num) + label(cx, yt, num, true); });
+      b.forEach((num, i) => { const cx = x0 + pitch / 2 + i * pitch; s += pin(cx, yb, num) + label(cx, yb, num, false); });
       return card(title, W, H, s);
     };
     if (view === "both") return `<div class="diagrams dual">${one("rear")}${one("front")}</div>`;
@@ -1118,60 +1275,69 @@ function connectorSVG(type, pins, shell, view, selKey, showWire, bi) {
   return `<div class="diagrams">${card(`DAİRESEL SOKET — ŞEMATİK (gerçek yerleşim için soket üzerindeki numaralara bakın)`, S, S, s)}</div>`;
 }
 
-/* Klemens bloğu — dikey: bloklar yan yana sütun, klemensler alt alta (Desoutter gibi) */
 function termCell(b, t, pins, selKey) {
   const p = pins.find(x => (x.block || "") === b.name && String(x.pin) === t);
   const key = b.name + "|" + t;
   return { p, key, sel: key === selKey };
 }
+/* Dikey klemens (Desoutter gibi): tek gövde içinde yan yana dik sütunlar, sinyal adları dışarıda */
 function blocksV(blocks, pins, shell, selKey, showWire) {
-  const cw = 118, ch = 44, lw = 235, n = blocks.length, maxT = Math.max(...blocks.map(b => b.terminals.length));
-  const xs = []; let x = n > 1 ? lw : 30;
-  blocks.forEach((b, i) => { xs.push(x); x += cw + (i === 0 && n > 1 ? 40 : lw + 30); });
-  const W = xs[n - 1] + cw + lw, H = 66 + maxT * ch + 16;
-  let s = "";
+  const cw = 112, ch = 56, gap = 14, lw = 250, n = blocks.length, maxT = Math.max(...blocks.map(b => b.terminals.length));
+  const frameX = lw, frameY = 58, pad = 14;
+  const colX = i => frameX + pad + i * (cw + gap);
+  const frameW = pad * 2 + n * cw + (n - 1) * gap, frameH = pad * 2 + maxT * ch;
+  const W = frameX + frameW + lw, H = frameY + frameH + 20;
+  let s = `<rect x="${frameX}" y="${frameY}" width="${frameW}" height="${frameH}" rx="8" fill="#E2E8F0" stroke="#475569" stroke-width="3"/>`;
   blocks.forEach((b, i) => {
-    const x0 = xs[i], left = i === 0 && n > 1;
-    s += `<text class="lbl" x="${x0 + cw / 2}" y="28" text-anchor="middle" font-size="18" font-weight="800" fill="#E2E8F0">${esc(b.name)}</text>`;
-    s += `<rect x="${x0 - 8}" y="40" width="${cw + 16}" height="${b.terminals.length * ch + 14}" rx="6" fill="${shell}" stroke="#E2E8F0" stroke-width="2"/>`;
+    const x0 = colX(i), leftSide = n > 1 && i === 0, rightSide = i === n - 1;
+    s += `<text class="lbl" x="${x0 + cw / 2}" y="40" text-anchor="middle" font-size="19" font-weight="800" fill="#F1F5F9">${esc(b.name)}</text>`;
     b.terminals.forEach((t, k) => {
-      const { p, key, sel } = termCell(b, t, pins, selKey), y = 47 + k * ch, cy = y + (ch - 6) / 2;
-      const scx = left ? x0 + 20 : x0 + cw - 20, lx = left ? x0 + cw / 2 + 12 : x0 + cw / 2 - 12;
+      const { p, key, sel } = termCell(b, t, pins, selKey), y = frameY + pad + k * ch, cy = y + (ch - 6) / 2;
+      const scx = leftSide ? x0 + 22 : x0 + cw - 22, lx = leftSide ? x0 + cw / 2 + 14 : x0 + cw / 2 - 14;
       s += `<g class="pin-g" data-svgpin="${esc(key)}">
-        <rect x="${x0}" y="${y}" width="${cw}" height="${ch - 6}" rx="3" fill="#F1F5F9" stroke="${sel ? "#FBBF24" : "#94A3B8"}" stroke-width="${sel ? 3 : 1}"/>
-        <text x="${lx}" y="${cy + 5.5}" text-anchor="middle" font-size="15" font-weight="700" fill="${p ? "#1E293B" : "#94A3B8"}">${esc(t)}</text>`;
-      if (p) {
-        const tx = left ? x0 - 16 : x0 + cw + 16, anc = left ? "end" : "start";
-        s += `<text class="lbl" x="${tx}" y="${y + 15}" text-anchor="${anc}" font-size="14" font-weight="700" fill="#F1F5F9">${esc(trunc(p.sig, 22))}</text>`;
-        if (p.desc) s += `<text class="lbl2" x="${tx}" y="${y + 31}" text-anchor="${anc}" font-size="11" fill="#94A3B8">${esc(trunc(p.desc, 36))}</text>`;
+        <rect x="${x0}" y="${y}" width="${cw}" height="${ch - 6}" rx="3" fill="#FFFFFF" stroke="${sel ? "#F59E0B" : "#64748B"}" stroke-width="${sel ? 3.5 : 1.5}"/>
+        <text x="${lx}" y="${cy + 5.5}" text-anchor="middle" font-size="16" font-weight="700" fill="${p ? "#1E293B" : "#94A3B8"}">${esc(t)}</text>`;
+      if (p && (leftSide || rightSide)) {
+        const tx = leftSide ? frameX - 14 : frameX + frameW + 14, anc = leftSide ? "end" : "start";
+        const [d1, d2] = wrap2(p.desc, 38);
+        s += `<text class="lbl" x="${tx}" y="${y + 14}" text-anchor="${anc}" font-size="14" font-weight="700" fill="#F1F5F9">${esc(trunc(p.sig, 26))}</text>`;
+        if (d1) s += `<text class="lbl2" x="${tx}" y="${y + 29}" text-anchor="${anc}" font-size="11" fill="#94A3B8">${esc(d1)}</text>`;
+        if (d2) s += `<text class="lbl2" x="${tx}" y="${y + 42}" text-anchor="${anc}" font-size="11" fill="#94A3B8">${esc(d2)}</text>`;
       }
       s += `</g>` + pinSVG(scx, cy, "", p, false, showWire, key, 12);
     });
   });
-  return card("ARKA GÖRÜNÜM — KLEMENS BLOKLARI (kablo girişi tarafı)", W, H, s);
+  return card("ARKA GÖRÜNÜM — kablo girişi tarafı", W, H, s);
 }
-/* Klemens bloğu — yatay: bloklar alt alta, klemensler soldan sağa (Kilews gibi) */
+/* Yatay klemens (Kilews gibi): yeşil takılabilir klemens, üstte numara şeridi, bloklar alt alta */
 function blocksH(blocks, pins, shell, selKey, showWire) {
-  const cw = 46, chh = 66, lab = 150, maxT = Math.max(...blocks.map(b => b.terminals.length));
-  const W = 50 + maxT * cw + 130, rowH = 44 + chh + lab, H = 10 + blocks.length * rowH;
+  const tw = 40, numH = 26, bodyH = 58, lab = 215, maxT = Math.max(...blocks.map(b => b.terminals.length));
+  const x0 = 70, W = x0 + maxT * tw + 200, rowH = 34 + numH + bodyH + lab, H = 10 + blocks.length * rowH;
   let s = "";
   blocks.forEach((b, i) => {
-    const y0 = 10 + i * rowH, x0 = 34, by = y0 + 36;
-    s += `<text class="lbl" x="${x0 - 6}" y="${y0 + 22}" font-size="18" font-weight="800" fill="#E2E8F0">${esc(b.name)}</text>`;
-    s += `<rect x="${x0 - 8}" y="${by - 6}" width="${b.terminals.length * cw + 16}" height="${chh + 12}" rx="6" fill="${shell}" stroke="#E2E8F0" stroke-width="2"/>`;
+    const y0 = 10 + i * rowH, ny = y0 + 34, by = ny + numH + 4, n = b.terminals.length, bw = n * tw;
+    s += `<text class="lbl" x="${x0 - 30}" y="${y0 + 22}" font-size="19" font-weight="800" fill="#F1F5F9">${esc(b.name)}</text>`;
+    // numara şeridi
+    s += `<rect x="${x0}" y="${ny}" width="${bw}" height="${numH}" fill="#FFFFFF" stroke="#1F2937" stroke-width="1.5"/>`;
+    // yeşil gövde + vida kulakları
+    s += `<rect x="${x0 - 34}" y="${by + 10}" width="${bw + 68}" height="${bodyH - 20}" rx="10" fill="#4CAF50" stroke="#166534" stroke-width="2"/>
+      <circle cx="${x0 - 18}" cy="${by + bodyH / 2}" r="8" fill="#1F2937"/><circle cx="${x0 + bw + 18}" cy="${by + bodyH / 2}" r="8" fill="#1F2937"/>
+      <rect x="${x0 - 4}" y="${by}" width="${bw + 8}" height="${bodyH}" rx="4" fill="#5CBF4F" stroke="#166534" stroke-width="2"/>`;
     b.terminals.forEach((t, k) => {
-      const { p, key, sel } = termCell(b, t, pins, selKey), x = x0 + k * cw, cx = x + cw / 2;
+      const { p, key, sel } = termCell(b, t, pins, selKey), x = x0 + k * tw, cx = x + tw / 2;
       s += `<g class="pin-g" data-svgpin="${esc(key)}">
-        <rect x="${x + 2}" y="${by}" width="${cw - 4}" height="${chh}" rx="3" fill="#F1F5F9" stroke="${sel ? "#FBBF24" : "#94A3B8"}" stroke-width="${sel ? 3 : 1}"/>
-        <text x="${cx}" y="${by + 19}" text-anchor="middle" font-size="${t.length > 3 ? 10 : 14}" font-weight="700" fill="${p ? "#1E293B" : "#94A3B8"}">${esc(t)}</text>`;
+        ${k ? `<line x1="${x}" y1="${ny}" x2="${x}" y2="${ny + numH}" stroke="#1F2937" stroke-width="1.2"/>` : ""}
+        <text x="${cx}" y="${ny + 18}" text-anchor="middle" font-size="${t.length > 2 ? 11 : 14}" font-weight="700" fill="${p ? "#111827" : "#9CA3AF"}">${esc(t)}</text>
+        <rect x="${x + 5}" y="${by + 8}" width="${tw - 10}" height="${bodyH - 16}" rx="3" fill="#1F2937" stroke="${sel ? "#F59E0B" : "#0F172A"}" stroke-width="${sel ? 3.5 : 1}"/>`;
       if (p) {
-        const ty = by + chh + 16;
-        s += `<text class="lbl" x="${cx - 4}" y="${ty}" font-size="12.5" font-weight="700" fill="#F1F5F9" transform="rotate(55 ${cx - 4} ${ty})">${esc(trunc(p.sig, 20))}</text>`;
+        const ty = by + bodyH + 14;
+        const tx = cx - 4, [d1] = wrap2(p.desc, 30);
+        s += `<text x="${tx}" y="${ty}" transform="rotate(55 ${tx} ${ty})"><tspan class="lbl" font-size="12.5" font-weight="700" fill="${sel ? "#FBBF24" : "#F1F5F9"}">${esc(trunc(p.sig, 22))}</tspan>${d1 ? `<tspan class="lbl2" x="${tx}" dy="12" font-size="10" fill="#94A3B8">${esc(d1)}</tspan>` : ""}</text>`;
       }
-      s += `</g>` + pinSVG(cx, by + chh - 21, "", p, false, showWire, key, 13);
+      s += `</g>` + pinSVG(cx, by + bodyH / 2, "", p, false, showWire, key, 11);
     });
   });
-  return card("ARKA GÖRÜNÜM — KLEMENS BLOKLARI (kablo girişi tarafı)", W, H, s);
+  return card("ARKA GÖRÜNÜM — kablo girişi tarafı", W, H, s);
 }
 
 /* ---------- GÖRSELLER ---------- */
@@ -1235,13 +1401,26 @@ function imgTargetName(target) {
 function renderPins() {
   const sel = $("pinMachineSelect");
   sel.innerHTML = db.machines.length
-    ? db.machines.map(m => `<option value="${m.id}" ${m.id === ui.machineId ? "selected" : ""}>[${esc(regionOf(m))}] ${esc(m.code)} — ${esc(m.name)} (${esc(m.brand)})</option>`).join("")
+    ? db.machines.map(m => `<option value="${m.id}" ${m.id === ui.machineId ? "selected" : ""}>[${esc(regionOf(m))}] ${esc(m.code)} — ${esc(m.name)} ${m.brand ? "(" + esc(m.brand) + ")" : "— 🔫 tabanca yok"}</option>`).join("")
     : `<option value="">Makine yok</option>`;
 
   const m = getMachine(ui.machineId);
   if (!m) { $("pinsContent").innerHTML = `<div class="panel empty">Önce "Makineler" sayfasından makine ekleyin.</div>`; return; }
   const s = pinStats(m), type = connectorOf(m.brand), isDsub = /^DB/.test(type), bi = db.brandInfo[m.brand] || {};
   if (ui.selPin && !ui.selPin.includes("|")) ui.selPin = null;
+  if (!m.brand) {
+    $("pinsContent").innerHTML = `<div class="panel">
+      <div class="m-head-main"><span class="m-code big">${esc(m.code || "—")}</span>
+        <div><div class="m-name big">${esc(m.name)}</div><div class="muted" style="font-size:14px">📍 ${esc(regionOf(m))}</div></div></div>
+      <div class="empty" style="font-size:17px">🔫 Bu makineye henüz tabanca atanmamış.</div>
+      ${EDIT ? `<div class="row" style="justify-content:center">
+          <select id="pgBrand"><option value="">🏷️ Marka seç</option>${brandOptions(null)}</select>
+          <input type="text" id="pgGun" placeholder="Tabanca kodu" style="width:150px">
+          <button class="btn-primary" onclick="assignGun('${m.id}', $('pgBrand'), $('pgGun'))">🔫 Tabanca ata</button></div>`
+        : `<div class="muted" style="text-align:center">Tabanca atamak için sağ üstten <b>🔒 Düzenle</b>'ye bas.</div>`}
+    </div>`;
+    return;
+  }
   $("printHeader").innerHTML = `<h2>${esc(m.code)} — ${esc(m.name)}</h2><p>Bölge: ${esc(regionOf(m))} · Marka: ${esc(m.brand)} · Tabanca: ${esc(m.gunCode || "-")} · Soket: ${esc(CONNECTORS[type])}</p>`;
   if (!EDIT) return renderPinsView(m);
   $("pinsContent").innerHTML = `
@@ -1292,7 +1471,7 @@ function renderPins() {
       ${imgBox(m.image, "m:" + m.id, bi.image)}
     </div>
 
-    ${pinTable(m.pins, "m:" + m.id, true)}`;
+    <div class="panel"><div class="panel-title">📋 Uçlar</div>${machinePinTable(m)}</div>`;
   renderPinDiagram();
 }
 
@@ -1405,6 +1584,21 @@ function renderBrands() {
         </span></div>
       <div class="muted" style="margin-bottom:8px;">Bu şablon, bu markayla eklenen yeni makinelere kopyalanır. Şablonu değiştirmek mevcut makineleri etkilemez (istersen yukarıdan uygula).</div>
       ${pinTable(db.templates[b], "t:" + idx, false)}
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span>📚 ${esc(b)} — sinyal seçenekleri (${signalsOf(b).length})</span>
+        <button class="btn-add btn-sm" data-sladd="1">➕ Seçenek ekle</button></div>
+      <div class="muted" style="margin-bottom:8px">Makine sayfasında sinyal bu listeden seçilir. <b>Grup</b>, seçeneğin hangi uçlarda çıkacağını belirler
+        (uçun grubuyla aynı olmalı; boş bırakılırsa her uçta çıkar).</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th style="width:150px">Grup</th><th style="width:220px">İsim (İngilizce)</th><th>Ne işe yarar? (Türkçe)</th><th class="actions" style="width:60px"></th></tr></thead>
+        <tbody>${signalsOf(b).map((x, i) => `<tr>
+          <td><input data-sl="${i}" data-sk="group" value="${esc(x.group)}" list="groupList"></td>
+          <td><input data-sl="${i}" data-sk="sig" value="${esc(x.sig)}"></td>
+          <td><input data-sl="${i}" data-sk="desc" value="${esc(x.desc)}"></td>
+          <td class="actions"><button class="btn-del btn-sm" data-sldel="${i}" title="Sil">✕</button></td></tr>`).join("")}</tbody>
+      </table></div>
+      <datalist id="groupList">${[...new Set(db.templates[b].map(p => p.group).filter(Boolean))].map(g => `<option value="${esc(g)}">`).join("")}</datalist>
     </div>
     <div class="panel">
       <div class="panel-title">🏭 ${esc(b)} kullanan makineler (${machines.length})</div>
@@ -1547,14 +1741,106 @@ setInterval(() => { if (EDIT && Date.now() - lastActivity > AUTO_LOCK_MIN * 6000
 $("modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(true); });
 
 /* ================== SADE GÖRÜNÜM (kilitliyken) ================== */
-const stateText = s => s.state === "full" ? "✅ Tamam" : s.state === "partial" ? "🟡 Yarım" : "⚪ Boş";
-const stateCls = s => s.state === "full" ? "b-green" : s.state === "partial" ? "b-amber" : "b-gray";
+const stateText = s => s.state === "nogun" ? "🔫 Tabanca yok" : s.state === "full" ? "✅ Tamam" : s.state === "partial" ? "🟡 Yarım" : "⚪ Boş";
+const stateCls = s => s.state === "nogun" ? "b-red" : s.state === "full" ? "b-green" : s.state === "partial" ? "b-amber" : "b-gray";
+
+const SORTS = {
+  region: m => regionOf(m), code: m => m.code, name: m => m.name, brand: m => m.brand, gun: m => m.gunCode,
+  conn: m => connectorOf(m.brand), crit: m => m.critical ? 0 : 1, state: m => { const s = pinStats(m); return s.total ? s.filled / s.total : 0; }
+};
+function machineListTable(list) {
+  const key = SORTS[ui.msort] ? ui.msort : "region", dir = ui.mdir === -1 ? -1 : 1;
+  const val = SORTS[key];
+  const rows = [...list].sort((a, b) => {
+    const x = val(a), y = val(b);
+    const c = typeof x === "number" ? x - y : String(x || "").localeCompare(String(y || ""), "tr", { numeric: true });
+    return c * dir || String(a.code).localeCompare(String(b.code), "tr", { numeric: true });
+  });
+  const th = (k, label, w) => `<th data-msort="${k}" style="cursor:pointer;${w ? "width:" + w : ""}" title="Sıralamak için tıkla">${label} ${key === k ? (dir === 1 ? "▲" : "▼") : ""}</th>`;
+  return `<div class="table-wrap"><table class="view-table mlist">
+    <thead><tr><th style="width:44px">#</th>${th("region", "📍 Bölge", "110px")}${th("code", "Kod", "150px")}${th("name", "Makine adı")}
+      ${th("brand", "🏷️ Marka", "95px")}${th("gun", "🔫 Tabanca", "105px")}${th("conn", "🔌 Soket", "130px")}${th("state", "Bağlantı", "150px")}<th class="no-print" style="width:70px"></th></tr></thead>
+    <tbody>${rows.map((m, i) => {
+      const s = pinStats(m), pct = s.total ? Math.round(s.filled / s.total * 100) : 0;
+      return `<tr data-openpins="${m.id}" style="cursor:pointer">
+        <td class="muted">${i + 1}</td><td>${esc(regionOf(m))}</td><td><span class="m-code" style="white-space:nowrap">${esc(m.code || "—")}</span></td>
+        <td><b>${esc(m.name)}</b>${m.critical ? ` <span class="pill b-red" style="padding:1px 8px;font-size:11px">⚠️ Kritik</span>` : ""}${m.note ? `<div class="muted">📝 ${esc(trunc(m.note, 70))}</div>` : ""}</td>
+        <td>${esc(m.brand || "—")}</td><td>${esc(m.gunCode || "—")}</td><td class="muted" style="font-size:12.5px">${m.brand ? esc(CONNECTORS[connectorOf(m.brand)]) : "—"}</td>
+        <td>${s.state === "nogun" ? `<span class="muted">🔫 Tabanca yok</span>` : `<div class="m-prog"><div class="bar"><div style="width:${pct}%"></div></div><span>${stateText(s)} ${s.filled}/${s.total}</span></div>`}</td>
+        <td class="no-print"><button class="btn-primary btn-sm" style="white-space:nowrap" data-openpins="${m.id}">🔌 Aç</button></td>
+      </tr>`;
+    }).join("")}</tbody></table></div>`;
+}
+/* ---------- Excel / CSV'den makine listesi yükleme ---------- */
+function loadXLSX() {   // Excel okuyucu (SheetJS) sadece gerektiğinde yüklenir: önce src/lib içinden, yoksa internetten
+  if (window.XLSX) return Promise.resolve(window.XLSX);
+  const tryLoad = src => new Promise((res, rej) => {
+    const sc = document.createElement("script"); sc.src = src;
+    sc.onload = () => window.XLSX ? res(window.XLSX) : rej(new Error("yüklenemedi"));
+    sc.onerror = () => rej(new Error("yüklenemedi")); document.head.appendChild(sc);
+  });
+  return tryLoad("src/lib/xlsx.full.min.js")
+    .catch(() => tryLoad("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"))
+    .catch(() => { throw new Error("Excel okuyucu yüklenemedi"); });
+}
+function parseCSV(text) {
+  const first = text.split("\n")[0], sep = (first.match(/;/g) || []).length >= (first.match(/,/g) || []).length ? ";" : ",";
+  const rows = []; let row = [], cell = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+    else if (c === '"') q = true;
+    else if (c === sep) { row.push(cell); cell = ""; }
+    else if (c === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+    else if (c !== "\r") cell += c;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  return rows;
+}
+async function importMachinesFile(e) {
+  const file = e.target.files?.[0]; e.target.value = ""; if (!file) return;
+  let rows;
+  try {
+    if (/\.csv$/i.test(file.name)) rows = parseCSV((await file.text()).replace(/^\uFEFF/, ""));
+    else {
+      const X = await loadXLSX(), wb = X.read(await file.arrayBuffer(), { type: "array" });
+      rows = X.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: "" });
+    }
+  } catch (err) { alert("Dosya okunamadı: " + err.message + "\n\nİnternet yoksa Excel'de 'Farklı kaydet → CSV' yapıp CSV dosyasını yükle."); return; }
+  const head = (rows[0] || []).map(h => String(h).toLocaleLowerCase("tr"));
+  const col = (...keys) => head.findIndex(h => keys.some(k => h.includes(k)));
+  const ci = { code: col("kod", "code"), name: col("adı", "isim", "name"), region: col("hat", "bölüm", "bölge"), note: col("açıklama", "not"), crit: col("kritik") };
+  if (ci.code < 0 || ci.name < 0) { alert("İlk satırda 'Makine Kodu' ve 'Makine Adı' sütunları bulunamadı."); return; }
+  const get = (r, i) => i < 0 ? "" : String(r[i] ?? "").trim();
+  const plan = []; let add = 0, upd = 0;
+  for (const r of rows.slice(1)) {
+    const code = get(r, ci.code), name = get(r, ci.name);
+    if (!code || !name) continue;
+    const ex = db.machines.find(m => String(m.code).toLocaleUpperCase("tr") === code.toLocaleUpperCase("tr"));
+    plan.push({ ex, code, name, region: get(r, ci.region), note: get(r, ci.note),
+                critical: ci.crit >= 0 ? /^(evet|e|yes|y|1|x|true|var)$/i.test(get(r, ci.crit)) : null });
+    ex ? upd++ : add++;
+  }
+  if (!plan.length) { alert("Dosyada makine bulunamadı."); return; }
+  if (!confirm(`${plan.length} makine okundu.\n\n➕ ${add} yeni makine eklenecek\n🔄 ${upd} makinenin adı / bölgesi / açıklaması güncellenecek\n\nTabanca ve bağlantı bilgileri değişmez. Devam edilsin mi?`)) return;
+  plan.forEach(x => {
+    if (x.ex) Object.assign(x.ex, { name: x.name, region: x.region || x.ex.region, note: x.note || x.ex.note, critical: x.critical ?? x.ex.critical });
+    else db.machines.push({ id: uid(), region: x.region, code: x.code, name: x.name, brand: "", gunCode: "", note: x.note, critical: !!x.critical,
+                            shellColor: DEFAULT_SHELL, image: "", pins: [] });
+  });
+  changed(); render(); toast(`✅ ${add} makine eklendi, ${upd} makine güncellendi.`);
+}
+function printMachines() {
+  document.body.classList.add("print-list");
+  $("printHeader").innerHTML = `<h2>Makine Listesi</h2><p>${new Date().toLocaleDateString("tr-TR")} · ${$("mTotal").textContent} makine</p>`;
+  setTimeout(() => { window.print(); document.body.classList.remove("print-list"); }, 100);
+}
 
 function machineCard(m) {
   const s = pinStats(m), pct = s.total ? Math.round(s.filled / s.total * 100) : 0;
   return `<div class="m-card" data-openpins="${m.id}">
-    <div class="m-top"><span class="m-code">${esc(m.code || "—")}</span><span class="chip">${esc(m.brand || "Marka yok")}</span></div>
-    <div class="m-name">${esc(m.name)}</div>
+    <div class="m-top"><span class="m-code">${esc(m.code || "—")}</span><span class="chip">${m.brand ? esc(m.brand) : "🔫 Tabanca yok"}</span></div>
+    <div class="m-name">${esc(m.name)}${m.critical ? ` <span class="pill b-red" style="padding:1px 8px;font-size:11px">⚠️ Kritik</span>` : ""}</div>
     <div class="m-meta">🔫 Tabanca: ${esc(m.gunCode || "—")}</div>
     <div class="m-prog"><div class="bar"><div style="width:${pct}%"></div></div><span>${stateText(s)} ${s.filled}/${s.total}</span></div>
     <button class="btn-primary" data-openpins="${m.id}">🔌 Bağlantıyı gör</button>
@@ -1670,7 +1956,8 @@ document.addEventListener("change", e => {
     });
     return;
   }
-  if (!EDIT && (d.mf || d.pf || d.bf || d.bk)) return;
+  if (!EDIT && (d.mf || d.pf || d.bf || d.bk || d.sk)) return;
+  if (d.mf === "critical") { const m = getMachine(d.mid); if (m) { m.critical = t.checked; changed(); } return; }
   if (d.mf) return setMachineField(d.mid, d.mf, t.value);
   if (d.bf) { (db.brandInfo[ui.brand] ||= { connector: "", image: "", note: "", orientation: "v", blocks: [] })[d.bf] = d.bf === "note" ? t.value.trim() : t.value; changed(); return renderBrands(); }
   if (d.bk) {   // klemens bloğu düzenleme
@@ -1685,12 +1972,21 @@ document.addEventListener("change", e => {
     } else blk.terminals = parseTerminals(t.value);
     changed(); return renderBrands();
   }
+  if (d.sk) {   // sinyal seçeneği düzenleme
+    const x = signalsOf(ui.brand)[+d.sl]; if (!x) return;
+    x[d.sk] = t.value.trim(); changed(); return;
+  }
   if (d.pf) {
     const pins = pinsOf(d.ctx); if (!pins) return;
     const p = pins[+d.i];
+    if (d.pf === "sigpick") {   // makinede sinyal listeden seçildi
+      try { [p.sig, p.desc] = JSON.parse(t.value); } catch (err) { return; }
+      changed(); ui.selPin = pinKey(p); return renderPins();
+    }
     p[d.pf] = d.pf === "pin" ? parsePinNo(t.value) : t.value.trim();
+    if (!d.ctx.startsWith("m:") && ["sig", "desc", "group"].includes(d.pf)) addToSignals(brandOfCtx(d.ctx), p);
     changed();
-    if (!d.ctx.startsWith("m:")) { if (["pin", "block", "sig", "desc"].includes(d.pf)) renderBrands(); return; }
+    if (!d.ctx.startsWith("m:")) { if (["pin", "block", "sig", "desc", "group"].includes(d.pf)) renderBrands(); return; }
     if (["wireType", "color", "color2", "block"].includes(d.pf)) { ui.selPin = pinKey(p); return renderPins(); }
     // metin alanı: odağı kaybetmemek için sadece şemayı, satır rengini ve rozeti güncelle
     const tr = t.closest("tr"); tr.classList.toggle("used", isPinUsed(p)); tr.dataset.rowpin = pinKey(p);
@@ -1718,7 +2014,8 @@ document.addEventListener("input", e => {
 
 document.addEventListener("keydown", e => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); if (EDIT) { document.activeElement?.blur(); saveNow(); } }
-  if (e.key === "Enter" && ["nmName", "nmCode", "nmGun", "nmRegion"].includes(e.target.id)) addMachine();
+  if (e.key === "Enter" && ["nmName", "nmCode", "nmRegion", "nmNote"].includes(e.target.id)) addMachine();
+  if (e.key === "Enter" && e.target.id === "agGun") assignGun();
   if (e.key === "Enter" && e.target.id === "newBrandName") addBrand();
   if (e.key === "Enter" && e.target.id === "ncName") addColor();
   if (e.key === "Enter" && e.target.tagName === "INPUT" && e.target.dataset.pf) {   // Enter → alttaki satırın aynı hücresine geç
@@ -1732,21 +2029,32 @@ document.addEventListener("click", e => {
   if (g && g.closest("#pinsContent")) return selectPin(g.dataset.svgpin, EDIT);   // bakma modunda bilgi kartı görünür kalsın
   const row = e.target.closest("tr[data-rowsel]");
   if (row) { selectPin(row.dataset.rowsel, false); return $("diagramArea")?.scrollIntoView({ block: "center", behavior: "smooth" }); }
+  const sortTh = e.target.closest("th[data-msort]");
+  if (sortTh) { const k = sortTh.dataset.msort; ui.mdir = ui.msort === k ? -(ui.mdir || 1) : 1; ui.msort = k; saveUI(); return renderMachines(); }
   const t = e.target.closest("button, .stat, [data-openpins]"); if (!t) return;
   const d = t.dataset;
-  if (!EDIT && (d.dup || d.delm || d.imgup || d.imgdel || d.blkadd || d.blkdel !== undefined || d.ctx)) return;
+  if (!EDIT && (d.dup || d.delm || d.imgup || d.imgdel || d.blkadd || d.blkdel !== undefined || d.ctx || d.sladd || d.sldel !== undefined)) return;
   if (d.page) return openPage(d.page);
   if (d.goto) { if (d.pinfilter !== undefined) { $("fPin").value = d.pinfilter; } return openPage(d.goto); }
   if (d.openpins) { ui.machineId = d.openpins; ui.selPin = null; return openPage("pins"); }
   if (d.dup) return duplicateMachine(d.dup);
   if (d.delm) return deleteMachine(d.delm);
   if (d.view) { ui.view = d.view; saveUI(); return renderPins(); }
+  if (d.mview) { ui.mview = d.mview; saveUI(); return renderMachines(); }
+  if (d.regionpick !== undefined) { $("fRegion").value = $("fRegion").value === d.regionpick ? "" : d.regionpick; return renderMachines(); }
   if (d.brandgo !== undefined) { ui.brand = brands()[+d.brandgo] || ui.brand; return openPage("brands"); }
   if (d.blkadd) { const bi = (db.brandInfo[ui.brand] ||= { connector: "KLEMENS", image: "", note: "", orientation: "v", blocks: [] }); (bi.blocks ||= []).push({ name: "BLOK " + (bi.blocks.length + 1), terminals: [] }); changed(); return renderBrands(); }
   if (d.blkdel !== undefined) {
     const bi = db.brandInfo[ui.brand], blk = bi?.blocks?.[+d.blkdel]; if (!blk) return;
     if (!confirm(`"${blk.name}" bloğu silinsin mi? (Pinler silinmez, sadece şemadan çıkar.)`)) return;
     bi.blocks.splice(+d.blkdel, 1); changed(); return renderBrands();
+  }
+  if (d.sladd) { signalsOf(ui.brand).push({ group: "", sig: "", desc: "" }); changed(); renderBrands();
+    const ins = document.querySelectorAll('[data-sk="sig"]'); ins[ins.length - 1]?.focus(); return; }
+  if (d.sldel !== undefined) {
+    const lib = signalsOf(ui.brand), x = lib[+d.sldel];
+    if (!x || !confirm(`"${x.sig || "boş"}" seçeneği listeden silinsin mi? (Makinelerde seçili olanlar değişmez.)`)) return;
+    lib.splice(+d.sldel, 1); changed(); return renderBrands();
   }
   if (d.imgup) { pendingImgTarget = d.imgup; return $("imgInput").click(); }
   if (d.imgdel) {
