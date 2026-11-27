@@ -24,6 +24,11 @@ Bundan sonra yapılan her değişiklik doğrudan `Fiam/src/tabanca_makine_verile
   1. **➕ Makine ekle** — sadece bölge, kod ve ad girilir (bölge listeden seçilebilir).
   2. **🔫 Makineye tabanca ata** — makine listeden seçilir, marka ve tabanca kodu girilir; markanın uç listesi makineye kendiliğinden gelir.
 - Tabancası olmayan makineler listede **🔫 Tabanca yok** olarak görünür ve filtrelenebilir.
+- Fabrikadaki **290 makine** (`MAKINELER_2026.xlsx`) listeye yüklendi; Excel'deki "Kritik = EVET" olanlar **⚠️ Kritik** olarak görünür ve süzülebilir.
+- **Yeni makine geldiğinde:** düzenleme modunda **➕ Makine ekle** ile tek tek, ya da **⬆️ Excel'den makine yükle** ile toplu eklenir.
+  Excel/CSV'de *Makine Kodu, Makine Adı, Hat / Bölüm, Açıklama, Kritik* sütunları olmalı. Yeni kodlar eklenir, var olan kodların
+  adı/bölgesi/açıklaması güncellenir; tabanca ve bağlantı bilgilerine dokunulmaz. Aynı dosya tekrar yüklenirse makine çoğalmaz.
+- Excel okuyucu (SheetJS, Apache-2.0) `Fiam/src/lib/` içindedir, internet olmadan da çalışır.
 
 ## Sinyal seçenekleri (elle yazma sadece adreste)
 
