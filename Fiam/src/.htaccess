@@ -1,0 +1,6 @@
+# JSON ve yedek dosyalarına tarayıcıdan doğrudan erişimi kapat.
+# Veriye sadece kaydet.php üzerinden ulaşılır. (Apache / LiteSpeed hostinglerde çalışır.)
+<FilesMatch "\.(json|lock|tmp)$">
+    Require all denied
+</FilesMatch>
+Options -Indexes
