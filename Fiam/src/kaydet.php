@@ -127,6 +127,10 @@ if (file_put_contents($tmp, $json) === false || !rename($tmp, $DATA_FILE)) {
     cevap(500, array('status' => 'error', 'message' => 'JSON dosyasına yazılamadı (klasör yazma iznini kontrol edin).'));
 }
 
+// Çift tıklayarak açıldığında (sunucusuz) okunacak kopya
+@file_put_contents(__DIR__ . '/veri.js',
+    "// Otomatik oluşturulur, elle düzenlemeyin. Asıl veri: tabanca_makine_veriler.json\nwindow.TABANCA_VERI = " . $json . ";\n");
+
 flock($lock, LOCK_UN);
 fclose($lock);
 

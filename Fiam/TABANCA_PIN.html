@@ -114,6 +114,11 @@
     </div>
   </header>
 
+  <div class="panel" id="fileBanner" style="display:none; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; border-color:rgba(245,158,11,.5);">
+    <span id="fileBannerText" style="font-size:13px;"></span>
+    <button class="btn-add" id="fileBannerBtn" onclick="connectFolder()">KLASÖRE BAĞLAN</button>
+  </div>
+
   <nav id="nav">
     <button data-page="home">Ana Sayfa</button>
     <button data-page="machines">Makineler</button>
@@ -206,8 +211,9 @@
     <div class="panel">
       <div class="panel-title">Veri Yönetimi</div>
       <div class="row">
-        <button class="btn-add" onclick="saveNow()">SUNUCUYA KAYDET</button>
-        <button onclick="reloadFromServer()">SUNUCUDAN YENİDEN YÜKLE</button>
+        <button class="btn-add" onclick="saveNow()">KAYDET</button>
+        <button onclick="reloadFromServer()">YENİDEN YÜKLE</button>
+        <button onclick="connectFolder()" id="connectBtn2">KLASÖRE BAĞLAN</button>
         <button class="btn-primary" onclick="exportJSON()">JSON YEDEĞİ İNDİR</button>
         <button onclick="document.getElementById('jsonFileInput').click()">JSON YEDEĞİ YÜKLE</button>
         <input type="file" id="jsonFileInput" accept=".json,application/json" style="display:none;" onchange="importJSON(event)">
@@ -217,11 +223,14 @@
     <div class="panel">
       <div class="panel-title">Nasıl Çalışır?</div>
       <div class="muted" style="line-height:1.7;">
-        • Bu sayfa ve <b>src/</b> klasörü PHP destekli herhangi bir hostinge yüklenir; ayrıca sunucu kurmana gerek yok.<br>
-        • Tüm veriler <b>src/tabanca_makine_veriler.json</b> dosyasında tutulur, her kayıtta <b>src/yedek/</b> klasörüne otomatik yedek alınır (son 50).<br>
-        • Değişiklikler yaklaşık 1 saniye sonra otomatik kaydedilir. Sunucuya ulaşılamazsa tarayıcıda saklanır ve bağlantı gelince gönderilir.<br>
-        • Aynı anda iki kişi düzenlerse, ikinci kaydeden uyarılır; kimsenin verisi sessizce silinmez.<br>
-        • Kaydetmeyi şifrelemek için <b>src/kaydet.php</b> içindeki <b>$EDIT_PASSWORD</b> değerini doldur.
+        <b>1) Bilgisayarda (sunucusuz):</b> Repoyu indir, <b>TABANCA_PIN.html</b> dosyasına çift tıkla (Chrome veya Edge).
+        Üstteki <b>KLASÖRE BAĞLAN</b> butonuna basıp <b>src</b> klasörünü seç; bundan sonra değişiklikler doğrudan
+        <b>src/tabanca_makine_veriler.json</b> dosyasına yazılır. Ortak ağ klasöründe de çalışır.<br>
+        <b>2) PHP'li sunucuda:</b> Klasörü hostinge yükle, sayfayı adresinden aç; kayıt <b>src/kaydet.php</b> üzerinden yapılır.<br>
+        • Her kayıtta <b>src/yedek/</b> klasörüne otomatik yedek alınır (son 50).<br>
+        • Değişiklikler yaklaşık 1 saniye sonra otomatik kaydedilir; kaydedilemezse tarayıcıda bekletilir.<br>
+        • Aynı anda iki kişi düzenlerse, ikinci kaydeden uyarılır; kimsenin verisi habersiz silinmez.<br>
+        • Sunucuda kaydetmeyi şifrelemek için <b>src/kaydet.php</b> içindeki <b>$EDIT_PASSWORD</b> değerini doldur.
       </div>
     </div>
   </section>
@@ -230,6 +239,7 @@
 </div>
 <div id="toast"></div>
 
+<script src="src/veri.js"></script>
 <script>
 /* ================== AYARLAR ================== */
 const API_URL = "src/kaydet.php";
@@ -237,6 +247,10 @@ const LS_DATA = "tabanca_rehber_data_v5";
 const LS_UI   = "tabanca_rehber_ui_v5";
 const LS_KEY  = "tabanca_rehber_key";
 const AUTOSAVE_MS = 1000;
+const BACKUP_KEEP = 50;
+const DATA_NAME = "tabanca_makine_veriler.json";
+const MODE = location.protocol === "file:" ? "file" : "server";   // çift tıklayınca "file"
+let dirHandle = null;   // dosya modunda bağlanan src klasörü
 
 /* ================== DURUM ================== */
 let db = { _rev: 0, templates: {}, machines: [] };   // sunucuya giden veri
@@ -281,7 +295,12 @@ function normalize(raw) {
   return out;
 }
 
-/* ================== KAYDETME / YÜKLEME ================== */
+/* ================== KAYDETME / YÜKLEME ==================
+   İki çalışma şekli var:
+   - SUNUCU modu (http/https): src/kaydet.php üzerinden okur/yazar.
+   - DOSYA modu (HTML'e çift tıklayınca, file://): veriyi src/veri.js'ten okur;
+     "Klasöre Bağlan" ile src klasörü seçilince doğrudan dosyalara yazar (Chrome / Edge).
+*/
 function saveLocal() {
   try { localStorage.setItem(LS_DATA, JSON.stringify({ data: db, dirty })); } catch (e) {}
 }
@@ -295,77 +314,179 @@ function changed() {        // her veri değişikliğinden sonra çağrılır
   saveTimer = setTimeout(saveNow, AUTOSAVE_MS);
 }
 
-async function saveNow(force = false) {
-  clearTimeout(saveTimer);
-  if (saving) { saveTimer = setTimeout(saveNow, 500); return; }
-  saving = true; updateStatus();
-  try {
-    const headers = { "Content-Type": "application/json" };
-    const key = localStorage.getItem(LS_KEY); if (key) headers["X-Edit-Key"] = key;
-    const res = await fetch(API_URL + (force ? "?force=1" : ""), { method: "POST", headers, body: JSON.stringify(db) });
-    const out = await res.json().catch(() => ({}));
-    serverOnline = true;
-    if (res.ok) {
-      db._rev = out.rev; db.updatedAt = out.updatedAt;
-      dirty = false; lastSavedAt = new Date(); saveLocal();
-    } else if (res.status === 409) {
-      saving = false;
-      const takeServer = confirm(
-        "Bu veri siz açtıktan sonra başka biri tarafından değiştirilmiş.\n\n" +
-        "TAMAM  → Sunucudaki güncel veriyi yükle (sizin versiyonunuz yedek olarak bilgisayara indirilir)\n" +
-        "İPTAL  → Sizin verinizle sunucudakinin üzerine yaz (diğer kişinin değişiklikleri kaybolur)");
-      if (takeServer) {
-        download(JSON.stringify(db, null, 2), "benim_degisikliklerim_" + Date.now() + ".json", "application/json");
-        db = normalize(out.server); dirty = false; saveLocal(); render(); toast("Sunucudaki güncel veri yüklendi.");
-      }
-      else return saveNow(true);
-    } else if (res.status === 401) {
-      saving = false;
-      const k = prompt("Kaydetmek için şifre girin:");
-      if (k !== null) { localStorage.setItem(LS_KEY, k); return saveNow(force); }
-    } else {
-      toast("Kayıt hatası: " + (out.message || res.status));
-    }
-  } catch (e) {
-    serverOnline = false;
-  }
-  saving = false; updateStatus();
-}
-
-async function fetchServer() {
+/* ---------- Sunucu (PHP) ---------- */
+async function serverLoad() {
   const res = await fetch(API_URL, { cache: "no-store" });
   if (!res.ok) throw new Error(res.status);
   return res.json();
+}
+async function serverSave(data, force) {
+  const headers = { "Content-Type": "application/json" };
+  const key = localStorage.getItem(LS_KEY); if (key) headers["X-Edit-Key"] = key;
+  const res = await fetch(API_URL + (force ? "?force=1" : ""), { method: "POST", headers, body: JSON.stringify(data) });
+  const out = await res.json().catch(() => ({}));
+  if (res.ok) return { ok: true, rev: out.rev, updatedAt: out.updatedAt };
+  if (res.status === 409) return { conflict: true, server: out.server };
+  if (res.status === 401) return { auth: true };
+  return { error: out.message || res.status };
+}
+
+/* ---------- Yerel klasör (File System Access API) ---------- */
+function idb(mode, fn) {
+  return new Promise((resolve, reject) => {
+    const open = indexedDB.open("tabanca_rehber", 1);
+    open.onupgradeneeded = () => open.result.createObjectStore("kv");
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const tx = open.result.transaction("kv", mode), req = fn(tx.objectStore("kv"));
+      tx.oncomplete = () => resolve(req.result); tx.onerror = () => reject(tx.error);
+    };
+  });
+}
+const idbGet = k => idb("readonly", s => s.get(k)).catch(() => null);
+const idbSet = (k, v) => idb("readwrite", s => s.put(v, k)).catch(() => null);
+
+async function folderReady() {
+  try { return !!dirHandle && (await dirHandle.queryPermission({ mode: "readwrite" })) === "granted"; }
+  catch (e) { return false; }
+}
+async function hasFile(dir, name) {
+  try { await dir.getFileHandle(name); return true; } catch (e) { return false; }
+}
+async function writeFile(dir, name, text) {
+  const fh = await dir.getFileHandle(name, { create: true });
+  const w = await fh.createWritable(); await w.write(text); await w.close();
+}
+async function readDataFile() {
+  try { return JSON.parse(await (await (await dirHandle.getFileHandle(DATA_NAME)).getFile()).text()); }
+  catch (e) { if (e.name === "NotFoundError") return null; throw e; }
+}
+async function fileLoad() {
+  if (!(await folderReady())) throw new Error("klasör bağlı değil");
+  const d = await readDataFile();
+  if (!d) throw new Error("veri dosyası yok");
+  return d;
+}
+async function fileSave(data, force) {
+  if (!(await folderReady())) throw new Error("klasör bağlı değil");
+  const cur = await readDataFile();
+  const curRev = cur ? (parseInt(cur._rev) || 0) : 0;
+  if (!force && cur && (parseInt(data._rev) || 0) !== curRev) return { conflict: true, server: cur };
+
+  if (cur) {   // yedek al (son 50)
+    const yd = await dirHandle.getDirectoryHandle("yedek", { create: true });
+    const d = new Date(), p = n => String(n).padStart(2, "0");
+    const stamp = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+    await writeFile(yd, `veri_${stamp}_r${curRev}.json`, JSON.stringify(cur, null, 2));
+    const names = [];
+    for await (const [n] of yd.entries()) if (/^veri_.*\.json$/.test(n)) names.push(n);
+    names.sort();
+    for (const n of names.slice(0, Math.max(0, names.length - BACKUP_KEEP))) await yd.removeEntry(n);
+  }
+  const out = { ...data, _rev: curRev + 1, updatedAt: new Date().toISOString() };
+  const json = JSON.stringify(out, null, 2);
+  await writeFile(dirHandle, DATA_NAME, json);
+  await writeFile(dirHandle, "veri.js", "// Otomatik oluşturulur, elle düzenlemeyin. Asıl veri: " + DATA_NAME + "\nwindow.TABANCA_VERI = " + json + ";\n");
+  return { ok: true, rev: out._rev, updatedAt: out.updatedAt };
+}
+
+async function connectFolder() {
+  if (!window.showDirectoryPicker) {
+    alert("Bu tarayıcı dosyaya doğrudan yazmayı desteklemiyor.\nLütfen sayfayı Google Chrome veya Microsoft Edge ile açın.");
+    return;
+  }
+  try {
+    if (!(dirHandle && (await dirHandle.requestPermission({ mode: "readwrite" })) === "granted")) {
+      let h = await window.showDirectoryPicker({ id: "tabanca", mode: "readwrite" });
+      if (!(await hasFile(h, DATA_NAME))) {   // Fiam klasörü seçildiyse içindeki src'yi kullan
+        try { const s = await h.getDirectoryHandle("src"); if (await hasFile(s, DATA_NAME)) h = s; } catch (e) {}
+      }
+      if (!(await hasFile(h, DATA_NAME)) &&
+          !confirm(`Seçilen klasörde "${DATA_NAME}" bulunamadı.\nNormalde "src" klasörünü seçmelisin.\n\nYine de bu klasörde yeni bir veri dosyası oluşturulsun mu?`)) return;
+      dirHandle = h; await idbSet("dir", h);
+    }
+    const fileData = await readDataFile();
+    serverOnline = true;
+    if (dirty && confirm("Klasöre bağlanmadan önce yaptığın değişiklikler var. Dosyaya yazılsın mı?\n(İPTAL dersen dosyadaki veri yüklenir.)")) {
+      render(); saveNow(); return;
+    }
+    if (fileData) { db = normalize(fileData); dirty = false; saveLocal(); render(); }
+    else { render(); changed(); }
+    toast("Klasöre bağlandı. Değişiklikler artık dosyaya kaydediliyor.");
+  } catch (e) {
+    if (e.name !== "AbortError") alert("Klasöre bağlanılamadı: " + e.message);
+    updateStatus();
+  }
+}
+
+/* ---------- Ortak ---------- */
+const backendLoad = () => MODE === "file" ? fileLoad() : serverLoad();
+const backendSave = (d, f) => MODE === "file" ? fileSave(d, f) : serverSave(d, f);
+const placeName = () => MODE === "file" ? "dosyadaki" : "sunucudaki";
+
+async function saveNow(force = false) {
+  clearTimeout(saveTimer);
+  if (saving) { saveTimer = setTimeout(saveNow, 500); return; }
+  if (MODE === "file" && !(await folderReady())) { serverOnline = false; updateStatus(); return; }
+  saving = true; updateStatus();
+  let r;
+  try { r = await backendSave(db, force === true); serverOnline = true; }
+  catch (e) { serverOnline = false; saving = false; updateStatus(); if (MODE === "file") toast("Dosyaya yazılamadı: " + e.message); return; }
+  saving = false;
+
+  if (r.ok) {
+    db._rev = r.rev; db.updatedAt = r.updatedAt;
+    dirty = false; lastSavedAt = new Date(); saveLocal();
+  } else if (r.conflict) {
+    const takeServer = confirm(
+      "Bu veri siz açtıktan sonra başka biri tarafından değiştirilmiş.\n\n" +
+      `TAMAM  → ${placeName()} güncel veriyi yükle (sizin versiyonunuz yedek olarak bilgisayara indirilir)\n` +
+      `İPTAL  → Sizin verinizle ${placeName()} verinin üzerine yaz (diğer kişinin değişiklikleri kaybolur)`);
+    if (takeServer) {
+      download(JSON.stringify(db, null, 2), "benim_degisikliklerim_" + Date.now() + ".json", "application/json");
+      db = normalize(r.server); dirty = false; saveLocal(); render(); toast("Güncel veri yüklendi.");
+    } else return saveNow(true);
+  } else if (r.auth) {
+    const k = prompt("Kaydetmek için şifre girin:");
+    if (k !== null) { localStorage.setItem(LS_KEY, k); return saveNow(force); }
+  } else {
+    toast("Kayıt hatası: " + r.error);
+  }
+  updateStatus();
 }
 
 async function loadInitial() {
   try { Object.assign(ui, JSON.parse(localStorage.getItem(LS_UI) || "{}")); } catch (e) {}
   let local = null;
   try { local = JSON.parse(localStorage.getItem(LS_DATA) || "null"); } catch (e) {}
+  if (MODE === "file") dirHandle = await idbGet("dir");
 
-  try {
-    const server = await fetchServer();
-    serverOnline = true;
-    db = normalize(server);
-    if (local?.dirty && local.data) {
-      if (confirm("Bu tarayıcıda sunucuya gönderilmemiş değişiklikler var. Şimdi gönderilsin mi?\n(İPTAL dersen sunucudaki veri kullanılır.)")) {
-        db = normalize(local.data); dirty = true;
-        render(); saveNow(local.data._rev !== server._rev);
-        return;
-      }
+  let remote = null;
+  try { remote = await backendLoad(); serverOnline = true; } catch (e) { serverOnline = false; }
+
+  if (remote) {
+    db = normalize(remote);
+    if (local?.dirty && local.data &&
+        confirm(`Bu tarayıcıda kaydedilmemiş değişiklikler var. Şimdi ${MODE === "file" ? "dosyaya yazılsın" : "sunucuya gönderilsin"} mi?\n(İPTAL dersen ${placeName()} veri kullanılır.)`)) {
+      db = normalize(local.data); dirty = true;
+      render(); saveNow(local.data._rev !== remote._rev);
+      return;
     }
     dirty = false; saveLocal();
-  } catch (e) {
-    serverOnline = false;
-    if (local?.data) { db = normalize(local.data); dirty = !!local.dirty; }
+  } else if (local?.dirty && local.data) {
+    db = normalize(local.data); dirty = true;                     // kaydedilmemiş yerel değişiklikler
+  } else if (window.TABANCA_VERI) {
+    db = normalize(window.TABANCA_VERI);                          // src/veri.js (çift tıklayınca)
+  } else if (local?.data) {
+    db = normalize(local.data);
   }
   render();
 }
 
 async function reloadFromServer() {
   if (dirty && !confirm("Kaydedilmemiş değişiklikler kaybolacak. Devam edilsin mi?")) return;
-  try { db = normalize(await fetchServer()); serverOnline = true; dirty = false; saveLocal(); render(); toast("Sunucudan yüklendi."); }
-  catch (e) { serverOnline = false; updateStatus(); toast("Sunucuya ulaşılamadı."); }
+  try { db = normalize(await backendLoad()); serverOnline = true; dirty = false; saveLocal(); render(); toast("Yeniden yüklendi."); }
+  catch (e) { serverOnline = false; updateStatus(); toast(MODE === "file" ? "Önce klasöre bağlanın." : "Sunucuya ulaşılamadı."); }
 }
 
 function exportJSON() {
@@ -395,16 +516,31 @@ function toCSV(rows) {   // Türkçe Excel için ; ayırıcı + BOM
 /* ================== DURUM SATIRI ================== */
 function updateStatus() {
   const s = $("saveStatus");
+  const offText = MODE === "file" ? "KLASÖR BAĞLI DEĞİL" : "SUNUCU YOK";
   if (saving) { s.className = "badge b-blue"; s.textContent = "KAYDEDİLİYOR..."; }
-  else if (!serverOnline) { s.className = "badge b-red"; s.textContent = dirty ? "SUNUCU YOK — TARAYICIDA SAKLANDI" : "SUNUCU YOK"; }
+  else if (!serverOnline) { s.className = "badge b-red"; s.textContent = dirty ? offText + " — TARAYICIDA SAKLANDI" : offText; }
   else if (dirty) { s.className = "badge b-amber"; s.textContent = "KAYDEDİLMEMİŞ DEĞİŞİKLİK"; }
   else { s.className = "badge b-green"; s.textContent = "KAYDEDİLDİ" + (lastSavedAt ? " " + lastSavedAt.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : ""); }
+
+  // Dosya modunda klasör bağlı değilse uyarı çubuğu
+  const banner = $("fileBanner");
+  banner.style.display = MODE === "file" && !serverOnline ? "flex" : "none";
+  if (MODE === "file" && !serverOnline) {
+    $("fileBannerText").innerHTML = window.showDirectoryPicker
+      ? `<b>Kaydetme kapalı.</b> Değişikliklerin dosyaya yazılması için bir kez <b>src</b> klasörünü seç.` +
+        (dirty ? ` <span style="color:#FCD34D">Kaydedilmemiş değişikliklerin bu tarayıcıda bekliyor.</span>` : "")
+      : `<b>Bu tarayıcı dosyaya doğrudan yazamıyor.</b> Kaydetmek için sayfayı <b>Chrome</b> veya <b>Edge</b> ile aç. ` +
+        `(Değişiklikler bu tarayıcıda saklanır; "Veri / Yedek" sayfasından JSON indirebilirsin.)`;
+    $("fileBannerBtn").style.display = window.showDirectoryPicker ? "" : "none";
+  }
 
   const m = getMachine(ui.machineId);
   $("statusLine").textContent = `${db.machines.length} makine · ${brands().length} marka` + (m ? ` · Seçili: ${m.code} ${m.name}` : "");
   $("dataInfo").innerHTML =
-    `Sunucu: <b>${serverOnline ? "BAĞLI" : "ULAŞILAMIYOR (sayfa PHP'li bir sunucudan açılmamış olabilir)"}</b><br>` +
-    `Veri sürümü: <b>${db._rev}</b>${db.updatedAt ? " · Son sunucu kaydı: <b>" + esc(new Date(db.updatedAt).toLocaleString("tr-TR")) + "</b>" : ""}<br>` +
+    (MODE === "file"
+      ? `Çalışma şekli: <b>YEREL DOSYA</b> · Klasör: <b>${serverOnline ? "BAĞLI (" + esc(dirHandle?.name) + ")" : "BAĞLI DEĞİL"}</b><br>`
+      : `Çalışma şekli: <b>SUNUCU (PHP)</b> · Sunucu: <b>${serverOnline ? "BAĞLI" : "ULAŞILAMIYOR"}</b><br>`) +
+    `Veri sürümü: <b>${db._rev}</b>${db.updatedAt ? " · Son kayıt: <b>" + esc(new Date(db.updatedAt).toLocaleString("tr-TR")) + "</b>" : ""}<br>` +
     `Toplam: <b>${db.machines.length}</b> makine, <b>${brands().length}</b> marka şablonu`;
 }
 
@@ -789,13 +925,14 @@ setInterval(async () => {
   const a = document.activeElement;
   if (a && ["INPUT", "SELECT", "TEXTAREA"].includes(a.tagName)) return;   // düzenleme sırasında dokunma
   try {
-    const server = await fetchServer(); serverOnline = true;
+    const server = await backendLoad(); serverOnline = true;
     if ((parseInt(server._rev) || 0) !== db._rev && !dirty && !saving) {
       db = normalize(server); saveLocal(); render(); toast("Başka bir kullanıcının değişiklikleri yüklendi.");
     }
-  } catch (e) { serverOnline = false; updateStatus(); }
+  } catch (e) { if (serverOnline) { serverOnline = false; updateStatus(); } }
 }, 15000);
 
+if (MODE !== "file") $("connectBtn2").style.display = "none";
 loadInitial();
 </script>
 </body>
