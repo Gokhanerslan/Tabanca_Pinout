@@ -1,48 +1,139 @@
 <?php
+/**
+ * Tabanca & Makine Rehberi - JSON veri ucu
+ *
+ * GET  -> tabanca_makine_veriler.json içeriğini döndürür
+ * POST -> gönderilen JSON'u kaydeder (yedek alır, çakışma kontrolü yapar)
+ *
+ * Kurulum: Bu klasörü (src) PHP çalışan herhangi bir hostinge atman yeterli.
+ * Klasörün yazma izni olmalı (genelde 755 / 775 yeterli).
+ */
+
+// ------------------------- AYARLAR -------------------------
+$DATA_FILE   = __DIR__ . '/tabanca_makine_veriler.json';
+$BACKUP_DIR  = __DIR__ . '/yedek';
+$BACKUP_KEEP = 50;               // en fazla kaç yedek tutulsun
+$MAX_BYTES   = 5 * 1024 * 1024;  // en fazla 5 MB veri kabul et
+
+// Boş bırakırsan herkes kaydedebilir.
+// Bir şifre yazarsan sayfa kaydederken bu şifreyi sorar.
+$EDIT_PASSWORD = '';
+// -----------------------------------------------------------
+
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 
-$jsonFile = __DIR__ . '/tabanca_makine_veriler.json';
-
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    if (!file_exists($jsonFile)) {
-        http_response_code(404);
-        echo json_encode(['status' => 'error', 'message' => 'tabanca_makine_veriler.json bulunamadı.'], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-    readfile($jsonFile);
+function cevap($code, $data) {
+    http_response_code($code);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $raw = file_get_contents('php://input');
-    $decoded = json_decode($raw, true);
-
-    if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
-        http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => 'Geçersiz JSON verisi.'], JSON_UNESCAPED_UNICODE);
-        exit;
+function veriOku($file) {
+    if (!file_exists($file)) {
+        return array('_rev' => 0, 'templates' => new stdClass(), 'machines' => array());
     }
-
-    // Mevcut dosyanın yedeğini al
-    if (file_exists($jsonFile)) {
-        @copy($jsonFile, __DIR__ . '/tabanca_makine_veriler.bak.json');
+    $raw = file_get_contents($file);
+    $data = json_decode($raw, true);
+    if (!is_array($data)) {
+        cevap(500, array('status' => 'error', 'message' => 'Sunucudaki JSON dosyası bozuk. yedek klasöründen geri yükleyin.'));
     }
+    if (!isset($data['_rev'])) $data['_rev'] = 0;
+    return $data;
+}
 
-    $formatted = json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    if (file_put_contents($jsonFile, $formatted, LOCK_EX) === false) {
-        http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'JSON dosyasına yazılamadı (klasör yazma iznini kontrol edin).'], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
+$method = $_SERVER['REQUEST_METHOD'];
 
-    echo json_encode([
-        'status' => 'ok',
-        'message' => 'Veriler JSON dosyasına kaydedildi.',
-        'machineCount' => isset($decoded['machines']) && is_array($decoded['machines']) ? count($decoded['machines']) : 0
-    ], JSON_UNESCAPED_UNICODE);
+if ($method === 'GET') {
+    $data = veriOku($DATA_FILE);
+    $data['_locked'] = ($EDIT_PASSWORD !== '');
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-http_response_code(405);
-echo json_encode(['status' => 'error', 'message' => 'Desteklenmeyen HTTP metodu.'], JSON_UNESCAPED_UNICODE);
+if ($method !== 'POST') {
+    cevap(405, array('status' => 'error', 'message' => 'Desteklenmeyen HTTP metodu.'));
+}
+
+// ---- Şifre kontrolü ----
+if ($EDIT_PASSWORD !== '') {
+    $key = isset($_SERVER['HTTP_X_EDIT_KEY']) ? $_SERVER['HTTP_X_EDIT_KEY'] : '';
+    if (!hash_equals($EDIT_PASSWORD, $key)) {
+        cevap(401, array('status' => 'error', 'message' => 'Kaydetme şifresi hatalı.'));
+    }
+}
+
+// ---- Gelen veriyi doğrula ----
+$raw = file_get_contents('php://input');
+if (strlen($raw) > $MAX_BYTES) {
+    cevap(413, array('status' => 'error', 'message' => 'Veri çok büyük.'));
+}
+$incoming = json_decode($raw, true);
+if (!is_array($incoming)) {
+    cevap(400, array('status' => 'error', 'message' => 'Geçersiz JSON verisi.'));
+}
+if (!isset($incoming['machines']) || !is_array($incoming['machines'])) {
+    cevap(400, array('status' => 'error', 'message' => '"machines" listesi eksik.'));
+}
+if (!isset($incoming['templates']) || !is_array($incoming['templates'])) {
+    cevap(400, array('status' => 'error', 'message' => '"templates" eksik.'));
+}
+
+$force   = isset($_GET['force']) && $_GET['force'] === '1';
+$baseRev = isset($incoming['_rev']) ? intval($incoming['_rev']) : 0;
+
+// ---- Kilitle, kontrol et, yaz ----
+$lock = fopen($DATA_FILE . '.lock', 'c');
+if (!$lock || !flock($lock, LOCK_EX)) {
+    cevap(500, array('status' => 'error', 'message' => 'Dosya kilitlenemedi (yazma iznini kontrol edin).'));
+}
+
+$current    = veriOku($DATA_FILE);
+$currentRev = intval($current['_rev']);
+
+if (!$force && $baseRev !== $currentRev) {
+    flock($lock, LOCK_UN);
+    fclose($lock);
+    cevap(409, array(
+        'status'  => 'conflict',
+        'message' => 'Veri siz açtıktan sonra başka biri tarafından değiştirildi.',
+        'server'  => $current
+    ));
+}
+
+// Yedek al
+if (file_exists($DATA_FILE)) {
+    if (!is_dir($BACKUP_DIR)) @mkdir($BACKUP_DIR, 0775, true);
+    if (is_dir($BACKUP_DIR)) {
+        @copy($DATA_FILE, $BACKUP_DIR . '/veri_' . date('Ymd_His') . '_r' . $currentRev . '.json');
+        $files = glob($BACKUP_DIR . '/veri_*.json');
+        if ($files && count($files) > $BACKUP_KEEP) {
+            sort($files);
+            foreach (array_slice($files, 0, count($files) - $BACKUP_KEEP) as $old) @unlink($old);
+        }
+    }
+}
+
+unset($incoming['_locked']);
+$incoming['_rev']      = $currentRev + 1;
+$incoming['updatedAt'] = date('c');
+
+$json = json_encode($incoming, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+$tmp  = $DATA_FILE . '.tmp';
+if (file_put_contents($tmp, $json) === false || !rename($tmp, $DATA_FILE)) {
+    @unlink($tmp);
+    flock($lock, LOCK_UN);
+    fclose($lock);
+    cevap(500, array('status' => 'error', 'message' => 'JSON dosyasına yazılamadı (klasör yazma iznini kontrol edin).'));
+}
+
+flock($lock, LOCK_UN);
+fclose($lock);
+
+cevap(200, array(
+    'status'       => 'ok',
+    'message'      => 'Kaydedildi.',
+    'rev'          => $incoming['_rev'],
+    'updatedAt'    => $incoming['updatedAt'],
+    'machineCount' => count($incoming['machines'])
+));

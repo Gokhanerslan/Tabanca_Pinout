@@ -2,20 +2,13 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>TABANCA & MAKİNE REHBERİ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tabanca & Makine Rehberi</title>
 <style>
   :root {
-    --bg: #1E1F26;
-    --card: #2C2F3A;
-    --card2: #232630;
-    --border: #3E4252;
-    --text: #F1F3F5;
-    --muted: #A0A6B5;
-    --green: #10B981;
-    --blue: #3B82F6;
-    --amber: #F59E0B;
-    --red: #EF4444;
+    --bg: #1E1F26; --card: #2C2F3A; --card2: #232630; --border: #3E4252;
+    --text: #F1F3F5; --muted: #A0A6B5; --green: #10B981; --blue: #3B82F6;
+    --amber: #F59E0B; --red: #EF4444; --input: #1A1B21;
   }
   * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
   body { margin: 0; padding: 14px; background: var(--bg); color: var(--text); }
@@ -23,673 +16,787 @@
 
   header {
     background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-    padding: 14px 16px; margin-bottom: 14px;
+    padding: 12px 16px; margin-bottom: 12px;
     display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;
   }
-  h1 { margin: 0; font-size: 18px; letter-spacing: 0.5px; text-transform: uppercase; }
+  h1 { margin: 0; font-size: 18px; letter-spacing: .5px; text-transform: uppercase; }
   .sub { color: var(--muted); font-size: 12.5px; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-  .json-badge {
-    display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 11px;
-    font-weight: 700; background: rgba(16, 185, 129, 0.16); color: #6EE7B7;
-    border: 1px solid rgba(16, 185, 129, 0.35);
-  }
 
-  button, select, input {
+  nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  nav button { background: var(--card); text-transform: uppercase; }
+  nav button.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 11px; font-weight: 700; border: 1px solid; white-space: nowrap; }
+  .b-green { background: rgba(16,185,129,.16); color: #6EE7B7; border-color: rgba(16,185,129,.4); }
+  .b-amber { background: rgba(245,158,11,.16); color: #FCD34D; border-color: rgba(245,158,11,.4); }
+  .b-red   { background: rgba(239,68,68,.16);  color: #FCA5A5; border-color: rgba(239,68,68,.4); }
+  .b-blue  { background: rgba(59,130,246,.16); color: #93C5FD; border-color: rgba(59,130,246,.4); }
+
+  button, select, input, textarea {
     background: #383C4A; color: var(--text); border: 1px solid var(--border);
-    padding: 9px 12px; border-radius: 7px; font-size: 13px; min-height: 38px;
+    padding: 8px 12px; border-radius: 7px; font-size: 13px; min-height: 36px;
   }
-  button { cursor: pointer; font-weight: 700; transition: 0.15s; }
-  button:hover { background: #464B5C; }
-  button.btn-home { background: #383C4A; border-color: #64748B; text-transform: uppercase; }
-  button.btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; text-transform: uppercase; }
-  button.btn-add { background: var(--green); border-color: var(--green); color: #fff; text-transform: uppercase; }
-  button.btn-del { background: #7F1D1D; border-color: #991B1B; color: #fff; text-transform: uppercase; }
+  button { cursor: pointer; font-weight: 700; transition: .15s; }
+  button:hover { filter: brightness(1.15); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .btn-add { background: var(--green); border-color: var(--green); color: #fff; }
+  .btn-del { background: #7F1D1D; border-color: #991B1B; color: #fff; }
+  .btn-sm { padding: 4px 9px; min-height: 28px; font-size: 12px; }
 
-  .home-page { display: none; }
-  .home-page.active { display: block; }
-  .home-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 14px; margin-bottom: 14px;
-  }
-  .nav-big-btn {
-    background: var(--card); border: 2px solid var(--border); border-radius: 12px;
-    padding: 26px 20px; text-align: left; display: flex; flex-direction: column; gap: 8px;
-    min-height: 120px; text-transform: uppercase; letter-spacing: 0.6px;
-  }
-  .nav-big-btn:hover { border-color: var(--blue); background: var(--card2); transform: translateY(-2px); }
-  .nav-big-title { font-size: 18px; font-weight: 800; color: #F8FAFC; }
-  .nav-big-desc { font-size: 12.5px; font-weight: 600; color: var(--muted); text-transform: none; letter-spacing: 0; }
-  .nav-big-count { font-size: 13px; font-weight: 700; color: #93C5FD; margin-top: auto; }
+  .page { display: none; }
+  .page.active { display: block; }
 
-  .sub-page { display: none; }
-  .sub-page.active { display: block; }
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
+  .panel-title { font-size: 14px; font-weight: 800; color: #FBBF24; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .muted { color: var(--muted); font-size: 12.5px; }
 
-  .panel {
-    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-    padding: 14px 16px; margin-bottom: 12px;
-  }
-  .panel-title {
-    font-size: 15px; font-weight: 800; color: #FBBF24; text-transform: uppercase;
-    letter-spacing: 0.4px; margin-bottom: 10px;
-  }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 12px; }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; cursor: pointer; }
+  .stat:hover { border-color: var(--blue); }
+  .stat-label { font-size: 11.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+  .stat-val { font-size: 26px; font-weight: 800; margin-top: 4px; }
+
   .brand-list { display: flex; flex-wrap: wrap; gap: 8px; }
-  .brand-btn { background: var(--card2); border: 1px solid var(--border); text-transform: uppercase; }
+  .brand-btn { background: var(--card2); text-transform: uppercase; }
   .brand-btn.active { background: var(--green); border-color: var(--green); color: #fff; }
+  .brand-btn small { opacity: .75; font-weight: 600; margin-left: 4px; }
 
-  .form-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .region-head { display: flex; justify-content: space-between; align-items: center; margin: 14px 0 6px; font-weight: 800; color: #93C5FD; text-transform: uppercase; font-size: 13px; }
 
-  .region-summary-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 10px; margin-bottom: 12px;
-  }
-  .region-card {
-    background: var(--card2); border: 1px solid var(--border); border-radius: 9px;
-    padding: 12px;
-  }
-  .region-card-title { font-size: 12px; font-weight: 700; color: #93C5FD; text-transform: uppercase; }
-  .region-card-count { font-size: 20px; font-weight: 800; color: #F8FAFC; margin-top: 4px; }
+  .table-wrap { width: 100%; overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); background: var(--card); }
+  table { width: 100%; border-collapse: collapse; min-width: 760px; }
+  th, td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+  th { background: var(--card2); color: var(--muted); font-weight: 700; white-space: nowrap; text-transform: uppercase; font-size: 12px; }
+  tr:hover td { background: rgba(59,130,246,.06); }
+  td input, td select { background: var(--input); padding: 5px 8px; min-height: 30px; width: 100%; }
+  td input.pin-no { width: 64px; font-weight: 700; }
+  td.actions { white-space: nowrap; }
+  td.actions button { margin-right: 4px; }
+  tr.filled td input.addr { border-color: rgba(16,185,129,.55); }
+  .empty { color: var(--muted); padding: 14px; }
 
-  .region-group {
-    background: var(--card2); border: 1px solid var(--border); border-radius: 10px;
-    padding: 12px 14px; margin-bottom: 12px;
-  }
-  .region-group-header {
-    display: flex; justify-content: space-between; align-items: center; gap: 8px;
-    margin-bottom: 8px; font-weight: 800; color: #FBBF24; text-transform: uppercase; font-size: 13.5px;
-  }
+  .progress { height: 6px; background: var(--card2); border-radius: 4px; overflow: hidden; min-width: 70px; }
+  .progress > div { height: 100%; background: var(--green); }
 
-  .badge-assigned {
-    display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700;
-    background: rgba(16, 185, 129, 0.18); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.4);
-  }
-  .badge-unassigned {
-    display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700;
-    background: rgba(245, 158, 11, 0.18); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.4);
-  }
+  #toast { position: fixed; bottom: 18px; right: 18px; background: var(--card); border: 1px solid var(--border);
+    padding: 10px 16px; border-radius: 8px; font-size: 13px; opacity: 0; transition: .25s; pointer-events: none; z-index: 99; }
+  #toast.show { opacity: 1; }
 
-  .table-wrap {
-    width: 100%; overflow-x: auto; border-radius: 10px;
-    border: 1px solid var(--border); background: var(--card);
+  .print-only { display: none; }
+  @media print {
+    body { background: #fff; color: #000; padding: 0; }
+    header, nav, .no-print, .page:not(#page-pins) { display: none !important; }
+    #page-pins { display: block !important; }
+    .print-only { display: block; }
+    .panel, .table-wrap { background: #fff; border: none; }
+    th { background: #eee; color: #000; }
+    td, th { border: 1px solid #999; color: #000; }
+    td input { background: none; border: none; color: #000; padding: 0; }
+    td.actions, th.actions { display: none; }
   }
-  table { width: 100%; border-collapse: collapse; min-width: 720px; }
-  th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
-  th { background: var(--card2); color: var(--muted); font-weight: 700; white-space: nowrap; text-transform: uppercase; }
-  tr:hover { background: rgba(59, 130, 246, 0.08); }
-  .edit-input { background: #1E1F26; padding: 6px 8px; min-height: 32px; width: 100%; }
 </style>
 </head>
 <body>
 <div class="container">
   <header>
     <div>
-      <h1>TABANCA & MAKİNE REHBERİ</h1>
+      <h1>Tabanca & Makine Rehberi</h1>
       <div class="sub">
-        <span id="statusLine">SAYFA: ANA SAYFA | MARKA: DESOUTTER | MAKİNE: YOK</span>
-        <span class="json-badge" id="jsonStatus">JSON: BEKLENİYOR</span>
+        <span id="statusLine"></span>
+        <span class="badge b-blue" id="saveStatus">YÜKLENİYOR...</span>
       </div>
     </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <button class="btn-add" onclick="saveAllData()">JSON KAYDET</button>
-      <button class="btn-home" onclick="openPage('home')">ANA SAYFA</button>
+    <div class="row">
+      <button class="btn-add" onclick="saveNow()" title="Ctrl+S">KAYDET</button>
     </div>
   </header>
 
+  <nav id="nav">
+    <button data-page="home">Ana Sayfa</button>
+    <button data-page="machines">Makineler</button>
+    <button data-page="pins">Pin & Bağlantı</button>
+    <button data-page="brands">Markalar & Şablonlar</button>
+    <button data-page="data">Veri / Yedek</button>
+  </nav>
+
   <!-- ANA SAYFA -->
-  <section id="page-home" class="home-page active">
-    <div class="home-grid">
-      <button class="nav-big-btn" onclick="openPage('brands')">
-        <span class="nav-big-title">TABANCA MARKALARI</span>
-        <span class="nav-big-desc">Desoutter, FIAM, Doğa, Sehan ve Kilews marka seçimi ve pin şablonları</span>
-        <span class="nav-big-count">5 MARKA TANIMLI</span>
-      </button>
-
-      <button class="nav-big-btn" onclick="openPage('machines')">
-        <span class="nav-big-title">MAKİNELER</span>
-        <span class="nav-big-desc">Kayıtlı makineleri listele, yeni makine ekle veya sil</span>
-        <span class="nav-big-count" id="homeMachineCount">0 MAKİNE KAYITLI</span>
-      </button>
-
-      <button class="nav-big-btn" onclick="openPage('machine-lists')">
-        <span class="nav-big-title">MAKİNE LİSTELERİ</span>
-        <span class="nav-big-desc">Pin atanmış/atanmamış tüm makineler, toplam sayı ve bölge görünümü</span>
-        <span class="nav-big-count" id="homeMachineListsCount">0 MAKİNE SİSTEMDE</span>
-      </button>
-
-      <button class="nav-big-btn" onclick="openPage('pins')">
-        <span class="nav-big-title">PİN & BAĞLANTI</span>
-        <span class="nav-big-desc">Seçili makine veya markanın pin sinyal ve kablo/adres tablosu</span>
-        <span class="nav-big-count" id="homeActiveTarget">HEDEF: DESOUTTER</span>
-      </button>
-
-      <button class="nav-big-btn" onclick="openPage('json')">
-        <span class="nav-big-title">JSON KAYIT / YÜKLE</span>
-        <span class="nav-big-desc">Kayıtlı verileri JSON dosyasına kaydet, indir veya JSON yükle</span>
-        <span class="nav-big-count" id="homeJsonInfo">DOSYA: tabanca_makine_veriler.json</span>
-      </button>
+  <section class="page" id="page-home">
+    <div class="stats" id="homeStats"></div>
+    <div class="panel">
+      <div class="panel-title">Hızlı Arama</div>
+      <input type="text" id="homeSearch" placeholder="Makine kodu, adı, bölge, marka veya tabanca kodu yaz..." style="width:100%;">
+      <div id="homeResults" style="margin-top:10px;"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Markalara Göre Dağılım</div>
+      <div id="homeBrands"></div>
     </div>
   </section>
 
-  <!-- SAYFA 1: TABANCA MARKALARI -->
-  <section id="page-brands" class="sub-page">
+  <!-- MAKİNELER -->
+  <section class="page" id="page-machines">
     <div class="panel">
-      <div class="panel-title">TABANCA MARKALARI</div>
+      <div class="panel-title">Yeni Makine Ekle</div>
+      <div class="row">
+        <input type="text" id="nmRegion" list="regionList" placeholder="BÖLGE" style="width:150px;">
+        <input type="text" id="nmCode" placeholder="MAKİNE KODU (M-01)" style="width:160px;">
+        <input type="text" id="nmName" placeholder="MAKİNE ADI *" style="width:220px;">
+        <select id="nmBrand"></select>
+        <input type="text" id="nmGun" placeholder="TABANCA KODU" style="width:150px;">
+        <button class="btn-add" onclick="addMachine()">EKLE</button>
+      </div>
+      <div class="muted" style="margin-top:6px;">Yeni makineye seçilen markanın pin şablonu otomatik kopyalanır.</div>
+      <datalist id="regionList"></datalist>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <span>Kayıtlı Makineler (<span id="mTotal">0</span>)</span>
+        <button class="btn-sm" onclick="exportMachinesCSV()">EXCEL (CSV) İNDİR</button>
+      </div>
+      <div class="row" style="margin-bottom:6px;">
+        <select id="fRegion"></select>
+        <select id="fBrand"></select>
+        <select id="fPin">
+          <option value="">TÜM PİN DURUMLARI</option>
+          <option value="full">TAMAMLANMIŞ</option>
+          <option value="partial">KISMEN ATANMIŞ</option>
+          <option value="none">PİN ATANMAMIŞ</option>
+        </select>
+        <input type="text" id="fSearch" placeholder="Ara..." style="flex:1 1 200px;">
+      </div>
+      <div class="muted">Hücrelere tıklayıp doğrudan düzenleyebilirsin; değişiklik otomatik kaydedilir.</div>
+      <div id="machinesContainer"></div>
+    </div>
+  </section>
+
+  <!-- PİN & BAĞLANTI -->
+  <section class="page" id="page-pins">
+    <div class="panel no-print">
+      <div class="panel-title">Makine Seç</div>
+      <div class="row">
+        <button class="btn-sm" onclick="stepMachine(-1)">◀</button>
+        <select id="pinMachineSelect" style="flex:1 1 320px;"></select>
+        <button class="btn-sm" onclick="stepMachine(1)">▶</button>
+      </div>
+    </div>
+    <div id="pinsContent"></div>
+  </section>
+
+  <!-- MARKALAR & ŞABLONLAR -->
+  <section class="page" id="page-brands">
+    <div class="panel">
+      <div class="panel-title">
+        <span>Tabanca Markaları</span>
+        <span class="row">
+          <input type="text" id="newBrandName" placeholder="Yeni marka adı" style="width:180px;">
+          <button class="btn-add btn-sm" onclick="addBrand()">MARKA EKLE</button>
+        </span>
+      </div>
       <div class="brand-list" id="brandButtons"></div>
     </div>
-    <div class="panel">
-      <div class="panel-title">SEÇİLİ MARKANIN MAKİNELERİ</div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>BÖLGE</th>
-              <th>MAKİNE KODU</th>
-              <th>MAKİNE ADI</th>
-              <th>MARKA</th>
-              <th>TABANCA KODU</th>
-              <th>İŞLEM</th>
-            </tr>
-          </thead>
-          <tbody id="brandMachinesBody"></tbody>
-        </table>
-      </div>
-    </div>
+    <div id="templateContent"></div>
   </section>
 
-  <!-- SAYFA 2: MAKİNELER -->
-  <section id="page-machines" class="sub-page">
+  <!-- VERİ / YEDEK -->
+  <section class="page" id="page-data">
     <div class="panel">
-      <div class="panel-title">YENİ MAKİNE EKLE</div>
-      <div class="form-row">
-        <input type="text" id="newMachineRegion" placeholder="BÖLGE (ÖRN: BÖLGE 1)" style="width:160px;">
-        <input type="text" id="newMachineCode" placeholder="MAKİNE KODU (ÖRN: M-01)" style="width:160px;">
-        <input type="text" id="newMachineName" placeholder="MAKİNE ADI" style="width:210px;">
-        <select id="newMachineBrand"></select>
-        <input type="text" id="newMachineGun" placeholder="TABANCA KODU" style="width:150px;">
-        <button class="btn-add" onclick="addMachine()">MAKİNE EKLE</button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-title">KAYITLI MAKİNELER (<span id="machinesTotalLabel">0</span>)</div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>BÖLGE</th>
-              <th>MAKİNE KODU</th>
-              <th>MAKİNE ADI</th>
-              <th>MARKA</th>
-              <th>TABANCA KODU</th>
-              <th>İŞLEM</th>
-            </tr>
-          </thead>
-          <tbody id="machinesTableBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- SAYFA: MAKİNE LİSTELERİ (TÜM MAKİNELER + PİN ATANMIŞ / ATANMAMIŞ + BÖLGE BÖLGE) -->
-  <section id="page-machine-lists" class="sub-page">
-    <div class="panel">
-      <div class="panel-title">MAKİNE LİSTELERİ — SİSTEMDEKİ TOPLAM MAKİNE: <span id="systemTotalMachines">0</span></div>
-      <div class="form-row" style="margin-bottom:12px;">
-        <select id="machineListRegionFilter" onchange="renderMachineLists()">
-          <option value="">TÜM BÖLGELER</option>
-        </select>
-        <select id="machineListPinFilter" onchange="renderMachineLists()">
-          <option value="">TÜM PİN DURUMLARI (ATANMIŞ / ATANMAMIŞ)</option>
-          <option value="assigned">PİN ATANMIŞ</option>
-          <option value="unassigned">PİN ATANMAMIŞ</option>
-        </select>
-        <input type="text" id="machineListSearch" placeholder="BÖLGE, MAKİNE KODU, ADI, MARKA VEYA TABANCA KODU ARA..." style="flex:1 1 240px;" oninput="renderMachineLists()">
-      </div>
-      <div class="region-summary-grid" id="regionSummaryGrid"></div>
-      <div id="regionGroupsContainer"></div>
-    </div>
-  </section>
-
-  <!-- SAYFA 3: PİN & BAĞLANTI -->
-  <section id="page-pins" class="sub-page">
-    <div class="panel">
-      <div class="panel-title">MAKİNE / TABANCA SEÇİMİ</div>
-      <div class="form-row">
-        <select id="pinMachineSelect" onchange="selectMachine(this.value)"></select>
-        <input type="text" id="pinGunCodeInput" placeholder="TABANCA KODU" style="width:170px;" oninput="updateGunCode(this.value)">
-        <button class="btn-primary" onclick="saveAllData()">JSON'A KAYDET</button>
-      </div>
-    </div>
-
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th style="width:65px;">PİN</th>
-            <th style="width:160px;">GRUP</th>
-            <th style="width:180px;">SİNYAL</th>
-            <th>AÇIKLAMA</th>
-            <th style="width:180px;">KABLO / ADRES</th>
-          </tr>
-        </thead>
-        <tbody id="pinsTableBody"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- SAYFA 4: JSON KAYIT / YÜKLE -->
-  <section id="page-json" class="sub-page">
-    <div class="panel">
-      <div class="panel-title">JSON VERİ YÖNETİMİ</div>
-      <div class="form-row">
-        <button class="btn-add" onclick="saveAllData()">SUNUCU JSON'A KAYDET (api.php)</button>
-        <button class="btn-primary" onclick="exportJSON()">JSON DOSYASI İNDİR</button>
-        <button onclick="document.getElementById('jsonFileInput').click()">JSON DOSYASI YÜKLE</button>
+      <div class="panel-title">Veri Yönetimi</div>
+      <div class="row">
+        <button class="btn-add" onclick="saveNow()">SUNUCUYA KAYDET</button>
+        <button onclick="reloadFromServer()">SUNUCUDAN YENİDEN YÜKLE</button>
+        <button class="btn-primary" onclick="exportJSON()">JSON YEDEĞİ İNDİR</button>
+        <button onclick="document.getElementById('jsonFileInput').click()">JSON YEDEĞİ YÜKLE</button>
         <input type="file" id="jsonFileInput" accept=".json,application/json" style="display:none;" onchange="importJSON(event)">
       </div>
-      <p style="color:var(--muted); font-size:12.5px; margin:10px 0 0 0;" id="jsonDetailText">
-        Kayıtlı veriler tarayıcı hafızasında ve JSON yapısında tutulur. PHP sunucusu aktifse doğrudan <strong>tabanca_makine_veriler.json</strong> dosyasına yazılır.
-      </p>
+      <div class="muted" style="margin-top:10px;line-height:1.6;" id="dataInfo"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Nasıl Çalışır?</div>
+      <div class="muted" style="line-height:1.7;">
+        • Bu sayfa ve <b>src/</b> klasörü PHP destekli herhangi bir hostinge yüklenir; ayrıca sunucu kurmana gerek yok.<br>
+        • Tüm veriler <b>src/tabanca_makine_veriler.json</b> dosyasında tutulur, her kayıtta <b>src/yedek/</b> klasörüne otomatik yedek alınır (son 50).<br>
+        • Değişiklikler yaklaşık 1 saniye sonra otomatik kaydedilir. Sunucuya ulaşılamazsa tarayıcıda saklanır ve bağlantı gelince gönderilir.<br>
+        • Aynı anda iki kişi düzenlerse, ikinci kaydeden uyarılır; kimsenin verisi sessizce silinmez.<br>
+        • Kaydetmeyi şifrelemek için <b>src/kaydet.php</b> içindeki <b>$EDIT_PASSWORD</b> değerini doldur.
+      </div>
     </div>
   </section>
+
+  <div class="print-only" id="printHeader"></div>
 </div>
+<div id="toast"></div>
 
 <script>
-  const BRANDS = ["Desoutter", "FIAM", "Doğa", "Sehan", "Kilews"];
-  const STORAGE_KEY = "tabanca_makine_json_v4";
-  const API_URL = "api.php";
+/* ================== AYARLAR ================== */
+const API_URL = "src/kaydet.php";
+const LS_DATA = "tabanca_rehber_data_v5";
+const LS_UI   = "tabanca_rehber_ui_v5";
+const LS_KEY  = "tabanca_rehber_key";
+const AUTOSAVE_MS = 1000;
 
-  let currentPage = "home";
-  let state = {
-    activeBrand: "Desoutter",
-    selectedMachineId: null,
-    templates: {},
-    machines: []
+/* ================== DURUM ================== */
+let db = { _rev: 0, templates: {}, machines: [] };   // sunucuya giden veri
+let ui = { page: "home", brand: null, machineId: null };
+let dirty = false, saving = false, serverOnline = false, saveTimer = null, lastSavedAt = null;
+
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const brands = () => Object.keys(db.templates);
+const getMachine = id => db.machines.find(m => m.id === id);
+const regionOf = m => (m.region || "").trim() || "BÖLGESİZ";
+const uid = () => "m_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const cmpPin = (a, b) => (parseFloat(a.pin) || 0) - (parseFloat(b.pin) || 0) || String(a.pin).localeCompare(String(b.pin));
+
+function pinStats(m) {
+  const pins = Array.isArray(m.pins) ? m.pins : [];
+  const filled = pins.filter(p => String(p.addr || "").trim() !== "").length;
+  return { total: pins.length, filled, state: filled === 0 ? "none" : (filled === pins.length ? "full" : "partial") };
+}
+
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+/* ================== VERİ NORMALİZASYONU ================== */
+function normalize(raw) {
+  const out = { _rev: parseInt(raw?._rev) || 0, updatedAt: raw?.updatedAt || null, templates: {}, machines: [] };
+  const normPin = p => ({ pin: p.pin ?? "", group: p.group || "", sig: p.sig || "", desc: p.desc || "", addr: p.addr || p.code || "" });
+  if (raw?.templates && typeof raw.templates === "object") {
+    for (const [b, pins] of Object.entries(raw.templates)) out.templates[b] = Array.isArray(pins) ? pins.map(normPin) : [];
+  }
+  if (Array.isArray(raw?.machines)) {
+    out.machines = raw.machines.map(m => ({
+      id: m.id || uid(), region: (m.region || m.section || "").trim(), code: m.code || "", name: m.name || "",
+      brand: m.brand || "", gunCode: m.gunCode || "", note: m.note || "",
+      pins: Array.isArray(m.pins) ? m.pins.map(normPin) : []
+    }));
+  }
+  // makinede kullanılıp şablonda olmayan markaları ekle
+  out.machines.forEach(m => { if (m.brand && !out.templates[m.brand]) out.templates[m.brand] = []; });
+  return out;
+}
+
+/* ================== KAYDETME / YÜKLEME ================== */
+function saveLocal() {
+  try { localStorage.setItem(LS_DATA, JSON.stringify({ data: db, dirty })); } catch (e) {}
+}
+function saveUI() {
+  try { localStorage.setItem(LS_UI, JSON.stringify(ui)); } catch (e) {}
+}
+
+function changed() {        // her veri değişikliğinden sonra çağrılır
+  dirty = true; saveLocal(); updateStatus();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveNow, AUTOSAVE_MS);
+}
+
+async function saveNow(force = false) {
+  clearTimeout(saveTimer);
+  if (saving) { saveTimer = setTimeout(saveNow, 500); return; }
+  saving = true; updateStatus();
+  try {
+    const headers = { "Content-Type": "application/json" };
+    const key = localStorage.getItem(LS_KEY); if (key) headers["X-Edit-Key"] = key;
+    const res = await fetch(API_URL + (force ? "?force=1" : ""), { method: "POST", headers, body: JSON.stringify(db) });
+    const out = await res.json().catch(() => ({}));
+    serverOnline = true;
+    if (res.ok) {
+      db._rev = out.rev; db.updatedAt = out.updatedAt;
+      dirty = false; lastSavedAt = new Date(); saveLocal();
+    } else if (res.status === 409) {
+      saving = false;
+      const takeServer = confirm(
+        "Bu veri siz açtıktan sonra başka biri tarafından değiştirilmiş.\n\n" +
+        "TAMAM  → Sunucudaki güncel veriyi yükle (sizin versiyonunuz yedek olarak bilgisayara indirilir)\n" +
+        "İPTAL  → Sizin verinizle sunucudakinin üzerine yaz (diğer kişinin değişiklikleri kaybolur)");
+      if (takeServer) {
+        download(JSON.stringify(db, null, 2), "benim_degisikliklerim_" + Date.now() + ".json", "application/json");
+        db = normalize(out.server); dirty = false; saveLocal(); render(); toast("Sunucudaki güncel veri yüklendi.");
+      }
+      else return saveNow(true);
+    } else if (res.status === 401) {
+      saving = false;
+      const k = prompt("Kaydetmek için şifre girin:");
+      if (k !== null) { localStorage.setItem(LS_KEY, k); return saveNow(force); }
+    } else {
+      toast("Kayıt hatası: " + (out.message || res.status));
+    }
+  } catch (e) {
+    serverOnline = false;
+  }
+  saving = false; updateStatus();
+}
+
+async function fetchServer() {
+  const res = await fetch(API_URL, { cache: "no-store" });
+  if (!res.ok) throw new Error(res.status);
+  return res.json();
+}
+
+async function loadInitial() {
+  try { Object.assign(ui, JSON.parse(localStorage.getItem(LS_UI) || "{}")); } catch (e) {}
+  let local = null;
+  try { local = JSON.parse(localStorage.getItem(LS_DATA) || "null"); } catch (e) {}
+
+  try {
+    const server = await fetchServer();
+    serverOnline = true;
+    db = normalize(server);
+    if (local?.dirty && local.data) {
+      if (confirm("Bu tarayıcıda sunucuya gönderilmemiş değişiklikler var. Şimdi gönderilsin mi?\n(İPTAL dersen sunucudaki veri kullanılır.)")) {
+        db = normalize(local.data); dirty = true;
+        render(); saveNow(local.data._rev !== server._rev);
+        return;
+      }
+    }
+    dirty = false; saveLocal();
+  } catch (e) {
+    serverOnline = false;
+    if (local?.data) { db = normalize(local.data); dirty = !!local.dirty; }
+  }
+  render();
+}
+
+async function reloadFromServer() {
+  if (dirty && !confirm("Kaydedilmemiş değişiklikler kaybolacak. Devam edilsin mi?")) return;
+  try { db = normalize(await fetchServer()); serverOnline = true; dirty = false; saveLocal(); render(); toast("Sunucudan yüklendi."); }
+  catch (e) { serverOnline = false; updateStatus(); toast("Sunucuya ulaşılamadı."); }
+}
+
+function exportJSON() {
+  download(JSON.stringify(db, null, 2), "tabanca_makine_veriler_" + new Date().toISOString().slice(0, 10) + ".json", "application/json");
+}
+function importJSON(e) {
+  const file = e.target.files?.[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const parsed = normalize(JSON.parse(r.result));
+      if (!confirm(`${parsed.machines.length} makine ve ${Object.keys(parsed.templates).length} marka içeren dosya yüklenecek. Mevcut verinin yerine geçecek. Emin misin?`)) return;
+      parsed._rev = db._rev; db = parsed; changed(); render(); toast("JSON yüklendi.");
+    } catch (err) { alert("Geçersiz JSON dosyası."); }
   };
+  r.readAsText(file); e.target.value = "";
+}
+function download(text, name, type) {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const a = document.createElement("a"); a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function toCSV(rows) {   // Türkçe Excel için ; ayırıcı + BOM
+  return "﻿" + rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(";")).join("\r\n");
+}
 
-  function getRegionName(m) {
-    const r = (m.region || m.section || "").trim();
-    return r || "BÖLGESİZ";
+/* ================== DURUM SATIRI ================== */
+function updateStatus() {
+  const s = $("saveStatus");
+  if (saving) { s.className = "badge b-blue"; s.textContent = "KAYDEDİLİYOR..."; }
+  else if (!serverOnline) { s.className = "badge b-red"; s.textContent = dirty ? "SUNUCU YOK — TARAYICIDA SAKLANDI" : "SUNUCU YOK"; }
+  else if (dirty) { s.className = "badge b-amber"; s.textContent = "KAYDEDİLMEMİŞ DEĞİŞİKLİK"; }
+  else { s.className = "badge b-green"; s.textContent = "KAYDEDİLDİ" + (lastSavedAt ? " " + lastSavedAt.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : ""); }
+
+  const m = getMachine(ui.machineId);
+  $("statusLine").textContent = `${db.machines.length} makine · ${brands().length} marka` + (m ? ` · Seçili: ${m.code} ${m.name}` : "");
+  $("dataInfo").innerHTML =
+    `Sunucu: <b>${serverOnline ? "BAĞLI" : "ULAŞILAMIYOR (sayfa PHP'li bir sunucudan açılmamış olabilir)"}</b><br>` +
+    `Veri sürümü: <b>${db._rev}</b>${db.updatedAt ? " · Son sunucu kaydı: <b>" + esc(new Date(db.updatedAt).toLocaleString("tr-TR")) + "</b>" : ""}<br>` +
+    `Toplam: <b>${db.machines.length}</b> makine, <b>${brands().length}</b> marka şablonu`;
+}
+
+/* ================== SAYFALAR ================== */
+function openPage(p) { ui.page = p; saveUI(); render(); window.scrollTo(0, 0); }
+
+function render() {
+  if (!ui.brand || !db.templates[ui.brand]) ui.brand = brands()[0] || null;
+  if (ui.machineId && !getMachine(ui.machineId)) ui.machineId = null;
+  if (!ui.machineId && db.machines.length) ui.machineId = db.machines[0].id;
+
+  document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("active", b.dataset.page === ui.page));
+  document.querySelectorAll(".page").forEach(s => s.classList.toggle("active", s.id === "page-" + ui.page));
+
+  updateStatus();
+  ({ home: renderHome, machines: renderMachines, pins: renderPins, brands: renderBrands, data: () => {} }[ui.page] || renderHome)();
+}
+
+/* ---------- ANA SAYFA ---------- */
+function renderHome() {
+  const st = { full: 0, partial: 0, none: 0 };
+  db.machines.forEach(m => st[pinStats(m).state]++);
+  const regions = new Set(db.machines.map(regionOf));
+  $("homeStats").innerHTML = [
+    ["Toplam Makine", db.machines.length, "", "machines"],
+    ["Bölge", regions.size, "", "machines"],
+    ["Marka", brands().length, "", "brands"],
+    ["Pini Tamamlanmış", st.full, "#6EE7B7", "machines", "full"],
+    ["Kısmen Atanmış", st.partial, "#FCD34D", "machines", "partial"],
+    ["Pin Atanmamış", st.none, "#FCA5A5", "machines", "none"],
+  ].map(([l, v, c, p, f]) => `<div class="stat" data-goto="${p}" data-pinfilter="${f || ""}"><div class="stat-label">${l}</div><div class="stat-val" style="color:${c || "inherit"}">${v}</div></div>`).join("");
+
+  $("homeBrands").innerHTML = brands().length ? `<div class="brand-list">` + brands().map(b => {
+    const n = db.machines.filter(m => m.brand === b).length;
+    return `<span class="badge b-blue" style="font-size:13px;padding:5px 12px;">${esc(b)}: ${n} makine · ${db.templates[b].length} pin</span>`;
+  }).join("") + `</div>` : `<div class="muted">Marka yok.</div>`;
+  renderHomeSearch();
+}
+function renderHomeSearch() {
+  const q = $("homeSearch").value.trim().toLocaleLowerCase("tr");
+  if (!q) { $("homeResults").innerHTML = ""; return; }
+  const hits = db.machines.filter(m => `${m.region} ${m.code} ${m.name} ${m.brand} ${m.gunCode}`.toLocaleLowerCase("tr").includes(q)).slice(0, 30);
+  $("homeResults").innerHTML = hits.length ? hits.map(m =>
+    `<div class="row" style="padding:6px 0;border-bottom:1px solid var(--border);">
+      <button class="btn-primary btn-sm" data-openpins="${m.id}">PİNLER</button>
+      <b>${esc(m.code)}</b> ${esc(m.name)} <span class="muted">${esc(regionOf(m))} · ${esc(m.brand)} ${m.gunCode ? "· " + esc(m.gunCode) : ""}</span>
+    </div>`).join("") : `<div class="muted">Sonuç yok.</div>`;
+}
+
+/* ---------- MAKİNELER ---------- */
+function brandOptions(sel, withEmpty) {
+  return (withEmpty ? `<option value="">${withEmpty}</option>` : "") +
+    brands().map(b => `<option value="${esc(b)}" ${b === sel ? "selected" : ""}>${esc(b)}</option>`).join("");
+}
+
+function renderMachines() {
+  const regions = [...new Set(db.machines.map(regionOf))].sort((a, b) => a.localeCompare(b, "tr"));
+  $("regionList").innerHTML = regions.map(r => `<option value="${esc(r)}">`).join("");
+  $("nmBrand").innerHTML = brandOptions(ui.brand);
+
+  const keep = (id, html) => { const el = $(id), v = el.value; el.innerHTML = html; el.value = v; if (el.value !== v) el.value = ""; };
+  keep("fRegion", `<option value="">TÜM BÖLGELER</option>` + regions.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join(""));
+  keep("fBrand", brandOptions(null, "TÜM MARKALAR"));
+
+  const fr = $("fRegion").value, fb = $("fBrand").value, fp = $("fPin").value;
+  const q = $("fSearch").value.trim().toLocaleLowerCase("tr");
+  const list = db.machines.filter(m => {
+    if (fr && regionOf(m) !== fr) return false;
+    if (fb && m.brand !== fb) return false;
+    if (fp && pinStats(m).state !== fp) return false;
+    if (q && !`${m.region} ${m.code} ${m.name} ${m.brand} ${m.gunCode} ${m.note}`.toLocaleLowerCase("tr").includes(q)) return false;
+    return true;
+  });
+  $("mTotal").textContent = db.machines.length + (list.length !== db.machines.length ? ` · filtre: ${list.length}` : "");
+
+  if (!list.length) { $("machinesContainer").innerHTML = `<div class="empty">${db.machines.length ? "Filtreye uyan makine yok." : "Henüz makine eklenmemiş."}</div>`; return; }
+
+  const groups = {};
+  list.forEach(m => (groups[regionOf(m)] ||= []).push(m));
+  $("machinesContainer").innerHTML = Object.keys(groups).sort((a, b) => a.localeCompare(b, "tr")).map(reg => `
+    <div class="region-head"><span>${esc(reg)}</span><span>${groups[reg].length} makine</span></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th style="width:130px">Bölge</th><th style="width:120px">Makine Kodu</th><th>Makine Adı</th><th style="width:130px">Marka</th>
+      <th style="width:130px">Tabanca Kodu</th><th style="width:130px">Pin Durumu</th><th class="actions" style="width:190px">İşlem</th></tr></thead>
+      <tbody>${groups[reg].map(machineRow).join("")}</tbody>
+    </table></div>`).join("");
+}
+
+function machineRow(m) {
+  const s = pinStats(m);
+  const badge = s.state === "full" ? "b-green" : s.state === "partial" ? "b-amber" : "b-red";
+  const f = (field, w) => `<input data-mid="${m.id}" data-mf="${field}" value="${esc(m[field])}" ${w ? `list="${w}"` : ""}>`;
+  return `<tr>
+    <td>${f("region", "regionList")}</td><td>${f("code")}</td><td>${f("name")}</td>
+    <td><select data-mid="${m.id}" data-mf="brand">${brandOptions(m.brand)}</select></td>
+    <td>${f("gunCode")}</td>
+    <td><span class="badge ${badge}">${s.filled}/${s.total}</span>
+        <div class="progress" style="margin-top:4px"><div style="width:${s.total ? s.filled / s.total * 100 : 0}%"></div></div></td>
+    <td class="actions">
+      <button class="btn-primary btn-sm" data-openpins="${m.id}">PİNLER</button>
+      <button class="btn-sm" data-dup="${m.id}" title="Kopyala">KOPYA</button>
+      <button class="btn-del btn-sm" data-delm="${m.id}">SİL</button>
+    </td></tr>`;
+}
+
+function addMachine() {
+  const name = $("nmName").value.trim();
+  if (!name) { alert("Lütfen makine adını girin."); $("nmName").focus(); return; }
+  const brand = $("nmBrand").value;
+  const code = $("nmCode").value.trim() || "M-" + String(db.machines.length + 1).padStart(2, "0");
+  if (db.machines.some(m => m.code.toLocaleLowerCase("tr") === code.toLocaleLowerCase("tr")) &&
+      !confirm(`"${code}" kodlu bir makine zaten var. Yine de eklensin mi?`)) return;
+  const m = { id: uid(), region: $("nmRegion").value.trim(), code, name, brand, gunCode: $("nmGun").value.trim(), note: "",
+              pins: (db.templates[brand] || []).map(p => ({ ...p, addr: "" })) };
+  db.machines.push(m);
+  ui.machineId = m.id; ui.brand = brand; saveUI();
+  ["nmCode", "nmName", "nmGun"].forEach(id => $(id).value = "");
+  changed(); render(); toast(`${code} eklendi.`); $("nmName").focus();
+}
+
+function setMachineField(id, field, value) {
+  const m = getMachine(id); if (!m) return;
+  value = value.trim();
+  if (field === "brand" && value !== m.brand) {
+    const hasData = pinStats(m).filled > 0;
+    const msg = `Marka "${value}" olarak değişiyor.\n\nTAMAM → Pin listesini yeni markanın şablonuyla değiştir` +
+                (hasData ? " (girilen kablo/adres bilgileri silinir!)" : "") + `\nİPTAL → Sadece marka adını değiştir, pinlere dokunma`;
+    if (confirm(msg)) m.pins = (db.templates[value] || []).map(p => ({ ...p, addr: "" }));
   }
+  m[field] = value;
+  changed();
+  if (field === "region" || field === "brand") render();
+}
 
-  function hasAssignedPins(m) {
-    if (!Array.isArray(m.pins)) return false;
-    return m.pins.some(p => {
-      const addrVal = (p.addr || p.code || "").trim();
-      return addrVal !== "";
-    });
-  }
+function duplicateMachine(id) {
+  const m = getMachine(id); if (!m) return;
+  const c = JSON.parse(JSON.stringify(m));
+  c.id = uid(); c.code = m.code + "-KOPYA"; c.name = m.name + " (kopya)";
+  db.machines.splice(db.machines.indexOf(m) + 1, 0, c);
+  changed(); render(); toast("Makine kopyalandı.");
+}
 
-  function hydrateState(parsed) {
-    if (!parsed || typeof parsed !== "object") return;
-    state = {
-      activeBrand: BRANDS.includes(parsed.activeBrand) ? parsed.activeBrand : "Desoutter",
-      selectedMachineId: parsed.selectedMachineId || null,
-      templates: (parsed.templates && typeof parsed.templates === "object") ? parsed.templates : {},
-      machines: Array.isArray(parsed.machines) ? parsed.machines.map(m => ({
-        ...m,
-        region: (m.region || m.section || "").trim(),
-        pins: Array.isArray(m.pins) ? m.pins : []
-      })) : []
-    };
-    if (!state.selectedMachineId && state.machines.length > 0) {
-      state.selectedMachineId = state.machines[0].id;
+function deleteMachine(id) {
+  const m = getMachine(id); if (!m) return;
+  if (!confirm(`"${m.code} — ${m.name}" makinesi silinsin mi?`)) return;
+  db.machines = db.machines.filter(x => x.id !== id);
+  changed(); render(); toast("Makine silindi.");
+}
+
+function exportMachinesCSV() {
+  const rows = [["Bölge", "Makine Kodu", "Makine Adı", "Marka", "Tabanca Kodu", "Pin", "Grup", "Sinyal", "Açıklama", "Kablo / Adres"]];
+  db.machines.forEach(m => {
+    if (!m.pins.length) rows.push([m.region, m.code, m.name, m.brand, m.gunCode]);
+    m.pins.forEach(p => rows.push([m.region, m.code, m.name, m.brand, m.gunCode, p.pin, p.group, p.sig, p.desc, p.addr]));
+  });
+  download(toCSV(rows), "makine_pin_listesi.csv", "text/csv;charset=utf-8");
+}
+
+/* ---------- PİN TABLOSU (makine ve şablon için ortak) ---------- */
+function pinTable(pins, ctx, withAddr) {
+  return `<div class="table-wrap"><table>
+    <thead><tr><th style="width:80px">Pin</th><th style="width:150px">Grup</th><th style="width:160px">Sinyal</th><th>Açıklama</th>
+      ${withAddr ? `<th style="width:200px">Kablo / Adres</th>` : ""}<th class="actions" style="width:120px">İşlem</th></tr></thead>
+    <tbody>${pins.length ? pins.map((p, i) => {
+      const f = (k, cls = "") => `<input class="${cls}" data-ctx="${ctx}" data-i="${i}" data-pf="${k}" value="${esc(p[k])}">`;
+      return `<tr class="${String(p.addr || "").trim() ? "filled" : ""}">
+        <td>${f("pin", "pin-no")}</td><td>${f("group")}</td><td>${f("sig")}</td><td>${f("desc")}</td>
+        ${withAddr ? `<td>${f("addr", "addr")}</td>` : ""}
+        <td class="actions">
+          <button class="btn-sm" data-ctx="${ctx}" data-pmove="${i}" data-dir="-1" title="Yukarı">▲</button>
+          <button class="btn-sm" data-ctx="${ctx}" data-pmove="${i}" data-dir="1" title="Aşağı">▼</button>
+          <button class="btn-del btn-sm" data-ctx="${ctx}" data-pdel="${i}" title="Sil">✕</button>
+        </td></tr>`;
+    }).join("") : `<tr><td colspan="6" class="empty">Pin tanımlı değil.</td></tr>`}</tbody>
+  </table></div>
+  <div class="row no-print" style="margin-top:8px;">
+    <button class="btn-add btn-sm" data-ctx="${ctx}" data-padd="1">+ PİN SATIRI EKLE</button>
+    <button class="btn-sm" data-ctx="${ctx}" data-psort="1">PİN NO'YA GÖRE SIRALA</button>
+  </div>`;
+}
+function pinsOf(ctx) {   // ctx: "m:<id>" veya "t:<marka sırası>"
+  if (ctx.startsWith("m:")) return getMachine(ctx.slice(2))?.pins;
+  return db.templates[brands()[+ctx.slice(2)]];
+}
+function parsePinNo(v) { v = v.trim(); return /^\d+$/.test(v) ? parseInt(v, 10) : v; }
+
+/* ---------- PİN & BAĞLANTI ---------- */
+function renderPins() {
+  const sel = $("pinMachineSelect");
+  sel.innerHTML = db.machines.length
+    ? db.machines.map(m => `<option value="${m.id}" ${m.id === ui.machineId ? "selected" : ""}>[${esc(regionOf(m))}] ${esc(m.code)} — ${esc(m.name)} (${esc(m.brand)})</option>`).join("")
+    : `<option value="">Makine yok</option>`;
+
+  const m = getMachine(ui.machineId);
+  if (!m) { $("pinsContent").innerHTML = `<div class="panel empty">Önce "Makineler" sayfasından makine ekleyin.</div>`; return; }
+  const s = pinStats(m);
+  $("printHeader").innerHTML = `<h2>${esc(m.code)} — ${esc(m.name)}</h2><p>Bölge: ${esc(regionOf(m))} · Marka: ${esc(m.brand)} · Tabanca: ${esc(m.gunCode || "-")}</p>`;
+  $("pinsContent").innerHTML = `
+    <div class="panel no-print">
+      <div class="panel-title"><span>Makine Bilgisi</span>
+        <span class="badge ${s.state === "full" ? "b-green" : s.state === "partial" ? "b-amber" : "b-red"}">${s.filled}/${s.total} PİN ATANMIŞ</span></div>
+      <div class="row">
+        <label class="muted">Bölge<br><input data-mid="${m.id}" data-mf="region" list="regionList" value="${esc(m.region)}" style="width:150px"></label>
+        <label class="muted">Makine Kodu<br><input data-mid="${m.id}" data-mf="code" value="${esc(m.code)}" style="width:130px"></label>
+        <label class="muted">Makine Adı<br><input data-mid="${m.id}" data-mf="name" value="${esc(m.name)}" style="width:220px"></label>
+        <label class="muted">Marka<br><select data-mid="${m.id}" data-mf="brand">${brandOptions(m.brand)}</select></label>
+        <label class="muted">Tabanca Kodu<br><input data-mid="${m.id}" data-mf="gunCode" value="${esc(m.gunCode)}" style="width:150px"></label>
+        <label class="muted" style="flex:1 1 220px">Not<br><input data-mid="${m.id}" data-mf="note" value="${esc(m.note)}" style="width:100%"></label>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn-sm" onclick="window.print()">YAZDIR</button>
+        <button class="btn-sm" onclick="exportMachinePinsCSV()">EXCEL (CSV) İNDİR</button>
+        <button class="btn-sm" onclick="syncFromTemplate()">ŞABLONDAN GÜNCELLE</button>
+        <button class="btn-sm" onclick="saveAsTemplate()">BUNU MARKA ŞABLONU YAP</button>
+      </div>
+    </div>
+    ${pinTable(m.pins, "m:" + m.id, true)}`;
+}
+
+function stepMachine(d) {
+  if (!db.machines.length) return;
+  const i = db.machines.findIndex(m => m.id === ui.machineId);
+  ui.machineId = db.machines[(i + d + db.machines.length) % db.machines.length].id;
+  saveUI(); render();
+}
+
+function syncFromTemplate() {
+  const m = getMachine(ui.machineId); if (!m) return;
+  const tpl = db.templates[m.brand] || [];
+  if (!confirm(`${m.brand} şablonu (${tpl.length} pin) bu makineye uygulanacak.\nAynı pin numarasındaki kablo/adres bilgileri korunur, şablonda olmayan pinler kaldırılır. Devam?`)) return;
+  const old = new Map(m.pins.map(p => [String(p.pin), p.addr]));
+  m.pins = tpl.map(p => ({ ...p, addr: old.get(String(p.pin)) || "" }));
+  changed(); render(); toast("Şablondan güncellendi.");
+}
+function saveAsTemplate() {
+  const m = getMachine(ui.machineId); if (!m) return;
+  if (!confirm(`Bu makinenin pin listesi "${m.brand}" markasının şablonu olarak kaydedilsin mi? (Kablo/adres bilgileri şablona alınmaz.)`)) return;
+  db.templates[m.brand] = m.pins.map(p => ({ ...p, addr: "" }));
+  changed(); toast("Şablon güncellendi.");
+}
+function exportMachinePinsCSV() {
+  const m = getMachine(ui.machineId); if (!m) return;
+  const rows = [["Makine", `${m.code} — ${m.name}`], ["Bölge", regionOf(m)], ["Marka", m.brand], ["Tabanca Kodu", m.gunCode], [],
+                ["Pin", "Grup", "Sinyal", "Açıklama", "Kablo / Adres"], ...m.pins.map(p => [p.pin, p.group, p.sig, p.desc, p.addr])];
+  download(toCSV(rows), `${m.code || "makine"}_pinler.csv`, "text/csv;charset=utf-8");
+}
+
+/* ---------- MARKALAR & ŞABLONLAR ---------- */
+function renderBrands() {
+  $("brandButtons").innerHTML = brands().map((b, i) =>
+    `<button class="brand-btn ${b === ui.brand ? "active" : ""}" data-brand="${i}">${esc(b)}<small>(${db.machines.filter(m => m.brand === b).length})</small></button>`
+  ).join("") || `<span class="muted">Marka yok, yukarıdan ekleyin.</span>`;
+
+  const b = ui.brand;
+  if (!b) { $("templateContent").innerHTML = ""; return; }
+  const idx = brands().indexOf(b);
+  const machines = db.machines.filter(m => m.brand === b);
+  $("templateContent").innerHTML = `
+    <div class="panel">
+      <div class="panel-title"><span>${esc(b)} — Pin Şablonu (${db.templates[b].length} pin)</span>
+        <span class="row">
+          <button class="btn-sm" onclick="renameBrand()">ADINI DEĞİŞTİR</button>
+          <button class="btn-sm" onclick="applyTemplateToAll()">ŞABLONU TÜM ${esc(b).toLocaleUpperCase("tr")} MAKİNELERİNE UYGULA</button>
+          <button class="btn-del btn-sm" onclick="deleteBrand()">MARKAYI SİL</button>
+        </span></div>
+      <div class="muted" style="margin-bottom:8px;">Bu şablon, bu markayla eklenen yeni makinelere kopyalanır. Şablonu değiştirmek mevcut makineleri etkilemez (istersen yukarıdan uygula).</div>
+      ${pinTable(db.templates[b], "t:" + idx, false)}
+    </div>
+    <div class="panel">
+      <div class="panel-title">${esc(b)} Markalı Makineler (${machines.length})</div>
+      ${machines.length ? machines.map(m => `<div class="row" style="padding:5px 0;border-bottom:1px solid var(--border);">
+        <button class="btn-primary btn-sm" data-openpins="${m.id}">PİNLER</button>
+        <b>${esc(m.code)}</b> ${esc(m.name)} <span class="muted">${esc(regionOf(m))} ${m.gunCode ? "· " + esc(m.gunCode) : ""}</span></div>`).join("")
+        : `<div class="muted">Bu markaya ait makine yok.</div>`}
+    </div>`;
+}
+
+function addBrand() {
+  const name = $("newBrandName").value.trim();
+  if (!name) return;
+  if (brands().some(b => b.toLocaleLowerCase("tr") === name.toLocaleLowerCase("tr"))) { alert("Bu marka zaten var."); return; }
+  db.templates[name] = [];
+  ui.brand = name; saveUI(); $("newBrandName").value = "";
+  changed(); render(); toast(`${name} eklendi. Şimdi pinlerini tanımlayabilirsin.`);
+}
+function renameBrand() {
+  const old = ui.brand, name = (prompt("Yeni marka adı:", old) || "").trim();
+  if (!name || name === old) return;
+  if (brands().includes(name)) { alert("Bu marka zaten var."); return; }
+  const t = {}; for (const b of brands()) t[b === old ? name : b] = db.templates[b];
+  db.templates = t;
+  db.machines.forEach(m => { if (m.brand === old) m.brand = name; });
+  ui.brand = name; saveUI(); changed(); render();
+}
+function deleteBrand() {
+  const b = ui.brand, n = db.machines.filter(m => m.brand === b).length;
+  if (n) { alert(`Bu markayı kullanan ${n} makine var. Önce o makinelerin markasını değiştirin veya silin.`); return; }
+  if (!confirm(`"${b}" markası ve pin şablonu silinsin mi?`)) return;
+  delete db.templates[b]; ui.brand = null; changed(); render();
+}
+function applyTemplateToAll() {
+  const b = ui.brand, list = db.machines.filter(m => m.brand === b);
+  if (!list.length) { alert("Bu markaya ait makine yok."); return; }
+  if (!confirm(`Şablon ${list.length} makineye uygulanacak. Aynı pin numarasındaki kablo/adres bilgileri korunur. Devam?`)) return;
+  list.forEach(m => {
+    const old = new Map(m.pins.map(p => [String(p.pin), p.addr]));
+    m.pins = db.templates[b].map(p => ({ ...p, addr: old.get(String(p.pin)) || "" }));
+  });
+  changed(); toast(`${list.length} makine güncellendi.`);
+}
+
+/* ================== OLAY YÖNETİMİ ================== */
+document.addEventListener("change", e => {
+  const t = e.target, d = t.dataset;
+  if (d.mf) return setMachineField(d.mid, d.mf, t.value);
+  if (d.pf) {
+    const pins = pinsOf(d.ctx); if (!pins) return;
+    pins[+d.i][d.pf] = d.pf === "pin" ? parsePinNo(t.value) : t.value.trim();
+    if (d.pf === "addr") t.closest("tr").classList.toggle("filled", !!t.value.trim());
+    changed();
+    if (d.pf === "addr" && ui.page === "pins") { // rozet sayısını güncelle, odak kaybolmasın
+      const m = getMachine(ui.machineId), s = pinStats(m), bd = document.querySelector("#pinsContent .panel-title .badge");
+      if (bd) { bd.textContent = `${s.filled}/${s.total} PİN ATANMIŞ`; bd.className = "badge " + (s.state === "full" ? "b-green" : s.state === "partial" ? "b-amber" : "b-red"); }
     }
+    return;
   }
+  if (t.id === "pinMachineSelect") { ui.machineId = t.value; saveUI(); render(); }
+  if (["fRegion", "fBrand", "fPin"].includes(t.id)) renderMachines();
+});
 
-  function saveLocal() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) {}
+document.addEventListener("input", e => {
+  if (e.target.id === "fSearch") renderMachines();
+  if (e.target.id === "homeSearch") renderHomeSearch();
+});
+
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); document.activeElement?.blur(); saveNow(); }
+  if (e.key === "Enter" && ["nmName", "nmCode", "nmGun", "nmRegion"].includes(e.target.id)) addMachine();
+  if (e.key === "Enter" && e.target.id === "newBrandName") addBrand();
+  if (e.key === "Enter" && e.target.dataset.pf) {   // Enter → alttaki satırın aynı hücresine geç
+    const next = document.querySelector(`[data-ctx="${e.target.dataset.ctx}"][data-i="${+e.target.dataset.i + 1}"][data-pf="${e.target.dataset.pf}"]`);
+    e.target.blur(); if (next) { next.focus(); next.select(); }
   }
+});
 
-  async function saveAllData() {
-    saveLocal();
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(state)
-      });
-      if (res.ok) {
-        document.getElementById("jsonStatus").textContent = "JSON: KAYDEDİLDİ";
-        document.getElementById("jsonDetailText").textContent = "Veriler tabanca_makine_veriler.json dosyasına ve tarayıcı hafızasına kaydedildi.";
-        return;
-      }
-    } catch (e) {}
-    document.getElementById("jsonStatus").textContent = "JSON: HAFIZADA";
-    document.getElementById("jsonDetailText").textContent = "Veriler tarayıcı hafızasına kaydedildi. Dosya olarak almak için 'JSON DOSYASI İNDİR' butonunu kullanabilirsin.";
+document.addEventListener("click", e => {
+  const t = e.target.closest("button, .stat"); if (!t) return;
+  const d = t.dataset;
+  if (d.page) return openPage(d.page);
+  if (d.goto) { if (d.pinfilter !== undefined) { $("fPin").value = d.pinfilter; } return openPage(d.goto); }
+  if (d.openpins) { ui.machineId = d.openpins; return openPage("pins"); }
+  if (d.dup) return duplicateMachine(d.dup);
+  if (d.delm) return deleteMachine(d.delm);
+  if (d.brand !== undefined) { ui.brand = brands()[+d.brand]; saveUI(); return render(); }
+  if (d.ctx) {
+    const pins = pinsOf(d.ctx); if (!pins) return;
+    if (d.padd) {
+      const last = pins[pins.length - 1];
+      pins.push({ pin: last && typeof last.pin === "number" ? last.pin + 1 : "", group: last?.group || "", sig: "", desc: "", addr: "" });
+    } else if (d.pdel !== undefined) {
+      const p = pins[+d.pdel];
+      if (!confirm(`Pin ${p.pin} (${p.sig || "-"}) silinsin mi?`)) return;
+      pins.splice(+d.pdel, 1);
+    } else if (d.pmove !== undefined) {
+      const i = +d.pmove, j = i + +d.dir;
+      if (j < 0 || j >= pins.length) return;
+      [pins[i], pins[j]] = [pins[j], pins[i]];
+    } else if (d.psort) {
+      pins.sort(cmpPin);
+    } else return;
+    changed(); render();
   }
+});
 
-  async function loadInitialData() {
-    try {
-      const res = await fetch(API_URL, { cache: "no-store" });
-      if (res.ok) {
-        const parsed = await res.json();
-        hydrateState(parsed);
-        saveLocal();
-        document.getElementById("jsonStatus").textContent = "JSON: YÜKLENDİ";
-        render();
-        return;
-      }
-    } catch (e) {}
+window.addEventListener("beforeunload", e => { if (dirty && serverOnline) { e.preventDefault(); e.returnValue = ""; } });
+window.addEventListener("online", () => { if (dirty) saveNow(); });
+setInterval(() => { if (dirty && !saving) saveNow(); }, 30000);   // sunucu gelirse bekleyen veriyi gönder
 
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        hydrateState(JSON.parse(raw));
-        document.getElementById("jsonStatus").textContent = "JSON: HAFIZADA";
-      }
-    } catch (e) {}
-    render();
-  }
-
-  function openPage(pageName) {
-    currentPage = pageName;
-    document.getElementById("page-home").classList.toggle("active", pageName === "home");
-    ["brands", "machines", "machine-lists", "pins", "json"].forEach(p => {
-      const el = document.getElementById("page-" + p);
-      if (el) el.classList.toggle("active", pageName === p);
-    });
-    render();
-  }
-
-  function clonePins(brand) {
-    const src = state.templates[brand] || [];
-    return src.map(p => ({ ...p }));
-  }
-
-  function selectBrand(brand) {
-    state.activeBrand = brand;
-    const brandMachines = state.machines.filter(m => m.brand === brand);
-    if (brandMachines.length > 0 && !brandMachines.some(m => m.id === state.selectedMachineId)) {
-      state.selectedMachineId = brandMachines[0].id;
-    } else if (brandMachines.length === 0) {
-      state.selectedMachineId = null;
+// Başka biri kaydettiyse (ve bizde bekleyen değişiklik yoksa) güncel veriyi sessizce çek
+setInterval(async () => {
+  if (dirty || saving || document.hidden) return;
+  const a = document.activeElement;
+  if (a && ["INPUT", "SELECT", "TEXTAREA"].includes(a.tagName)) return;   // düzenleme sırasında dokunma
+  try {
+    const server = await fetchServer(); serverOnline = true;
+    if ((parseInt(server._rev) || 0) !== db._rev && !dirty && !saving) {
+      db = normalize(server); saveLocal(); render(); toast("Başka bir kullanıcının değişiklikleri yüklendi.");
     }
-    saveAllData();
-    render();
-  }
+  } catch (e) { serverOnline = false; updateStatus(); }
+}, 15000);
 
-  function selectMachine(id) {
-    state.selectedMachineId = id || null;
-    const m = state.machines.find(x => x.id === state.selectedMachineId);
-    if (m && m.brand) state.activeBrand = m.brand;
-    saveAllData();
-    render();
-  }
-
-  function openMachinePins(id) {
-    selectMachine(id);
-    openPage("pins");
-  }
-
-  function addMachine() {
-    const regInp = document.getElementById("newMachineRegion");
-    const codeInp = document.getElementById("newMachineCode");
-    const nameInp = document.getElementById("newMachineName");
-    const brandSel = document.getElementById("newMachineBrand");
-    const gunInp = document.getElementById("newMachineGun");
-
-    const name = nameInp.value.trim();
-    if (!name) {
-      alert("Lütfen makine adını girin.");
-      return;
-    }
-
-    const region = regInp.value.trim() || "BÖLGESİZ";
-    const brand = brandSel.value || state.activeBrand;
-    const id = "m_" + Date.now();
-    state.machines.push({
-      id,
-      region,
-      code: codeInp.value.trim() || ("M-" + (state.machines.length + 1)),
-      name,
-      brand,
-      gunCode: gunInp.value.trim(),
-      pins: clonePins(brand)
-    });
-
-    state.activeBrand = brand;
-    state.selectedMachineId = id;
-    codeInp.value = "";
-    nameInp.value = "";
-    gunInp.value = "";
-    saveAllData();
-    render();
-  }
-
-  function deleteMachine(id) {
-    const target = state.machines.find(m => m.id === id);
-    if (!target) return;
-    if (!confirm(`"${target.name}" makinesini silmek istiyor musunuz?`)) return;
-    state.machines = state.machines.filter(m => m.id !== id);
-    if (state.selectedMachineId === id) {
-      state.selectedMachineId = state.machines.length > 0 ? state.machines[0].id : null;
-    }
-    saveAllData();
-    render();
-  }
-
-  function updateGunCode(val) {
-    const m = state.machines.find(x => x.id === state.selectedMachineId);
-    if (m) {
-      m.gunCode = val;
-      saveLocal();
-      updateStatusLine();
-    }
-  }
-
-  function updatePinAddr(pinNum, val) {
-    const m = state.machines.find(x => x.id === state.selectedMachineId);
-    if (m) {
-      const p = m.pins.find(x => x.pin === pinNum);
-      if (p) p.addr = val;
-      saveLocal();
-      return;
-    }
-    const tpl = state.templates[state.activeBrand] || [];
-    const tp = tpl.find(x => x.pin === pinNum);
-    if (tp) tp.addr = val;
-    saveLocal();
-  }
-
-  function exportJSON() {
-    saveLocal();
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "tabanca_makine_veriler.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  function importJSON(e) {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        hydrateState(JSON.parse(reader.result));
-        saveAllData();
-        render();
-      } catch (err) {
-        alert("Geçersiz JSON dosyası.");
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = "";
-  }
-
-  function renderMachineLists() {
-    const totalSystem = state.machines.length;
-    document.getElementById("systemTotalMachines").textContent = totalSystem;
-
-    const allRegions = Array.from(new Set(state.machines.map(getRegionName)));
-    const regFilterEl = document.getElementById("machineListRegionFilter");
-    const prevReg = regFilterEl.value;
-    regFilterEl.innerHTML = `<option value="">TÜM BÖLGELER</option>` + allRegions.map(r =>
-      `<option value="${r}" ${r === prevReg ? "selected" : ""}>${r}</option>`
-    ).join("");
-
-    const pinFilter = document.getElementById("machineListPinFilter").value;
-    const q = (document.getElementById("machineListSearch").value || "").trim().toLowerCase();
-    const selectedReg = regFilterEl.value;
-
-    const filtered = state.machines.filter(m => {
-      const reg = getRegionName(m);
-      const assigned = hasAssignedPins(m);
-      if (selectedReg && reg !== selectedReg) return false;
-      if (pinFilter === "assigned" && !assigned) return false;
-      if (pinFilter === "unassigned" && assigned) return false;
-      if (q) {
-        const hay = `${reg} ${m.code || ""} ${m.name || ""} ${m.brand || ""} ${m.gunCode || ""}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      return true;
-    });
-
-    const grouped = {};
-    filtered.forEach(m => {
-      const reg = getRegionName(m);
-      if (!grouped[reg]) grouped[reg] = [];
-      grouped[reg].push(m);
-    });
-
-    const regionKeys = Object.keys(grouped);
-    document.getElementById("regionSummaryGrid").innerHTML = regionKeys.length > 0
-      ? regionKeys.map(reg =>
-          `<div class="region-card">
-            <div class="region-card-title">${reg}</div>
-            <div class="region-card-count">${grouped[reg].length} MAKİNE</div>
-          </div>`
-        ).join("")
-      : `<div class="region-card"><div class="region-card-title">BÖLGE KAYDI</div><div class="region-card-count">0 MAKİNE</div></div>`;
-
-    document.getElementById("regionGroupsContainer").innerHTML = regionKeys.length > 0
-      ? regionKeys.map(reg =>
-          `<div class="region-group">
-            <div class="region-group-header">
-              <span>${reg}</span>
-              <span>${grouped[reg].length} MAKİNE</span>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>MAKİNE KODU</th>
-                    <th>MAKİNE ADI</th>
-                    <th>MARKA</th>
-                    <th>TABANCA KODU</th>
-                    <th>PİN DURUMU</th>
-                    <th>İŞLEM</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${grouped[reg].map((m, idx) => {
-                    const isAssigned = hasAssignedPins(m);
-                    return `<tr>
-                      <td>${idx + 1}</td>
-                      <td><strong>${m.code}</strong></td>
-                      <td>${m.name}</td>
-                      <td>${m.brand}</td>
-                      <td>${m.gunCode || "—"}</td>
-                      <td>${isAssigned ? `<span class="badge-assigned">PİN ATANMIŞ</span>` : `<span class="badge-unassigned">PİN ATANMAMIŞ</span>`}</td>
-                      <td style="display:flex; gap:6px; flex-wrap:wrap;">
-                        <button class="btn-primary" onclick="openMachinePins('${m.id}')">PİNLER</button>
-                        <button class="btn-del" onclick="deleteMachine('${m.id}')">SİL</button>
-                      </td>
-                    </tr>`;
-                  }).join("")}
-                </tbody>
-              </table>
-            </div>
-          </div>`
-        ).join("")
-      : `<div style="color:var(--muted);">Sistemde kayıtlı veya filtreye uyan makine bulunamadı.</div>`;
-  }
-
-  function updateStatusLine() {
-    const m = state.machines.find(x => x.id === state.selectedMachineId);
-    const pageUpper = currentPage.replace("-", " ").toUpperCase();
-    const mText = m ? `${m.code} — ${m.name}` : "YOK";
-    document.getElementById("statusLine").textContent =
-      `SAYFA: ${pageUpper} | MARKA: ${state.activeBrand.toUpperCase()} | MAKİNE: ${mText.toUpperCase()}`;
-    document.getElementById("homeMachineCount").textContent = `${state.machines.length} MAKİNE KAYITLI`;
-    document.getElementById("homeMachineListsCount").textContent = `${state.machines.length} MAKİNE SİSTEMDE`;
-    document.getElementById("homeActiveTarget").textContent =
-      `HEDEF: ${state.activeBrand.toUpperCase()}${m ? " / " + m.code.toUpperCase() : ""}`;
-  }
-
-  function render() {
-    updateStatusLine();
-
-    document.getElementById("brandButtons").innerHTML = BRANDS.map(b =>
-      `<button class="brand-btn ${b === state.activeBrand ? "active" : ""}" onclick="selectBrand('${b}')">${b.toUpperCase()}</button>`
-    ).join("");
-
-    document.getElementById("newMachineBrand").innerHTML = BRANDS.map(b =>
-      `<option value="${b}" ${b === state.activeBrand ? "selected" : ""}>${b}</option>`
-    ).join("");
-
-    const brandMachines = state.machines.filter(m => m.brand === state.activeBrand);
-    document.getElementById("brandMachinesBody").innerHTML = brandMachines.length > 0
-      ? brandMachines.map(m =>
-          `<tr>
-            <td>${getRegionName(m)}</td>
-            <td><strong>${m.code}</strong></td>
-            <td>${m.name}</td>
-            <td>${m.brand}</td>
-            <td>${m.gunCode || "—"}</td>
-            <td><button class="btn-primary" onclick="openMachinePins('${m.id}')">PİNLERİ AÇ</button></td>
-          </tr>`
-        ).join("")
-      : `<tr><td colspan="6" style="color:var(--muted);">Bu markaya ait kayıtlı makine yok.</td></tr>`;
-
-    document.getElementById("machinesTotalLabel").textContent = state.machines.length;
-    document.getElementById("machinesTableBody").innerHTML = state.machines.length > 0
-      ? state.machines.map(m =>
-          `<tr>
-            <td>${getRegionName(m)}</td>
-            <td><strong>${m.code}</strong></td>
-            <td>${m.name}</td>
-            <td>${m.brand}</td>
-            <td>${m.gunCode || "—"}</td>
-            <td style="display:flex; gap:6px; flex-wrap:wrap;">
-              <button class="btn-primary" onclick="openMachinePins('${m.id}')">PİNLER</button>
-              <button class="btn-del" onclick="deleteMachine('${m.id}')">SİL</button>
-            </td>
-          </tr>`
-        ).join("")
-      : `<tr><td colspan="6" style="color:var(--muted);">Henüz makine eklenmemiş.</td></tr>`;
-
-    renderMachineLists();
-
-    const pinSel = document.getElementById("pinMachineSelect");
-    pinSel.innerHTML = `<option value="">-- ${state.activeBrand} Marka Şablonu --</option>` +
-      state.machines.map(m =>
-        `<option value="${m.id}" ${m.id === state.selectedMachineId ? "selected" : ""}>[${getRegionName(m)}] ${m.code} — ${m.name} (${m.brand})</option>`
-      ).join("");
-
-    const activeMachine = state.machines.find(m => m.id === state.selectedMachineId);
-    const gunInp = document.getElementById("pinGunCodeInput");
-    gunInp.value = activeMachine ? (activeMachine.gunCode || "") : "";
-    gunInp.disabled = !activeMachine;
-
-    const pins = activeMachine ? activeMachine.pins : (state.templates[state.activeBrand] || []);
-    document.getElementById("pinsTableBody").innerHTML = pins.map(p =>
-      `<tr>
-        <td><strong>${p.pin}</strong></td>
-        <td>${p.group}</td>
-        <td>${p.sig}</td>
-        <td>${p.desc}</td>
-        <td><input class="edit-input" value="${p.addr || ""}" placeholder="Kablo / Adres" onchange="updatePinAddr(${p.pin}, this.value)"></td>
-      </tr>`
-    ).join("");
-  }
-
-  loadInitialData();
+loadInitial();
 </script>
 </body>
 </html>
