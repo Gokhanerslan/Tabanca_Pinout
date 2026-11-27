@@ -25,6 +25,14 @@ Bundan sonra yapılan her değişiklik doğrudan `Fiam/src/tabanca_makine_verile
   2. **🔫 Makineye tabanca ata** — makine listeden seçilir, marka ve tabanca kodu girilir; markanın uç listesi makineye kendiliğinden gelir.
 - Tabancası olmayan makineler listede **🔫 Tabanca yok** olarak görünür ve filtrelenebilir.
 
+## Sinyal seçenekleri (elle yazma sadece adreste)
+
+- Makine sayfasında **sadece adres elle yazılır**. Sinyal (isim + açıklama) ve kablo rengi listeden seçilir.
+- Seçenekler markaya göredir ve **🏷️ Markalar → 📚 Sinyal seçenekleri** bölümünde düzenlenir (düzenleme modunda).
+  Varsayılan olarak markanın uç listesinden gelir; Kilews için kılavuzdaki olaylar (OK, NG, NG-High, Start IN, Confirm…) da hazırdır.
+- **Grup** alanı, seçeneğin hangi uçlarda çıkacağını belirler (ör. ÇIKIŞ seçenekleri sadece çıkış uçlarında). Boş bırakılırsa her uçta çıkar.
+- Marka uç listesine yeni sinyal yazıldığında seçeneklere de kendiliğinden eklenir.
+
 ## Şifre
 
 - **Bakmak için şifre gerekmez.** Değiştirmek için sağ üstteki **🔒 Düzenle** butonuna basıp şifre girilir.

@@ -825,7 +825,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_1",
-        "desc": "Giriş 1 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary JOB modunda: kısa devre = binary mod",
+        "desc": "Giriş 1",
         "addr": ""
       },
       {
@@ -833,7 +833,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
-        "desc": "IN_1 ortak (GND)",
+        "desc": "IN_1 ortak",
         "addr": ""
       },
       {
@@ -841,7 +841,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_2 (START)",
-        "desc": "Giriş 2 — örnek: START IN, 3+4 kapalı = çalışır; binary modda JOB değiştir onayı",
+        "desc": "Giriş 2 — örnek: Başlat",
         "addr": ""
       },
       {
@@ -849,7 +849,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
-        "desc": "IN_2 ortak (GND)",
+        "desc": "IN_2 ortak",
         "addr": ""
       },
       {
@@ -857,7 +857,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_3",
-        "desc": "Giriş 3 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 8",
+        "desc": "Giriş 3",
         "addr": ""
       },
       {
@@ -865,7 +865,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
-        "desc": "IN_3 ortak (GND)",
+        "desc": "IN_3 ortak",
         "addr": ""
       },
       {
@@ -873,7 +873,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_4",
-        "desc": "Giriş 4 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 7",
+        "desc": "Giriş 4",
         "addr": ""
       },
       {
@@ -881,7 +881,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
-        "desc": "IN_4 ortak (GND)",
+        "desc": "IN_4 ortak",
         "addr": ""
       },
       {
@@ -889,7 +889,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_5",
-        "desc": "Giriş 5 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 6",
+        "desc": "Giriş 5",
         "addr": ""
       },
       {
@@ -897,7 +897,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
-        "desc": "IN_5 ortak (GND)",
+        "desc": "IN_5 ortak",
         "addr": ""
       },
       {
@@ -905,7 +905,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_6",
-        "desc": "Giriş 6 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 5",
+        "desc": "Giriş 6",
         "addr": ""
       },
       {
@@ -913,7 +913,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
-        "desc": "IN_6 ortak (GND)",
+        "desc": "IN_6 ortak",
         "addr": ""
       },
       {
@@ -921,7 +921,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_7",
-        "desc": "Giriş 7 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 4",
+        "desc": "Giriş 7",
         "addr": ""
       },
       {
@@ -929,7 +929,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
-        "desc": "IN_7 ortak (GND)",
+        "desc": "IN_7 ortak",
         "addr": ""
       },
       {
@@ -937,7 +937,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_8",
-        "desc": "Giriş 8 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 3",
+        "desc": "Giriş 8",
         "addr": ""
       },
       {
@@ -945,7 +945,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
-        "desc": "IN_8 ortak (GND)",
+        "desc": "IN_8 ortak",
         "addr": ""
       },
       {
@@ -953,7 +953,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_9",
-        "desc": "Giriş 9 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 2",
+        "desc": "Giriş 9",
         "addr": ""
       },
       {
@@ -961,7 +961,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
-        "desc": "IN_9 ortak (GND)",
+        "desc": "IN_9 ortak",
         "addr": ""
       },
       {
@@ -969,7 +969,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "GİRİŞ",
         "sig": "IN_10",
-        "desc": "Giriş 10 — olayı cihazdan seçilir (Start, Reverse, Enable, Confirm, Clear, Reboot, SW JOB…); binary modda JOB bit 1",
+        "desc": "Giriş 10",
         "addr": ""
       },
       {
@@ -977,7 +977,7 @@ window.TABANCA_VERI = {
         "block": "INPUTS",
         "group": "ORTAK",
         "sig": "GND",
-        "desc": "IN_10 ortak (GND)",
+        "desc": "IN_10 ortak",
         "addr": ""
       },
       {
@@ -985,7 +985,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "BESLEME",
         "sig": "Vdc",
-        "desc": "+24V çıkış (varsayılan 24V/50mA; 12V/100mA olabilir)",
+        "desc": "+24V çıkış",
         "addr": ""
       },
       {
@@ -1001,7 +1001,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ÇIKIŞ",
         "sig": "OUT1 (OK)",
-        "desc": "Çıkış 1 — varsayılan OK; olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "desc": "Çıkış 1 — varsayılan: Sıkma OK",
         "addr": ""
       },
       {
@@ -1009,7 +1009,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ORTAK",
         "sig": "COM1",
-        "desc": "OUT1 ortak ucu (3+4 kontak çifti)",
+        "desc": "OUT1 ortak ucu",
         "addr": ""
       },
       {
@@ -1017,7 +1017,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ÇIKIŞ",
         "sig": "OUT2",
-        "desc": "Çıkış 2 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "desc": "Çıkış 2",
         "addr": ""
       },
       {
@@ -1025,7 +1025,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ORTAK",
         "sig": "COM2",
-        "desc": "OUT2 ortak ucu (5+6 kontak çifti)",
+        "desc": "OUT2 ortak ucu",
         "addr": ""
       },
       {
@@ -1033,7 +1033,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ÇIKIŞ",
         "sig": "OUT3",
-        "desc": "Çıkış 3 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "desc": "Çıkış 3",
         "addr": ""
       },
       {
@@ -1041,7 +1041,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ORTAK",
         "sig": "COM3",
-        "desc": "OUT3 ortak ucu (7+8 kontak çifti)",
+        "desc": "OUT3 ortak ucu",
         "addr": ""
       },
       {
@@ -1049,7 +1049,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ÇIKIŞ",
         "sig": "OUT4",
-        "desc": "Çıkış 4 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "desc": "Çıkış 4",
         "addr": ""
       },
       {
@@ -1057,7 +1057,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ORTAK",
         "sig": "COM4",
-        "desc": "OUT4 ortak ucu (9+10 kontak çifti)",
+        "desc": "OUT4 ortak ucu",
         "addr": ""
       },
       {
@@ -1065,7 +1065,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ÇIKIŞ",
         "sig": "OUT5",
-        "desc": "Çıkış 5 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "desc": "Çıkış 5",
         "addr": ""
       },
       {
@@ -1073,7 +1073,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ORTAK",
         "sig": "COM5",
-        "desc": "OUT5 ortak ucu (11+12 kontak çifti)",
+        "desc": "OUT5 ortak ucu",
         "addr": ""
       },
       {
@@ -1081,7 +1081,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ÇIKIŞ",
         "sig": "OUT6",
-        "desc": "Çıkış 6 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "desc": "Çıkış 6",
         "addr": ""
       },
       {
@@ -1089,7 +1089,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ORTAK",
         "sig": "COM6",
-        "desc": "OUT6 ortak ucu (13+14 kontak çifti)",
+        "desc": "OUT6 ortak ucu",
         "addr": ""
       },
       {
@@ -1097,7 +1097,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ÇIKIŞ",
         "sig": "OUT7",
-        "desc": "Çıkış 7 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "desc": "Çıkış 7",
         "addr": ""
       },
       {
@@ -1105,7 +1105,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ORTAK",
         "sig": "COM7",
-        "desc": "OUT7 ortak ucu (15+16 kontak çifti)",
+        "desc": "OUT7 ortak ucu",
         "addr": ""
       },
       {
@@ -1113,7 +1113,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ÇIKIŞ",
         "sig": "OUT8",
-        "desc": "Çıkış 8 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "desc": "Çıkış 8",
         "addr": ""
       },
       {
@@ -1121,7 +1121,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ORTAK",
         "sig": "COM8",
-        "desc": "OUT8 ortak ucu (17+18 kontak çifti)",
+        "desc": "OUT8 ortak ucu",
         "addr": ""
       },
       {
@@ -1129,7 +1129,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ÇIKIŞ",
         "sig": "OUT9",
-        "desc": "Çıkış 9 — olayı cihazdan seçilir (OK, NG, NG-High/Low, OK-Seq, OK-Job, Motor, Start, Reverse…)",
+        "desc": "Çıkış 9",
         "addr": ""
       },
       {
@@ -1137,7 +1137,7 @@ window.TABANCA_VERI = {
         "block": "OUTPUTS",
         "group": "ORTAK",
         "sig": "COM9",
-        "desc": "OUT9 ortak ucu (19+20 kontak çifti)",
+        "desc": "OUT9 ortak ucu",
         "addr": ""
       }
     ]
@@ -1508,6 +1508,143 @@ window.TABANCA_VERI = {
             "COM2"
           ]
         }
+      ],
+      "signals": [
+        {
+          "group": "BESLEME",
+          "sig": "GND",
+          "desc": "Giriş GND (0V)"
+        },
+        {
+          "group": "BESLEME",
+          "sig": "+24V",
+          "desc": "+24V besleme (STOP kontağı buradan)"
+        },
+        {
+          "group": "BESLEME",
+          "sig": "0VE",
+          "desc": "Harici 0V ortak — panodan gelen (-) ile köprüle"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "STOP",
+          "desc": "Durdurma girişi (+24V – STOP arası kontak)"
+        },
+        {
+          "group": "—",
+          "sig": "n.c.",
+          "desc": "Bağlantı yok"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "CYC1",
+          "desc": "Program seçimi 1"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "CYC2",
+          "desc": "Program seçimi 2"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "CYC4",
+          "desc": "Program seçimi 4"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "VALSP",
+          "desc": "Sıkma izni — sinyal gelince çalış komutu"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "ACKNOW",
+          "desc": "Hata / uyarı onayı"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "SCY",
+          "desc": "Çevrim başlatma"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "DIR",
+          "desc": "Dönüş yönü seçimi"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "RESET",
+          "desc": "Sıfırlama"
+        },
+        {
+          "group": "BESLEME",
+          "sig": "GND",
+          "desc": "Çıkış GND (0V)"
+        },
+        {
+          "group": "BESLEME",
+          "sig": "+24V",
+          "desc": "+24V besleme"
+        },
+        {
+          "group": "BESLEME",
+          "sig": "0VE",
+          "desc": "Harici 0V ortak — giriş 0VE ile köprülü"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "COM1",
+          "desc": "Çıkış 1–4 ortak ucu"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "CYC1",
+          "desc": "Seçili program geri bildirimi 1"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "CYC2",
+          "desc": "Seçili program geri bildirimi 2"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "CYC4",
+          "desc": "Seçili program geri bildirimi 4"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "READY",
+          "desc": "Sistem hazır"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "INCYC",
+          "desc": "Sıkma devam ediyor"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "ACCRP",
+          "desc": "Sıkma OK"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "REJRP",
+          "desc": "Sıkma NOK"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "NCYOK",
+          "desc": "Toplu çevrim OK"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "COM2",
+          "desc": "Çıkış 5–8 ortak ucu — +24V verilecek"
+        },
+        {
+          "group": "",
+          "sig": "—",
+          "desc": "Kullanılmıyor"
+        }
       ]
     },
     "FIAM": {
@@ -1515,26 +1652,387 @@ window.TABANCA_VERI = {
       "image": "",
       "note": "TPU-C3, DB25",
       "orientation": "v",
-      "blocks": []
+      "blocks": [],
+      "signals": [
+        {
+          "group": "OUTPUTS (A)",
+          "sig": "Run",
+          "desc": "Çalışıyor"
+        },
+        {
+          "group": "OUTPUTS (A)",
+          "sig": "Screw OK",
+          "desc": "Vida Tamam"
+        },
+        {
+          "group": "OUTPUTS (A)",
+          "sig": "Ready",
+          "desc": "Hazır"
+        },
+        {
+          "group": "OUTPUTS (A)",
+          "sig": "Reject",
+          "desc": "Red"
+        },
+        {
+          "group": "OUTPUTS (A)",
+          "sig": "Screw NOK",
+          "desc": "Vida Hatalı"
+        },
+        {
+          "group": "OUTPUTS (A)",
+          "sig": "Prg bit0",
+          "desc": "Program bitleri"
+        },
+        {
+          "group": "OUTPUTS (A)",
+          "sig": "Prg bit1",
+          "desc": "Program bitleri"
+        },
+        {
+          "group": "OUTPUTS (A)",
+          "sig": "Prg bit2",
+          "desc": "Program bitleri"
+        },
+        {
+          "group": "GROUND (C)",
+          "sig": "Inputs Com",
+          "desc": "Girişler Ortak (-)"
+        },
+        {
+          "group": "INPUTS (B)",
+          "sig": "Tighten",
+          "desc": "Sıkma"
+        },
+        {
+          "group": "INPUTS (B)",
+          "sig": "Untighten",
+          "desc": "Gevşetme"
+        },
+        {
+          "group": "INPUTS (B)",
+          "sig": "Stop",
+          "desc": "Durdurma"
+        },
+        {
+          "group": "INPUTS (B)",
+          "sig": "Unlock",
+          "desc": "Kilit Açma"
+        },
+        {
+          "group": "INPUTS (B)",
+          "sig": "Sel. Seq",
+          "desc": "Sekans Seçimi"
+        },
+        {
+          "group": "INPUTS (B)",
+          "sig": "Prg bit0",
+          "desc": "Program bitleri"
+        },
+        {
+          "group": "INPUTS (B)",
+          "sig": "Prg bit1",
+          "desc": "Program bitleri"
+        },
+        {
+          "group": "INPUTS (B)",
+          "sig": "Prg bit2",
+          "desc": "Program bitleri"
+        },
+        {
+          "group": "+24V (D)",
+          "sig": "Outputs Com",
+          "desc": "Çıkışlar Ortak (+24V)"
+        },
+        {
+          "group": "",
+          "sig": "—",
+          "desc": "Kullanılmıyor"
+        }
+      ]
     },
     "Doğa": {
       "connector": "DB25",
       "image": "",
       "note": "HDC serisi 25P I/O — P64 = 1 (PLC uzaktan kontrol)",
       "orientation": "v",
-      "blocks": []
+      "blocks": [],
+      "signals": [
+        {
+          "group": "GİRİŞ",
+          "sig": "Torque select IN1",
+          "desc": "Tork seçimi 1"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Torque select IN2",
+          "desc": "Tork seçimi 2"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Torque select IN3",
+          "desc": "Tork seçimi 3"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "START",
+          "desc": "Başlat"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "LOCK",
+          "desc": "Kilit"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "F/R",
+          "desc": "İleri / geri (ileri 0, geri 1)"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Model select IN3 / Screw type",
+          "desc": "Model seçimi 3 veya vida yönü (saat yönü 0, ters 1)"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Torque select IN4",
+          "desc": "Tork seçimi 4 (çoklu sekans)"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Reset / Work-piece OUT",
+          "desc": "Reset (çevrim dahil) veya parça alandan çıktı (P76 = 3)"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Error code OUT1",
+          "desc": "Hata kodu 1"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Error code OUT2",
+          "desc": "Hata kodu 2"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Error code OUT3",
+          "desc": "Hata kodu 3"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Error code OUT4",
+          "desc": "Hata kodu 4"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "F/R status OUT",
+          "desc": "İleri / geri durumu (ileri 0, geri 1)"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Torque up",
+          "desc": "Torka ulaşıldı"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Motor run OUT",
+          "desc": "Motor çalışıyor"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "READY",
+          "desc": "Hazır"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "ALARM (NG)",
+          "desc": "Alarm (NOK)"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Work-piece IN",
+          "desc": "Parça alana girdi"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Cycle count complete",
+          "desc": "Sayım tamamlandı"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "Output COM",
+          "desc": "Çıkış ortak"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "Input COM",
+          "desc": "Giriş ortak"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Model select IN1",
+          "desc": "Model seçimi 1"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Model select IN2",
+          "desc": "Model seçimi 2"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Fastening OK OUT",
+          "desc": "Sıkma OK"
+        },
+        {
+          "group": "",
+          "sig": "—",
+          "desc": "Kullanılmıyor"
+        }
+      ]
     },
     "Sehan": {
       "connector": "DB25",
       "image": "",
       "note": "HDC serisi 25P I/O — P64 = 1 (PLC uzaktan kontrol)",
       "orientation": "v",
-      "blocks": []
+      "blocks": [],
+      "signals": [
+        {
+          "group": "GİRİŞ",
+          "sig": "Torque select IN1",
+          "desc": "Tork seçimi 1"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Torque select IN2",
+          "desc": "Tork seçimi 2"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Torque select IN3",
+          "desc": "Tork seçimi 3"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "START",
+          "desc": "Başlat"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "LOCK",
+          "desc": "Kilit"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "F/R",
+          "desc": "İleri / geri (ileri 0, geri 1)"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Model select IN3 / Screw type",
+          "desc": "Model seçimi 3 veya vida yönü (saat yönü 0, ters 1)"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Torque select IN4",
+          "desc": "Tork seçimi 4 (çoklu sekans)"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Reset / Work-piece OUT",
+          "desc": "Reset (çevrim dahil) veya parça alandan çıktı (P76 = 3)"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Error code OUT1",
+          "desc": "Hata kodu 1"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Error code OUT2",
+          "desc": "Hata kodu 2"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Error code OUT3",
+          "desc": "Hata kodu 3"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Error code OUT4",
+          "desc": "Hata kodu 4"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "F/R status OUT",
+          "desc": "İleri / geri durumu (ileri 0, geri 1)"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Torque up",
+          "desc": "Torka ulaşıldı"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Motor run OUT",
+          "desc": "Motor çalışıyor"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "READY",
+          "desc": "Hazır"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "ALARM (NG)",
+          "desc": "Alarm (NOK)"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Work-piece IN",
+          "desc": "Parça alana girdi"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Cycle count complete",
+          "desc": "Sayım tamamlandı"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "Output COM",
+          "desc": "Çıkış ortak"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "Input COM",
+          "desc": "Giriş ortak"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Model select IN1",
+          "desc": "Model seçimi 1"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Model select IN2",
+          "desc": "Model seçimi 2"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Fastening OK OUT",
+          "desc": "Sıkma OK"
+        },
+        {
+          "group": "",
+          "sig": "—",
+          "desc": "Kullanılmıyor"
+        }
+      ]
     },
     "Kilews": {
       "connector": "KLEMENS",
       "image": "",
-      "note": "KL-GTCS — OUTPUTS: 1 Vdc, 2 GND, OUT1–9 kontak çiftleri (3-4 … 19-20). INPUTS: IN_1–10 (1-2 … 19-20), çift numaralı pinler GND. Olaylar cihazdaki I/O Input / I/O Output menüsünden atanır. Islak kontak kullanılırsa girişe seri 10K direnç bağlanmalı.",
+      "note": "KL-GTCS — Her giriş/çıkışın olayı cihazdaki I/O Input / I/O Output menüsünden seçilir; burada da listeden aynısını seç. OUTPUTS: 1 Vdc (+24V, varsayılan 50mA; 12V/100mA olabilir), 2 GND, OUT1–9 kontak çiftleri (3-4 … 19-20). INPUTS: IN_1–10 (1-2 … 19-20), çift numaralı pinler GND. Islak kontak kullanılırsa girişe seri 10K direnç bağlanmalı.",
       "orientation": "h",
       "blocks": [
         {
@@ -1586,6 +2084,343 @@ window.TABANCA_VERI = {
             "19",
             "20"
           ]
+        }
+      ],
+      "signals": [
+        {
+          "group": "GİRİŞ",
+          "sig": "IN_1",
+          "desc": "Giriş 1"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "GND",
+          "desc": "IN_1 ortak"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "IN_2 (START)",
+          "desc": "Giriş 2 — örnek: Başlat"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "GND",
+          "desc": "IN_2 ortak"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "IN_3",
+          "desc": "Giriş 3"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "GND",
+          "desc": "IN_3 ortak"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "IN_4",
+          "desc": "Giriş 4"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "GND",
+          "desc": "IN_4 ortak"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "IN_5",
+          "desc": "Giriş 5"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "GND",
+          "desc": "IN_5 ortak"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "IN_6",
+          "desc": "Giriş 6"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "GND",
+          "desc": "IN_6 ortak"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "IN_7",
+          "desc": "Giriş 7"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "GND",
+          "desc": "IN_7 ortak"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "IN_8",
+          "desc": "Giriş 8"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "GND",
+          "desc": "IN_8 ortak"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "IN_9",
+          "desc": "Giriş 9"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "GND",
+          "desc": "IN_9 ortak"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "IN_10",
+          "desc": "Giriş 10"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "GND",
+          "desc": "IN_10 ortak"
+        },
+        {
+          "group": "BESLEME",
+          "sig": "Vdc",
+          "desc": "+24V çıkış"
+        },
+        {
+          "group": "BESLEME",
+          "sig": "GND",
+          "desc": "Besleme çıkışı GND"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "OUT1 (OK)",
+          "desc": "Çıkış 1 — varsayılan: Sıkma OK"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "COM1",
+          "desc": "OUT1 ortak ucu"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "OUT2",
+          "desc": "Çıkış 2"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "COM2",
+          "desc": "OUT2 ortak ucu"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "OUT3",
+          "desc": "Çıkış 3"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "COM3",
+          "desc": "OUT3 ortak ucu"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "OUT4",
+          "desc": "Çıkış 4"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "COM4",
+          "desc": "OUT4 ortak ucu"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "OUT5",
+          "desc": "Çıkış 5"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "COM5",
+          "desc": "OUT5 ortak ucu"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "OUT6",
+          "desc": "Çıkış 6"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "COM6",
+          "desc": "OUT6 ortak ucu"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "OUT7",
+          "desc": "Çıkış 7"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "COM7",
+          "desc": "OUT7 ortak ucu"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "OUT8",
+          "desc": "Çıkış 8"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "COM8",
+          "desc": "OUT8 ortak ucu"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "OUT9",
+          "desc": "Çıkış 9"
+        },
+        {
+          "group": "ORTAK",
+          "sig": "COM9",
+          "desc": "OUT9 ortak ucu"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "OK",
+          "desc": "Sıkma OK"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "NG",
+          "desc": "Sıkma NOK"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "NG-High",
+          "desc": "Üst limit aşıldı"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "NG-Low",
+          "desc": "Alt limitin altında"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "OK-Sequence",
+          "desc": "Sekans tamamlandı"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "OK-JOB",
+          "desc": "Job tamamlandı"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Tool Running",
+          "desc": "Motor çalışıyor"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Tool Trigger",
+          "desc": "Tetik / başlatma sinyali"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Reverse",
+          "desc": "Ters dönüş (vida sökme)"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "UserDefine1",
+          "desc": "Kullanıcı tanımlı 1"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "UserDefine2",
+          "desc": "Kullanıcı tanımlı 2"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "Barcode stop",
+          "desc": "Barkod durdurma"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "CW rotation",
+          "desc": "Saat yönünde dönüş"
+        },
+        {
+          "group": "ÇIKIŞ",
+          "sig": "CCW rotation",
+          "desc": "Saat yönü tersine dönüş"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Start IN",
+          "desc": "Başlat"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Reverse",
+          "desc": "Ters dönüş (vida sökme)"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Disable",
+          "desc": "Devre dışı"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Enable",
+          "desc": "Etkin"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Confirm",
+          "desc": "Onay"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Clear",
+          "desc": "Sayacı sıfırla"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Sequence Clear",
+          "desc": "Sekansı sıfırla"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Reboot",
+          "desc": "Yeniden başlat"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "UserDefine1",
+          "desc": "Kullanıcı tanımlı 1"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "UserDefine2",
+          "desc": "Kullanıcı tanımlı 2"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "Gate Once",
+          "desc": "Tek seferlik tetik"
+        },
+        {
+          "group": "GİRİŞ",
+          "sig": "SW JOB",
+          "desc": "Job değiştir"
+        },
+        {
+          "group": "",
+          "sig": "—",
+          "desc": "Kullanılmıyor"
         }
       ]
     }
