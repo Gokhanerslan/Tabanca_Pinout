@@ -2,7 +2,9 @@
 # KISAYOL_OLUSTUR.bat tarafından çalıştırılır. Fiam klasörü sunucudaki bir paylaşımda (\\sunucu\...) da olabilir.
 $ErrorActionPreference = 'Stop'
 try {
-    $fiam = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)   # ...\Fiam
+    # Fiam klasörü: .bat ortam değişkeniyle verir; doğrudan çalıştırılırsa betiğin yerinden bulunur
+    if ($env:TABANCA_FIAM) { $fiam = $env:TABANCA_FIAM.TrimEnd('\') }
+    else { $fiam = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path) }
     $html = Join-Path $fiam 'TABANCA_PIN.html'
     $ico  = Join-Path $fiam 'logo.ico'
     if (-not (Test-Path -LiteralPath $html)) { throw "TABANCA_PIN.html bulunamadı: $html" }
