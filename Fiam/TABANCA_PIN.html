@@ -416,6 +416,7 @@
       <div class="row" style="margin-top:10px">
         <button class="btn-primary" id="folderPermBtn" onclick="reconnectFolder(false)">🔗 Klasöre izin ver</button>
         <button onclick="connectFolder()" id="connectBtn2">📁 Klasörü değiştir</button>
+        <button onclick="folderDiagnose()">🔍 Klasör tanılama</button>
       </div>
     </div>
     <div class="panel">
@@ -705,7 +706,32 @@ function idb(mode, fn) {
   });
 }
 const idbGet = k => idb("readonly", s => s.get(k)).catch(() => null);
-const idbSet = (k, v) => idb("readwrite", s => s.put(v, k)).catch(() => null);
+const idbSet = (k, v) => idb("readwrite", s => s.put(v, k)).then(() => true).catch(e => { lastFolderError = { step: "hafızaya kaydetme", name: e?.name || "Error", message: e?.message || String(e), at: new Date() }; return false; });
+// sayfa adresi: büyük/küçük harf, %20 / boşluk, %C4%B0 / İ farkları aynı sayılsın
+const normHref = h => { let x = String(h || "").split("#")[0].split("?")[0]; try { x = decodeURIComponent(x); } catch (e) {} return x.replace(/\\/g, "/").toLocaleLowerCase("tr"); };
+const sameHref = (a, b) => normHref(a) === normHref(b);
+let lastFolderError = null;
+function folderError(step, e, silentCancel) {
+  lastFolderError = { step, name: e?.name || "Error", message: e?.message || String(e), at: new Date() };
+  lastPermAsk = Date.now();   // hemen ardından otomatik yeniden denemesin
+  if (silentCancel) { toast("📁 Klasör seçimi iptal edildi (ya da tarayıcı izin vermedi)."); updateStatus(); return; }
+  const tips = {
+    NotAllowedError: "Tarayıcı ya da Windows bu klasöre <b>yazma izni</b> vermedi. Ağ klasöründe yazma yetkin olduğundan emin ol; tarayıcının izin penceresinde <b>İzin ver</b>'i seç.",
+    SecurityError: "Tarayıcı güvenlik nedeniyle engelledi. Butona tekrar <b>doğrudan tıklayarak</b> dene.",
+    NotFoundError: "Klasör ya da dosya bulunamadı (taşınmış / silinmiş olabilir). Klasörü yeniden seç.",
+    InvalidModificationError: "Dosya yazılamadı (ağ klasöründe kilitli ya da salt okunur olabilir).",
+    NoModificationAllowedError: "Dosya salt okunur. Ağ klasöründe yazma yetkini kontrol et.",
+    AbortError: "İşlem tarayıcı tarafından iptal edildi. Klasörü seçtikten sonra çıkan izin penceresinde <b>Düzenle / İzin ver</b>'i seç."
+  };
+  openModal(`<div class="modal-icon">📁</div><h2>Klasöre bağlanılamadı</h2>
+    <div class="help" style="text-align:left;font-size:14px">
+      <b>Adım:</b> ${esc(step)}<br><b>Hata:</b> ${esc(lastFolderError.name)} — ${esc(lastFolderError.message)}<br><br>
+      ${tips[lastFolderError.name] || "Beklenmeyen bir hata oluştu."}<br><br>
+      Değişikliklerin <b>bu tarayıcıda saklanıyor</b>, kaybolmaz. Sorun sürerse <b>⚙️ Ayarlar → 🔍 Klasör tanılama</b> ekranının görüntüsünü gönder.</div>
+    <div class="modal-actions" style="margin-top:14px"><button id="feClose">Kapat</button><button class="btn-primary" id="feDiag">🔍 Tanılama</button></div>`);
+  $("feClose").onclick = () => closeModal(); $("feDiag").onclick = () => { closeModal(); folderDiagnose(); };
+  updateStatus();
+}
 
 async function folderReady() {
   try { return !!dirHandle && (await dirHandle.queryPermission({ mode: "readwrite" })) === "granted"; }
@@ -799,22 +825,32 @@ function showFolderHelp(kind, err) {
 
 async function connectFolder() {   // yeni klasör seç
   if (!window.showDirectoryPicker) return showFolderHelp("unsupported");
-  const started = Date.now();
+  const started = Date.now(); lastPermAsk = started;
+  let step = "klasör seçme penceresi";
   try {
     let h;
     try { h = await window.showDirectoryPicker({ id: "tabanca", mode: "readwrite", ...(dirHandle ? { startIn: dirHandle } : {}) }); }
     catch (err) { if (err.name === "AbortError" || !dirHandle) throw err; h = await window.showDirectoryPicker({ id: "tabanca", mode: "readwrite" }); }
+    step = "seçilen klasörü okuma";
     if (!(await hasFile(h, DATA_NAME))) {   // Fiam klasörü seçildiyse içindeki src'yi kullan
       try { const s = await h.getDirectoryHandle("src"); if (await hasFile(s, DATA_NAME)) h = s; } catch (e) {}
     }
     if (!(await hasFile(h, DATA_NAME)) &&
         !confirm(`Seçilen klasörde "${DATA_NAME}" bulunamadı.\nNormalde "src" klasörünü seçmelisin.\n\nYine de bu klasörde yeni bir veri dosyası oluşturulsun mu?`)) return;
-    dirHandle = h; await idbSet("dir", h); await idbSet("dirHref", location.href);
+    step = "yazma izni";
+    if ((await h.queryPermission({ mode: "readwrite" })) !== "granted" && (await h.requestPermission({ mode: "readwrite" })) !== "granted")
+      throw Object.assign(new Error("Klasöre yazma izni verilmedi."), { name: "NotAllowedError" });
+    dirHandle = h;
+    step = "klasörü hatırlama (tarayıcı hafızası)";
+    const remembered = (await idbSet("dir", h)) && (await idbSet("dirHref", location.href));
+    step = "veri dosyasını okuma / yazma";
     await finishConnect();
+    if (!remembered) toast("⚠️ Klasör bağlandı ama tarayıcı hatırlayamadı; sayfa yeniden açılınca tekrar sorulabilir. (Ayarlar → 🔍 Klasör tanılama)");
   } catch (e) {
-    // Kullanıcı pencereyi kapattıysa sessiz geç; pencere hiç açılmadan anında hata geldiyse açıkla
-    if (e.name !== "AbortError" || Date.now() - started < 700) showFolderHelp("error", e);
-    updateStatus();
+    // pencere kullanıcı tarafından kapatıldıysa kısa uyarı; diğer her durumda nedenini göster
+    if (step === "klasör seçme penceresi" && e.name === "AbortError" && Date.now() - started >= 700) return folderError(step, e, true);
+    if (step === "klasör seçme penceresi" && Date.now() - started < 700) { lastFolderError = { step, name: e.name, message: e.message, at: new Date() }; return showFolderHelp("error", e); }
+    folderError(step, e);
   }
 }
 /* Daha önce seçilen klasöre tekrar bağlan: klasör seçtirmez, sadece Chrome'dan izin ister.
@@ -837,7 +873,8 @@ async function reconnectFolder(quiet) {
 }
 // klasör seçili ama izin yokken bekleyen değişiklik varsa, kullanıcı bir yere tıkladığında (en fazla dakikada bir) izni tekrar iste
 document.addEventListener("click", () => {
-  if (EDIT && MODE === "file" && dirHandle && !serverOnline && dirty && !permAsking && Date.now() - lastPermAsk > 60000) reconnectFolder(true);
+  if (EDIT && MODE === "file" && dirHandle && !serverOnline && dirty && !permAsking && Date.now() - lastPermAsk > 60000
+      && $("modal").classList.contains("hidden")) reconnectFolder(true);   // açık pencere varken ve son hatadan 1 dk geçmeden tekrar deneme
 }, true);
 async function finishConnect() {
   const fileData = await readDataFile();
@@ -854,6 +891,42 @@ async function finishConnect() {
   toast(`📁 "${dirHandle.name}" klasörüne bağlandı. Değişiklikler bu klasöre kaydediliyor.`);
 }
 
+/* Klasör tanılama: kullanıcı ekran görüntüsü gönderebilsin */
+async function folderDiagnose() {
+  const row = (ok, label, val) => `<tr><td style="width:28px">${ok === true ? "✅" : ok === false ? "❌" : "ℹ️"}</td><td><b>${label}</b></td><td style="word-break:break-all">${val}</td></tr>`;
+  const rows = [];
+  const ua = navigator.userAgent, br = /Edg\//.test(ua) ? "Edge " + (ua.match(/Edg\/([\d.]+)/) || [])[1] : /Chrome\//.test(ua) ? "Chrome " + (ua.match(/Chrome\/([\d.]+)/) || [])[1] : ua.slice(0, 60);
+  rows.push(row(null, "Tarayıcı", esc(br)));
+  rows.push(row(!!window.showDirectoryPicker, "Klasöre yazma desteği", window.showDirectoryPicker ? "var" : "YOK (Chrome / Edge gerekli)"));
+  rows.push(row(window.isSecureContext, "Güvenli bağlam", String(window.isSecureContext)));
+  rows.push(row(null, "Sayfa adresi", esc(decodeURIComponent(location.href))));
+  let idbOk = false; try { idbOk = await idbSet("__test", Date.now()); } catch (e) {}
+  rows.push(row(idbOk, "Tarayıcı hafızası (klasörü hatırlamak için)", idbOk ? "çalışıyor" : "ÇALIŞMIYOR — klasör her açılışta sorulur"));
+  const savedHref = await idbGet("dirHref"), savedDir = await idbGet("dir");
+  rows.push(row(!!savedDir, "Hatırlanan klasör", savedDir ? "📁 " + esc(savedDir.name) : "yok"));
+  if (savedHref) rows.push(row(sameHref(savedHref, location.href), "Kaydedildiği adres bu adresle aynı mı", sameHref(savedHref, location.href) ? "evet" : "HAYIR — kayıtlı: " + esc(decodeURIComponent(savedHref))));
+  rows.push(row(!!dirHandle, "Bu oturumda klasör", dirHandle ? "📁 " + esc(dirHandle.name) : "yok"));
+  if (dirHandle) {
+    let perm = "?"; try { perm = await dirHandle.queryPermission({ mode: "readwrite" }); } catch (e) { perm = "hata: " + e.name; }
+    rows.push(row(perm === "granted", "Yazma izni", esc(perm)));
+    let hasData = false; try { hasData = await hasFile(dirHandle, DATA_NAME); } catch (e) {}
+    rows.push(row(hasData, "Klasörde " + DATA_NAME, hasData ? "var" : "YOK — yanlış klasör seçilmiş olabilir (src olmalı)"));
+    if (perm === "granted") {
+      let w = ""; try { await writeFile(dirHandle, ".yazma_testi.txt", "test " + new Date().toISOString()); await dirHandle.removeEntry(".yazma_testi.txt"); w = "ok"; } catch (e) { w = e.name + ": " + e.message; }
+      rows.push(row(w === "ok", "Deneme dosyası yazma", w === "ok" ? "başarılı" : "BAŞARISIZ — " + esc(w)));
+    }
+  }
+  rows.push(row(serverOnline, "Kayıt durumu", serverOnline ? "klasöre kaydediliyor" : "kaydedilmiyor (değişiklikler tarayıcıda bekler)"));
+  if (lastFolderError) rows.push(row(false, "Son hata", `${esc(lastFolderError.step)} → ${esc(lastFolderError.name)}: ${esc(lastFolderError.message)} <span class="muted">(${esc(lastFolderError.at.toLocaleTimeString("tr-TR"))})</span>`));
+  openModal(`<div class="modal-icon">🔍</div><h2>Klasör tanılama</h2>
+    <div class="muted">Sorun sürerse bu ekranın görüntüsünü gönder.</div>
+    <table style="min-width:0;margin-top:10px;text-align:left;font-size:13px">${rows.join("")}</table>
+    <div class="modal-actions" style="margin-top:14px"><button id="fdClose">Kapat</button><button class="btn-primary" id="fdPick">📁 Klasörü yeniden seç</button></div>`);
+  $("modalBox").style.width = "min(720px, 95vw)";
+  $("fdClose").onclick = () => { closeModal(); $("modalBox").style.width = ""; };
+  $("fdPick").onclick = () => { closeModal(); $("modalBox").style.width = ""; connectFolder(); };
+}
+
 /* ---------- Ortak ---------- */
 const backendLoad = () => MODE === "file" ? fileLoad() : serverLoad();
 const backendSave = (d, f) => MODE === "file" ? fileSave(d, f) : serverSave(d, f);
@@ -866,7 +939,7 @@ async function saveNow(force = false) {
   saving = true; updateStatus();
   let r;
   try { r = await backendSave(db, force === true); serverOnline = true; }
-  catch (e) { serverOnline = false; saving = false; updateStatus(); if (MODE === "file") toast("Dosyaya yazılamadı: " + e.message); return; }
+  catch (e) { serverOnline = false; saving = false; updateStatus(); if (MODE === "file") folderError("dosyaya kaydetme", e); return; }
   saving = false;
 
   if (r.ok) {
@@ -896,7 +969,8 @@ async function loadInitial() {
   let local = null;
   try { local = JSON.parse(localStorage.getItem(LS_DATA) || "null"); } catch (e) {}
   if (MODE === "file") {   // sadece bu sayfa aynı yerden açıldıysa önceki klasörü kullan (yeni indirilen kopya eski klasöre yazmasın)
-    dirHandle = (await idbGet("dirHref")) === location.href ? await idbGet("dir") : null;
+    const saved = await idbGet("dirHref");
+    dirHandle = saved && sameHref(saved, location.href) ? await idbGet("dir") : null;
   }
 
   let remote = null;
@@ -995,7 +1069,9 @@ function updateStatus() {
     const guard = fn => EDIT ? fn : () => askPassword("Kaydetmek için şifreyi gir.").then(ok => ok && fn());
     fb.textContent = window.showDirectoryPicker ? "📁 Klasöre bağlan (bir kez)" : "⬇️ Dosyaları indir";
     fb.onclick = window.showDirectoryPicker ? guard(connectFolder) : downloadDataFiles;
-    $("fileBannerBtn2").style.display = "none";
+    const fb2 = $("fileBannerBtn2");
+    fb2.style.display = window.showDirectoryPicker && lastFolderError ? "" : "none";
+    fb2.textContent = "🔍 Neden bağlanmıyor?"; fb2.onclick = folderDiagnose;
   }
 
   const m = getMachine(ui.machineId);
