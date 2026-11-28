@@ -464,6 +464,12 @@ const AUTOSAVE_MS = 1000;
 const BACKUP_KEEP = 50;
 const DATA_NAME = "tabanca_makine_veriler.json";
 const MODE = location.protocol === "file:" ? "file" : "server";   // çift tıklayınca "file"
+/* SUNUCU ADRESİ — rehber bir web sunucusunda (PHP) çalışıyorsa adresini buraya yaz, örnek:
+     const SUNUCU_ADRESI = "http://10.30.1.5/tabanca/TABANCA_PIN.html";
+   Yazılınca: klasör seçme tamamen kapanır; sayfa ağ klasöründen / eski kısayoldan açılırsa kendiliğinden bu adrese geçer.
+   Boş bırakılırsa bilgisayar modu (klasör seçme) çalışır. */
+const SUNUCU_ADRESI = "";
+const FOLDER_OFF = MODE === "file" && !!SUNUCU_ADRESI;   // sunucu varken bilgisayar modunda klasör seçme yok
 let dirHandle = null;   // dosya modunda bağlanan src klasörü
 
 /* ================== DURUM ================== */
@@ -1039,7 +1045,23 @@ async function saveNow(force = false) {
   updateStatus();
 }
 
+function goToServer() {
+  let local = null; try { local = JSON.parse(localStorage.getItem(LS_DATA) || "null"); } catch (e) {}
+  if (local?.dirty && local.data) {   // bu tarayıcıda sunucuya taşınmamış değişiklik var: önce yedek
+    openModal(`<div class="modal-icon">🌐</div><h2>Rehber artık sunucuda</h2>
+      <div class="help" style="text-align:left;font-size:14px">Bu bilgisayarın tarayıcısında <b>kaydedilmemiş değişiklikler</b> var.<br><br>
+        1️⃣ <b>⬇️ Yedeği indir</b>'e bas.<br>2️⃣ Sunucu sayfası açılınca <b>🔒 Düzenle → ⚙️ Ayarlar → ⬆️ Yedek yükle</b> ile bu dosyayı yükle.</div>
+      <div class="modal-actions" style="margin-top:14px"><button id="gsDl">⬇️ Yedeği indir</button><button class="btn-primary" id="gsGo">🌐 Sunucuya git</button></div>`);
+    $("gsDl").onclick = () => download(JSON.stringify(local.data, null, 2), "tasinacak_veriler_" + new Date().toISOString().slice(0, 10) + ".json", "application/json");
+    $("gsGo").onclick = () => { try { localStorage.setItem(LS_DATA, JSON.stringify({ data: local.data, dirty: false })); } catch (e) {} location.href = SUNUCU_ADRESI; };
+    return true;
+  }
+  location.replace(SUNUCU_ADRESI);
+  return true;
+}
+
 async function loadInitial() {
+  if (FOLDER_OFF && goToServer()) { db = normalize(window.TABANCA_VERI || {}); render(); return; }
   try { Object.assign(ui, JSON.parse(localStorage.getItem(LS_UI) || "{}")); } catch (e) {}
   let local = null;
   try { local = JSON.parse(localStorage.getItem(LS_DATA) || "null"); } catch (e) {}
@@ -1149,7 +1171,7 @@ function updateStatus() {
   // Dosya modunda klasör bağlı değilse uyarı çubuğu
   const banner = $("fileBanner");
   // klasör bir kez seçildiyse (hatırlanıyorsa) çubuk bir daha çıkmaz; değiştirmek Ayarlar'dan
-  const showBanner = MODE === "file" && !serverOnline && !dirHandle && (EDIT || dirty);
+  const showBanner = MODE === "file" && !FOLDER_OFF && !serverOnline && !dirHandle && (EDIT || dirty);
   banner.style.display = showBanner ? "flex" : "none";
   if (showBanner) {
     $("fileBannerText").innerHTML = window.showDirectoryPicker
@@ -1172,7 +1194,7 @@ function updateStatus() {
   // Ayarlar → Kayıt klasörü
   const fp = $("folderPanel");
   if (fp) {
-    fp.style.display = MODE === "file" ? "" : "none";
+    fp.style.display = MODE === "file" && !FOLDER_OFF ? "" : "none";
     $("connectBtn2").textContent = dirHandle ? "📁 Klasörü değiştir" : "📁 Klasör seç";
     $("folderPermBtn").style.display = dirHandle && !serverOnline && window.showDirectoryPicker ? "" : "none";
     $("folderInfo").innerHTML = !window.showDirectoryPicker
