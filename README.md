@@ -23,6 +23,16 @@ karakterli olsa da doğru çalışır; simgesi `Fiam/logo.ico` olur.
 - **Elle yapmak istersen:** `TABANCA_PIN.html`'e sağ tık → *Gönder → Masaüstü (kısayol oluştur)* → kısayola sağ tık →
   *Özellikler → Simge Değiştir…* → `Fiam/logo.ico`.
 
+## Ağ klasöründe: 💾 Kaydet (Excel gibi)
+
+Edge, ağ paylaşımındaki (`\\sunucu\...`) klasör için "Klasöre bağlan"ı iptal ediyor. Bu durumda değişiklik yaptıktan sonra
+sağ üstteki **💾 Kaydet**'e bas: `tabanca_makine_veriler.json` ve `veri.js` hazırlanır; Edge'in kaydetme penceresinde sunucudaki
+`Fiam\src` klasörünü seçip **Değiştir** de. Herkes sayfayı yenilediğinde yeni veriyi görür.
+
+- Bir kez: Edge → `edge://settings/downloads` → **"Her indirmede dosyanın nereye kaydedileceğini sor"** açık olsun
+  (pencere sonra hep aynı klasörde açılır). Kapalıysa dosyalar İndirilenler'e iner; oradan `src`'ye kopyala.
+- Aynı anda iki kişi düzenlerse son kaydeden diğerinin değişikliğini ezer; kalıcı ortak kullanım için web sunucusu önerilir.
+
 ## Kullanım 2 — Web sunucusunda (önerilen, klasör seçmek gerekmez)
 
 Edge/Chrome, ağ paylaşımındaki (`\\sunucu\...`) bir klasöre sayfanın yazmasına izin vermiyor. Ortak kullanım için rehber bir

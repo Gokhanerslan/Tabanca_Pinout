@@ -248,7 +248,7 @@
       </div>
     </div>
     <div class="top-actions">
-      <button class="btn-add edit-only" onclick="saveNow()" title="Ctrl+S">💾 Kaydet</button>
+      <button class="btn-add edit-only" onclick="saveClick()" title="Ctrl+S">💾 Kaydet</button>
       <button class="lock-btn" id="lockBtn" onclick="toggleLock()">🔒 Düzenle</button>
     </div>
   </header>
@@ -422,7 +422,7 @@
     <div class="panel">
       <div class="panel-title">💾 Kayıt ve yedek</div>
       <div class="row">
-        <button class="btn-add edit-only" onclick="saveNow()">💾 Şimdi kaydet</button>
+        <button class="btn-add edit-only" onclick="saveClick()">💾 Şimdi kaydet</button>
         <button onclick="reloadFromServer()">🔄 Yeniden yükle</button>
         <button class="btn-primary" onclick="exportJSON()">⬇️ Yedeği indir</button>
         <button onclick="downloadShortcut()" title="Logolu masaüstü kısayolu">📌 Masaüstü kısayolu indir</button>
@@ -672,13 +672,13 @@ function restoreRescue() {
   const keepRev = db._rev; db = normalize(r.data); db._rev = keepRev;
   changed(); render(); toast("♻️ Değişiklikler geri getirildi.");
 }
-let warnedNoFolder = false, newerLocalNotice = false, dataSource = "";
+let warnedNoFolder = false, newerLocalNotice = false, dataSource = "", manualSavedAt = null;
 function changed() {        // her veri değişikliğinden sonra çağrılır
   dirty = true; saveLocal(); updateStatus();
   if (MODE === "file" && !serverOnline && !warnedNoFolder) {
     warnedNoFolder = true;
     toast(dirHandle ? "🔗 Kaydetmek için Chrome'un klasör iznini onayla (⚙️ Ayarlar → 🔗 Klasöre izin ver)."
-                    : "⚠️ Değişiklik şimdilik sadece bu tarayıcıda. Kalıcı olması için bir kez 📁 Klasöre bağlan.");
+                    : "⚠️ Değişiklik şimdilik sadece bu tarayıcıda. İşin bitince sağ üstteki 💾 Kaydet ile sunucuya kaydet.");
   }
   clearTimeout(saveTimer);
   saveTimer = setTimeout(saveNow, AUTOSAVE_MS);
@@ -813,6 +813,38 @@ async function fileSave(data, force) {
 const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
 /* Klasöre kaydedilemeyen durumlarda: güncel veri dosyalarını indir, kullanıcı src klasörüne koysun */
+/* 💾 Kaydet: klasör / sunucu bağlıysa doğrudan kaydeder; değilse (ağ klasörü) Excel'deki gibi
+   Edge'in "Farklı kaydet" penceresiyle sunucudaki src klasörüne kaydettirir. */
+function saveClick() {
+  if (MODE === "server" || serverOnline) return saveNow();
+  manualSave();
+}
+function srcFolderPath(pageHref = location.href) {   // bu sayfanın yanındaki src klasörünün Windows yolu (\\sunucu\... veya C:\...)
+  try {
+    const u = new URL("src/", pageHref.split("#")[0].split("?")[0]);
+    const path = decodeURIComponent(u.pathname).replace(/\/$/, "");
+    return u.host ? "\\\\" + u.host + path.replace(/\//g, "\\") : path.replace(/^\//, "").replace(/\//g, "\\");
+  } catch (e) { return "Fiam\\src"; }
+}
+function manualSave() {
+  db._rev = (parseInt(db._rev) || 0) + 1; db.updatedAt = new Date().toISOString();
+  downloadDataFiles();
+  dirty = false; manualSavedAt = new Date(); saveLocal(); updateStatus();
+  const yol = srcFolderPath();
+  openModal(`<div class="modal-icon">💾</div><h2>Sunucuya kaydet</h2>
+    <div class="help" style="text-align:left;font-size:14px">
+      İki dosya hazırlandı: <b>${DATA_NAME}</b> ve <b>veri.js</b>.<br><br>
+      <b>Edge “Farklı kaydet” penceresi açtıysa:</b> şu klasörü seç ve <b>Kaydet → Değiştir</b> de (iki dosya için de):<br>
+      <code style="display:block;margin:6px 0;padding:6px 8px;background:#0B1222;border-radius:6px;word-break:break-all">${esc(yol)}</code>
+      <b>Pencere açılmadan İndirilenler'e indiyse:</b> <b>Ctrl+J</b> ile indirilenleri aç, iki dosyayı bu klasöre kopyala ve <b>Hedefteki dosyaları değiştir</b> de.<br><br>
+      💡 Her seferinde sorması için bir kez: Edge → <b>edge://settings/downloads</b> → <b>“Her indirmede dosyanın nereye kaydedileceğini sor”</b> açık olsun.
+      Pencere bir kez bu klasörü açınca sonraki kayıtlarda orada açılır.<br><br>
+      ✅ Dosyalar klasöre kaydedilince herkes sayfayı yenilediğinde yeni veriyi görür.</div>
+    <div class="modal-actions" style="margin-top:14px"><button id="msCopy">📋 Klasör yolunu kopyala</button><button class="btn-primary" id="msOk">Tamam</button></div>`);
+  $("msCopy").onclick = async () => { try { await navigator.clipboard.writeText(yol); toast("📋 Klasör yolu kopyalandı."); } catch (e) { toast("Kopyalanamadı; yolu elle seç."); } };
+  $("msOk").onclick = () => closeModal();
+}
+
 function downloadDataFiles() {
   const out = { ...db, updatedAt: new Date().toISOString() };
   const json = JSON.stringify(out, null, 2);
@@ -1166,6 +1198,7 @@ function updateStatus() {
   const offText = MODE === "file" ? (dirHandle ? "Klasör izni bekleniyor" : "KLASÖR BAĞLI DEĞİL") : "SUNUCU YOK";
   if (saving) { s.className = "pill b-blue"; s.textContent = "⏳ Kaydediliyor…"; }
   else if (!EDIT && !dirty) { s.className = "pill b-gray"; s.textContent = "👀 Sadece bakma modu"; }
+  else if (!serverOnline && !dirty && manualSavedAt) { s.className = "pill b-green"; s.textContent = "💾 Dosyalar indirildi " + manualSavedAt.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) + " — src'ye kaydet"; }
   else if (!serverOnline) { s.className = "pill b-red"; s.textContent = dirty ? "⚠️ " + offText + " — bu tarayıcıda bekliyor" : "⚠️ " + offText; }
   else if (dirty) { s.className = "pill b-amber"; s.textContent = "✏️ Kaydedilmemiş değişiklik"; }
   else { s.className = "pill b-green"; s.textContent = "✅ Kaydedildi" + (lastSavedAt ? " " + lastSavedAt.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : ""); }
@@ -1178,6 +1211,7 @@ function updateStatus() {
   if (showBanner) {
     $("fileBannerText").innerHTML = window.showDirectoryPicker
       ? `📁 <b>İlk kurulum:</b> kayıtların yazılacağı <b>Fiam/src</b> klasörünü <b>bir kez</b> seç. Sonra bu çubuk bir daha çıkmaz; değiştirmek için ⚙️ Ayarlar.` +
+        (location.host ? ` <br>🌐 Ağ klasöründe klasör seçme çalışmıyorsa: işin bitince sağ üstteki <b>💾 Kaydet</b>'e bas, dosyaları sunucudaki <b>src</b> klasörüne kaydet.` : "") +
         (dirty ? ` <span style="color:#FCD34D">Değişikliklerin şimdilik bu tarayıcıda bekliyor.</span>` : "")
       : (IS_MOBILE ? "📱 <b>Telefonda klasöre kaydedilemiyor.</b> " : "<b>Bu tarayıcı klasöre kaydedemiyor.</b> ") +
         `Değişiklikler bu tarayıcıda saklanıyor. Kalıcı kaydetmek için bilgisayarda <b>Chrome / Edge</b> kullan ya da dosyaları indirip <b>src</b> klasörüne koy.`;
@@ -2475,7 +2509,7 @@ document.addEventListener("input", e => {
 });
 
 document.addEventListener("keydown", e => {
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); if (EDIT) { document.activeElement?.blur(); saveNow(); } }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); if (EDIT) { document.activeElement?.blur(); saveClick(); } }
   if (e.key === "Enter" && ["nmName", "nmCode", "nmRegion", "nmNote"].includes(e.target.id)) addMachine();
   if (e.key === "Enter" && e.target.id === "agGun") assignGun();
   if (e.key === "Enter" && e.target.id === "nmGun") addMachine();
