@@ -40,6 +40,13 @@ Bundan sonra yapılan her değişiklik doğrudan `Fiam/src/tabanca_makine_verile
 
 ## Kayıt güvenliği
 
+- **Yedekler:** Her kayıtta `src/yedek/` klasörüne yedek alınır (son 50 tutulur). Ayrıca **6 ayda bir** `src/yedek/6aylik/`
+  klasörüne `donem_YYYY-AA-GG.json` adıyla **hiç silinmeyen kalıcı yedek** alınır (sunucuda ve bilgisayarda).
+  Son kalıcı yedeğin tarihi **⚙️ Ayarlar**'da görünür.
+- **Bilgisayarda kayıt klasörü:** `Fiam/src` klasörü **bir kez** seçilir; sonra "Klasöre bağlan" çubuğu bir daha çıkmaz.
+  Klasörü değiştirmek sadece şifreyle girilen **⚙️ Ayarlar → 📁 Kayıt klasörü** bölümünden yapılır.
+  Chrome sayfa kapanınca yazma iznini unutabilir; kilidi açınca Chrome'un kendi küçük **izin** penceresi çıkar
+  (**“Her ziyarette izin ver”** seçilirse bir daha sormaz). İzin verilmezse değişiklikler tarayıcıda bekler, kaybolmaz.
 - Bilgisayarda (çift tıklayınca) değişiklikler, klasöre bağlanana kadar sadece o tarayıcıda durur; ekranın üstünde
   **"⚠️ Değişikliklerin henüz dosyaya yazılmadı"** uyarısı çıkar ve sayfa kapatılırken tarayıcı uyarır.
 - Tarayıcıdaki kayıt klasördeki dosyadan yeniyse, sayfa açılınca o açılır (değişiklik kaybolmaz).
