@@ -408,12 +408,19 @@
       </div>
       <div class="muted" id="pwMsg" style="margin-top:8px;"></div>
     </div>
+    <div class="panel edit-only" id="folderPanel">
+      <div class="panel-title">📁 Kayıt klasörü</div>
+      <div class="help" id="folderInfo"></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn-primary" id="folderPermBtn" onclick="reconnectFolder(false)">🔗 Klasöre izin ver</button>
+        <button onclick="connectFolder()" id="connectBtn2">📁 Klasörü değiştir</button>
+      </div>
+    </div>
     <div class="panel">
       <div class="panel-title">💾 Kayıt ve yedek</div>
       <div class="row">
         <button class="btn-add edit-only" onclick="saveNow()">💾 Şimdi kaydet</button>
         <button onclick="reloadFromServer()">🔄 Yeniden yükle</button>
-        <button class="edit-only" onclick="connectFolder()" id="connectBtn2">📁 Klasöre bağlan</button>
         <button class="btn-primary" onclick="exportJSON()">⬇️ Yedeği indir</button>
         <button class="edit-only" onclick="document.getElementById('jsonFileInput').click()">⬆️ Yedek yükle</button>
         <input type="file" id="jsonFileInput" accept=".json,application/json" style="display:none;" onchange="importJSON(event)">
@@ -656,7 +663,8 @@ function changed() {        // her veri değişikliğinden sonra çağrılır
   dirty = true; saveLocal(); updateStatus();
   if (MODE === "file" && !serverOnline && !warnedNoFolder) {
     warnedNoFolder = true;
-    toast("⚠️ Değişiklik şimdilik sadece bu tarayıcıda. Kalıcı olması için 📁 Klasöre bağlan.");
+    toast(dirHandle ? "🔗 Kaydetmek için Chrome'un klasör iznini onayla (⚙️ Ayarlar → 🔗 Klasöre izin ver)."
+                    : "⚠️ Değişiklik şimdilik sadece bu tarayıcıda. Kalıcı olması için bir kez 📁 Klasöre bağlan.");
   }
   clearTimeout(saveTimer);
   saveTimer = setTimeout(saveNow, AUTOSAVE_MS);
@@ -808,8 +816,11 @@ async function connectFolder() {   // yeni klasör seç
 }
 /* Daha önce seçilen klasöre tekrar bağlan: klasör seçtirmez, sadece Chrome'dan izin ister.
    Chrome sayfa kapanınca izni unutur; izin penceresinde "Her ziyarette izin ver" seçilirse bir daha sormaz. */
+let permAsking = false, lastPermAsk = 0;
 async function reconnectFolder(quiet) {
   if (!dirHandle || !window.showDirectoryPicker) return quiet ? false : connectFolder();
+  if (permAsking) return false;
+  permAsking = true; lastPermAsk = Date.now();
   try {
     const perm = await dirHandle.requestPermission({ mode: "readwrite" });
     if (perm !== "granted") { if (!quiet) toast("📁 İzin verilmedi. Klasörü yeniden seçebilirsin."); updateStatus(); return false; }
@@ -819,8 +830,12 @@ async function reconnectFolder(quiet) {
   } catch (e) {   // klasör taşınmış / silinmiş olabilir → yeniden seçtir
     if (!quiet) { toast("📁 Önceki klasöre ulaşılamadı, lütfen klasörü seç."); return connectFolder(); }
     updateStatus(); return false;
-  }
+  } finally { permAsking = false; }
 }
+// klasör seçili ama izin yokken bekleyen değişiklik varsa, kullanıcı bir yere tıkladığında (en fazla dakikada bir) izni tekrar iste
+document.addEventListener("click", () => {
+  if (EDIT && MODE === "file" && dirHandle && !serverOnline && dirty && !permAsking && Date.now() - lastPermAsk > 60000) reconnectFolder(true);
+}, true);
 async function finishConnect() {
   const fileData = await readDataFile();
   serverOnline = true;
@@ -955,7 +970,7 @@ function updateStatus() {
   const s = $("saveStatus");
   document.body.classList.toggle("edit", EDIT);
   $("lockBtn").textContent = EDIT ? "🔓 Kilitle" : "🔒 Düzenle";
-  const offText = MODE === "file" ? "KLASÖR BAĞLI DEĞİL" : "SUNUCU YOK";
+  const offText = MODE === "file" ? (dirHandle ? "Klasör izni bekleniyor" : "KLASÖR BAĞLI DEĞİL") : "SUNUCU YOK";
   if (saving) { s.className = "pill b-blue"; s.textContent = "⏳ Kaydediliyor…"; }
   else if (!EDIT && !dirty) { s.className = "pill b-gray"; s.textContent = "👀 Sadece bakma modu"; }
   else if (!serverOnline) { s.className = "pill b-red"; s.textContent = dirty ? "⚠️ " + offText + " — bu tarayıcıda bekliyor" : "⚠️ " + offText; }
@@ -964,28 +979,37 @@ function updateStatus() {
 
   // Dosya modunda klasör bağlı değilse uyarı çubuğu
   const banner = $("fileBanner");
-  const showBanner = MODE === "file" && !serverOnline && (EDIT || dirty);
+  // klasör bir kez seçildiyse (hatırlanıyorsa) çubuk bir daha çıkmaz; değiştirmek Ayarlar'dan
+  const showBanner = MODE === "file" && !serverOnline && !dirHandle && (EDIT || dirty);
   banner.style.display = showBanner ? "flex" : "none";
   if (showBanner) {
     $("fileBannerText").innerHTML = window.showDirectoryPicker
-      ? (dirty ? `⚠️ <b>Değişikliklerin henüz dosyaya yazılmadı</b> (şimdilik sadece bu tarayıcıda). Butona bas ve <b>Fiam/src</b> klasörünü seç.`
-               : `📁 <b>Kaydetmek için bir kez klasör seçmen gerekiyor.</b> Butona bas ve <b>Fiam/src</b> klasörünü seç.`)
+      ? `📁 <b>İlk kurulum:</b> kayıtların yazılacağı <b>Fiam/src</b> klasörünü <b>bir kez</b> seç. Sonra bu çubuk bir daha çıkmaz; değiştirmek için ⚙️ Ayarlar.` +
+        (dirty ? ` <span style="color:#FCD34D">Değişikliklerin şimdilik bu tarayıcıda bekliyor.</span>` : "")
       : (IS_MOBILE ? "📱 <b>Telefonda klasöre kaydedilemiyor.</b> " : "<b>Bu tarayıcı klasöre kaydedemiyor.</b> ") +
         `Değişiklikler bu tarayıcıda saklanıyor. Kalıcı kaydetmek için bilgisayarda <b>Chrome / Edge</b> kullan ya da dosyaları indirip <b>src</b> klasörüne koy.`;
-    const fb = $("fileBannerBtn"), fb2 = $("fileBannerBtn2"), remembered = !!dirHandle && !!window.showDirectoryPicker;
+    const fb = $("fileBannerBtn");
     const guard = fn => EDIT ? fn : () => askPassword("Kaydetmek için şifreyi gir.").then(ok => ok && fn());
-    fb.textContent = !window.showDirectoryPicker ? "⬇️ Dosyaları indir" : remembered ? `🔗 "${dirHandle.name}" klasörüne yeniden bağlan` : "📁 Klasöre bağlan";
-    fb.onclick = !window.showDirectoryPicker ? downloadDataFiles : guard(remembered ? () => reconnectFolder(false) : connectFolder);
-    fb2.style.display = remembered ? "" : "none";
-    fb2.onclick = guard(connectFolder);
-    if (remembered) $("fileBannerText").innerHTML = (dirty ? `⚠️ <b>Değişikliklerin henüz dosyaya yazılmadı.</b> ` : "") +
-      `🔗 Chrome, sayfa kapanınca klasör iznini unutur. <b>Tek tıkla yeniden bağlan</b> — izin penceresinde <b>“Her ziyarette izin ver”</b> çıkarsa onu seç, bir daha sormaz.`;
+    fb.textContent = window.showDirectoryPicker ? "📁 Klasöre bağlan (bir kez)" : "⬇️ Dosyaları indir";
+    fb.onclick = window.showDirectoryPicker ? guard(connectFolder) : downloadDataFiles;
+    $("fileBannerBtn2").style.display = "none";
   }
 
   const m = getMachine(ui.machineId);
   $("statusLine").textContent = `🏭 ${db.machines.length} makine · 🏷️ ${brands().length} marka` +
     (MODE === "file" && serverOnline && dirHandle ? ` · 📁 ${dirHandle.name}` : "");
-  const cb = $("connectBtn2"); if (cb) cb.textContent = MODE === "file" && serverOnline ? "📁 Klasörü değiştir" : "📁 Klasöre bağlan";
+  // Ayarlar → Kayıt klasörü
+  const fp = $("folderPanel");
+  if (fp) {
+    fp.style.display = MODE === "file" ? "" : "none";
+    $("connectBtn2").textContent = dirHandle ? "📁 Klasörü değiştir" : "📁 Klasör seç";
+    $("folderPermBtn").style.display = dirHandle && !serverOnline && window.showDirectoryPicker ? "" : "none";
+    $("folderInfo").innerHTML = !window.showDirectoryPicker
+      ? "Bu tarayıcı klasöre kaydedemiyor. Bilgisayarda <b>Chrome</b> veya <b>Edge</b> kullan."
+      : !dirHandle ? "Henüz klasör seçilmedi. <b>📁 Klasör seç</b> ile <b>Fiam/src</b> klasörünü seç."
+      : serverOnline ? `✅ Kayıtlar <b>📁 ${esc(dirHandle.name)}</b> klasörüne yazılıyor.`
+      : `📁 <b>${esc(dirHandle.name)}</b> klasörü seçili ama Chrome'un yazma izni bekleniyor. <b>🔗 Klasöre izin ver</b>'e bas; çıkan pencerede <b>“Her ziyarette izin ver”</b> seçersen bir daha sormaz.`;
+  }
   $("dataInfo").innerHTML =
     (MODE === "file"
       ? `Çalışma şekli: <b>YEREL DOSYA</b> · Klasör: <b>${serverOnline ? "BAĞLI (" + esc(dirHandle?.name) + ")" : "BAĞLI DEĞİL"}</b><br>`
