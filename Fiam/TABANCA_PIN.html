@@ -438,12 +438,11 @@
         👀 <b>Bakmak için şifre gerekmez.</b> Makineni seç, şemada bir uca dokun; kablonun rengi ve adresi çıkar.<br>
         ✏️ <b>Değiştirmek için</b> sağ üstteki <b>🔒 Düzenle</b>'ye bas ve şifreyi gir. İlk şifre: <b>1234</b> — hemen değiştir!<br>
         ⏱️ 20 dakika hiçbir şey yapmazsan düzenleme kendiliğinden kilitlenir.<br>
-        💻 <b>Bilgisayarda:</b> <b>TABANCA_PIN.html</b>'e çift tıkla (Chrome veya Edge). Kaydetmek için bir kez <b>src</b> klasörünü seç.<br>        📌 <b>Masaüstü kısayolu:</b> Bu sayfadaki <b>📌 Masaüstü kısayolu indir</b> düğmesine bas, inen dosyayı masaüstüne sürükle. Logolu kısayol olur; sayfayı hep bu kısayoldan ve <b>aynı tarayıcıyla</b> aç.<br>
+        💾 <b>Kaydetmek için:</b> değişiklikten sonra sağ üstteki <b>💾 Kaydet</b>'e bas; Edge'in kaydetme penceresinde sunucudaki <b>Fiam\src</b> klasörünü seç, <b>Değiştir</b> de. Herkes sayfayı yenileyince yeni veriyi görür.<br>        📌 <b>Masaüstü kısayolu:</b> Bu sayfadaki <b>📌 Masaüstü kısayolu indir</b> düğmesine bas, inen dosyayı masaüstüne sürükle. Logolu kısayol olur; sayfayı hep bu kısayoldan ve <b>aynı tarayıcıyla</b> aç.<br>
 
         🌐 <b>Sunucuda:</b> Klasörü PHP'li hostinge yükle; kayıt <b>src/kaydet.php</b> ile yapılır ve şifreyi sunucu da kontrol eder.<br>
-        🗂️ Her kayıtta <b>src/yedek/</b> klasörüne yedek alınır (son 50). Ayrıca <b>6 ayda bir</b> <b>src/yedek/6aylik/</b> klasörüne hiç silinmeyen kalıcı yedek alınır.<br>
-        🔗 Bilgisayarda Chrome sayfa kapanınca klasör iznini unutur: kilidi açınca sadece <b>izin</b> sorulur; <b>“Her ziyarette izin ver”</b> seçersen bir daha sormaz.<br>
-        👥 İki kişi aynı anda değiştirirse uyarı çıkar.
+        🗂️ Sunucuda: her kayıtta <b>src/yedek/</b> klasörüne yedek alınır (son 50). Ayrıca <b>6 ayda bir</b> <b>src/yedek/6aylik/</b> klasörüne hiç silinmeyen kalıcı yedek alınır.<br>
+        🕒 Üstte <b>Son güncelleme</b> zamanı yazar; bu zaman JSON dosyasının içinde saklanır.
       </div>
     </div>
   </section>
@@ -471,7 +470,10 @@ const MODE = location.protocol === "file:" ? "file" : "server";   // çift tıkl
 const SUNUCU_ADRESI = "";
 // Sadece http(s) adresi geçerli: file:// (ağ klasörü) adresi yazılırsa yok sayılır, yoksa sayfa kendine yönlenip döngüye girer
 const SUNUCU_GECERLI = /^https?:\/\//i.test(SUNUCU_ADRESI);
-const FOLDER_OFF = MODE === "file" && SUNUCU_GECERLI;   // sunucu varken bilgisayar modunda klasör seçme yok
+/* KLASÖR MODU: true yapılırsa "Klasöre bağlan" (otomatik klasöre kaydetme) geri gelir.
+   Kapalıyken bilgisayar modunda kayıt sadece 💾 Kaydet ile JSON dosyası olarak yapılır (src klasörüne kaydedilir). */
+const KLASOR_MODU = false;
+const FOLDER_OFF = MODE === "file" && (SUNUCU_GECERLI || !KLASOR_MODU);   // klasör seçme kapalı
 let dirHandle = null;   // dosya modunda bağlanan src klasörü
 
 /* ================== DURUM ================== */
@@ -678,7 +680,7 @@ function changed() {        // her veri değişikliğinden sonra çağrılır
   if (MODE === "file" && !serverOnline && !warnedNoFolder) {
     warnedNoFolder = true;
     toast(dirHandle ? "🔗 Kaydetmek için Chrome'un klasör iznini onayla (⚙️ Ayarlar → 🔗 Klasöre izin ver)."
-                    : "⚠️ Değişiklik şimdilik sadece bu tarayıcıda. İşin bitince sağ üstteki 💾 Kaydet ile sunucuya kaydet.");
+                    : "✏️ İşin bitince sağ üstteki 💾 Kaydet'e bas; JSON dosyasını sunucudaki src klasörüne kaydet.");
   }
   clearTimeout(saveTimer);
   saveTimer = setTimeout(saveNow, AUTOSAVE_MS);
@@ -956,7 +958,7 @@ async function reconnectFolder(quiet) {
 }
 // klasör seçili ama izin yokken bekleyen değişiklik varsa, kullanıcı bir yere tıkladığında (en fazla dakikada bir) izni tekrar iste
 document.addEventListener("click", () => {
-  if (EDIT && MODE === "file" && dirHandle && !serverOnline && dirty && !permAsking && Date.now() - lastPermAsk > 60000
+  if (EDIT && MODE === "file" && !FOLDER_OFF && dirHandle && !serverOnline && dirty && !permAsking && Date.now() - lastPermAsk > 60000
       && $("modal").classList.contains("hidden")) reconnectFolder(true);   // açık pencere varken ve son hatadan 1 dk geçmeden tekrar deneme
 }, true);
 async function finishConnect() {
@@ -1095,11 +1097,12 @@ function goToServer() {
 }
 
 async function loadInitial() {
-  if (FOLDER_OFF && goToServer()) { db = normalize(window.TABANCA_VERI || {}); render(); return; }
+  // sadece geçerli bir sunucu adresi (http/https) varsa yönlendir
+  if (MODE === "file" && SUNUCU_GECERLI && goToServer()) { db = normalize(window.TABANCA_VERI || {}); render(); return; }
   try { Object.assign(ui, JSON.parse(localStorage.getItem(LS_UI) || "{}")); } catch (e) {}
   let local = null;
   try { local = JSON.parse(localStorage.getItem(LS_DATA) || "null"); } catch (e) {}
-  if (MODE === "file") {   // sadece bu sayfa aynı yerden açıldıysa önceki klasörü kullan (yeni indirilen kopya eski klasöre yazmasın)
+  if (MODE === "file" && !FOLDER_OFF) {   // sadece bu sayfa aynı yerden açıldıysa önceki klasörü kullan (yeni indirilen kopya eski klasöre yazmasın)
     const saved = await idbGet("dirHref");
     dirHandle = saved && sameHref(saved, location.href) ? await idbGet("dir") : null;
   }
@@ -1198,6 +1201,8 @@ function updateStatus() {
   const offText = MODE === "file" ? (dirHandle ? "Klasör izni bekleniyor" : "KLASÖR BAĞLI DEĞİL") : "SUNUCU YOK";
   if (saving) { s.className = "pill b-blue"; s.textContent = "⏳ Kaydediliyor…"; }
   else if (!EDIT && !dirty) { s.className = "pill b-gray"; s.textContent = "👀 Sadece bakma modu"; }
+  else if (MODE === "file" && FOLDER_OFF && dirty) { s.className = "pill b-amber"; s.textContent = "✏️ Kaydedilmedi — 💾 Kaydet'e bas"; }
+  else if (MODE === "file" && FOLDER_OFF && !manualSavedAt) { s.className = "pill b-gray"; s.textContent = "✏️ Düzenleme açık"; }
   else if (!serverOnline && !dirty && manualSavedAt) { s.className = "pill b-green"; s.textContent = "💾 Dosyalar indirildi " + manualSavedAt.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) + " — src'ye kaydet"; }
   else if (!serverOnline) { s.className = "pill b-red"; s.textContent = dirty ? "⚠️ " + offText + " — bu tarayıcıda bekliyor" : "⚠️ " + offText; }
   else if (dirty) { s.className = "pill b-amber"; s.textContent = "✏️ Kaydedilmemiş değişiklik"; }
@@ -1225,7 +1230,9 @@ function updateStatus() {
   }
 
   const m = getMachine(ui.machineId);
+  const upd = db.updatedAt ? new Date(db.updatedAt) : null;
   $("statusLine").textContent = `🏭 ${db.machines.length} makine · 🏷️ ${brands().length} marka` +
+    (upd && !isNaN(upd) ? ` · 🕒 Son güncelleme: ${upd.toLocaleDateString("tr-TR")} ${upd.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}` : "") +
     (MODE === "file" && serverOnline && dirHandle ? ` · 📁 ${dirHandle.name}` : "");
   // Ayarlar → Kayıt klasörü
   const fp = $("folderPanel");
@@ -1241,14 +1248,15 @@ function updateStatus() {
   }
   $("dataInfo").innerHTML =
     (MODE === "file"
-      ? `Çalışma şekli: <b>YEREL DOSYA</b> · Klasör: <b>${serverOnline ? "BAĞLI (" + esc(dirHandle?.name) + ")" : "BAĞLI DEĞİL"}</b><br>`
+      ? (FOLDER_OFF ? `Çalışma şekli: <b>DOSYA</b> · Kayıt: <b>💾 Kaydet</b> ile JSON dosyası (sunucudaki <b>src</b> klasörüne)<br>`
+                    : `Çalışma şekli: <b>YEREL DOSYA</b> · Klasör: <b>${serverOnline ? "BAĞLI (" + esc(dirHandle?.name) + ")" : "BAĞLI DEĞİL"}</b><br>`)
       : `Çalışma şekli: <b>SUNUCU (PHP)</b> · Sunucu: <b>${serverOnline ? "BAĞLI" : "ULAŞILAMIYOR"}</b><br>`) +
     `Veri sürümü: <b>${db._rev}</b>${db.updatedAt ? " · Son kayıt: <b>" + esc(new Date(db.updatedAt).toLocaleString("tr-TR")) + "</b>" : ""}<br>` +
     `Toplam: <b>${db.machines.length}</b> makine, <b>${brands().length}</b> marka şablonu` +
     (dataSource ? `<br>👁️ Şu an gösterilen veri: <b>${esc(serverOnline ? (MODE === "file" ? "klasördeki dosya" : "sunucu") : dataSource)}</b>` +
       (!serverOnline && dataSource === "tarayıcı hafızası" ? ` <span style="color:#FCD34D">(sadece bu bilgisayarda ve bu tarayıcıda var)</span>` : "") : "");
   const nextP = lastPeriodic ? new Date(Date.parse(lastPeriodic) + PERIOD_DAYS * 864e5) : null;
-  $("dataInfo").innerHTML += `<br>🗄️ 6 aylık kalıcı yedek (<b>src/yedek/6aylik/</b>): ` +
+  if (!(MODE === "file" && FOLDER_OFF)) $("dataInfo").innerHTML += `<br>🗄️ 6 aylık kalıcı yedek (<b>src/yedek/6aylik/</b>): ` +
     (lastPeriodic ? `son <b>${esc(new Date(lastPeriodic).toLocaleDateString("tr-TR"))}</b> · sıradaki <b>${esc(nextP.toLocaleDateString("tr-TR"))}</b> sonrası ilk kayıtta`
                   : (serverOnline ? "ilk kayıtta alınacak" : "klasöre / sunucuya bağlanınca görünür"));
   const rs = rescueInfo();
@@ -2203,7 +2211,7 @@ function unlock(pw) {
   EDIT = true; editKey = pw; lastActivity = Date.now();
   render(); toast("🔓 Düzenleme açıldı");
   // bilgisayarda: daha önce seçilen klasör varsa, klasör seçtirmeden sadece izin iste
-  if (MODE === "file" && dirHandle && !serverOnline) reconnectFolder(true);
+  if (MODE === "file" && !FOLDER_OFF && dirHandle && !serverOnline) reconnectFolder(true);
 }
 async function lock(reason) {
   document.activeElement?.blur();

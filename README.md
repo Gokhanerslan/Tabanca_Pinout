@@ -23,6 +23,13 @@ karakterli olsa da doğru çalışır; simgesi `Fiam/logo.ico` olur.
 - **Elle yapmak istersen:** `TABANCA_PIN.html`'e sağ tık → *Gönder → Masaüstü (kısayol oluştur)* → kısayola sağ tık →
   *Özellikler → Simge Değiştir…* → `Fiam/logo.ico`.
 
+## Kaydetme (bilgisayar / ağ klasörü)
+
+"Klasöre bağlan" özelliği **kapalı** (`TABANCA_PIN.html` içinde `const KLASOR_MODU = false;`). Ekranda klasör seçme çubuğu çıkmaz.
+Bilgileri giren kişi değişiklikten sonra **💾 Kaydet**'e basar ve JSON dosyasını sunucudaki `Fiam\src` klasörüne kaydeder.
+Kayıt zamanı JSON'un içinde (`updatedAt`) saklanır; sayfanın üstünde herkes **🕒 Son güncelleme** zamanını görür.
+Sadece izleyenlerin hiçbir şey yapması gerekmez.
+
 ## Ağ klasöründe: 💾 Kaydet (Excel gibi)
 
 Edge, ağ paylaşımındaki (`\\sunucu\...`) klasör için "Klasöre bağlan"ı iptal ediyor. Bu durumda değişiklik yaptıktan sonra
