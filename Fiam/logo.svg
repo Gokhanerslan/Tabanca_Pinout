@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2563EB"/><stop offset="1" stop-color="#16A34A"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="url(#g)"/>
+  <!-- soket gövdesi (D-Sub) -->
+  <polygon points="40,78 216,78 196,178 60,178" fill="#FFFFFF" stroke="#0F172A" stroke-width="7" stroke-linejoin="round"/>
+  <!-- pinler: renkli kablolar -->
+  <circle cx="72"  cy="112" r="13" fill="#DC2626" stroke="#0F172A" stroke-width="4"/>
+  <circle cx="110" cy="112" r="13" fill="#F59E0B" stroke="#0F172A" stroke-width="4"/>
+  <circle cx="148" cy="112" r="13" fill="#2563EB" stroke="#0F172A" stroke-width="4"/>
+  <circle cx="186" cy="112" r="13" fill="#16A34A" stroke="#0F172A" stroke-width="4"/>
+  <circle cx="91"  cy="148" r="13" fill="#475569" stroke="#0F172A" stroke-width="4"/>
+  <circle cx="129" cy="148" r="13" fill="#795548" stroke="#0F172A" stroke-width="4"/>
+  <circle cx="167" cy="148" r="13" fill="#111827" stroke="#FBBF24" stroke-width="4"/>
+  <!-- köprü -->
+  <path d="M72 112 Q 91 72 110 112" fill="none" stroke="#0F172A" stroke-width="9" stroke-linecap="round"/>
+  <path d="M72 112 Q 91 72 110 112" fill="none" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/>
+  <!-- kablolar aşağı -->
+  <path d="M110 178 C 110 205, 90 210, 84 236" fill="none" stroke="#DC2626" stroke-width="9" stroke-linecap="round"/>
+  <path d="M146 178 C 146 205, 168 210, 174 236" fill="none" stroke="#2563EB" stroke-width="9" stroke-linecap="round"/>
+</svg>

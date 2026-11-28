@@ -12,6 +12,17 @@ Bundan sonra yapılan her değişiklik doğrudan `Fiam/src/tabanca_makine_verile
 
 > Firefox / Safari dosyaya doğrudan yazamaz: sayfa açılır ve veriler görünür, değişiklikler sadece o tarayıcıda saklanır.
 
+## Masaüstü kısayolu (logolu)
+
+Betik gerekmez. Sayfayı aç → **⚙️ Ayarlar → 📌 Masaüstü kısayolu indir** → inen `Tabanca Baglanti Rehberi.url` dosyasını
+**masaüstüne sürükle**. Sayfa kendi adresini bildiği için kısayol, klasör sunucudaki bir paylaşımda (`\\sunucu\...`) ve yol Türkçe
+karakterli olsa da doğru çalışır; simgesi `Fiam/logo.ico` olur.
+
+- Kısayol Windows'un **varsayılan tarayıcısıyla** açar (genelde Edge). Sayfayı **hep aynı kısayoldan ve aynı tarayıcıyla** aç:
+  seçilen kayıt klasörü her tarayıcıda ayrı hatırlanır.
+- **Elle yapmak istersen:** `TABANCA_PIN.html`'e sağ tık → *Gönder → Masaüstü (kısayol oluştur)* → kısayola sağ tık →
+  *Özellikler → Simge Değiştir…* → `Fiam/logo.ico`.
+
 ## Kullanım 2 — PHP'li bir hostingde
 
 `Fiam` klasörünün içeriğini hostinge yükle, `src` klasörüne yazma izni ver, sayfayı adresinden aç. Kayıt `src/kaydet.php` üzerinden yapılır. Kaydetmeyi şifrelemek için `kaydet.php` içindeki `$EDIT_PASSWORD` değerini doldur.
@@ -110,6 +121,7 @@ Hepsi **Markalar & Şablonlar** sayfasından değiştirilebilir, pin eklenip sil
 | Dosya | Açıklama |
 |---|---|
 | `Fiam/TABANCA_PIN.html` | Uygulamanın kendisi |
+| `Fiam/logo.ico`, `Fiam/logo.svg` | Uygulama logosu |
 | `Fiam/src/tabanca_makine_veriler.json` | Asıl veri |
 | `Fiam/src/veri.js` | Verinin kopyası; sayfa çift tıklayınca bunu okur (otomatik güncellenir, elle düzenleme) |
 | `Fiam/src/kaydet.php` | Sunucu modunda kaydetme ucu |
