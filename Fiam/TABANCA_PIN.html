@@ -316,7 +316,7 @@
         </div>
         <div class="row" style="margin-top:8px;">
           <select id="nmBrand" title="İstersen tabancayı hemen ata"></select>
-          <input type="text" id="nmGun" placeholder="Tabanca kodu" style="width:140px;">
+          <input type="text" id="nmGun" placeholder="Kod (boş = otomatik)" style="width:140px;">
           <button class="btn-add" onclick="addMachine()">➕ Ekle</button>
         </div>
         <div class="muted" style="margin-top:6px;">Marka seçersen makine eklenir, tabanca atanır ve bağlantı şeması hemen açılır.</div>
@@ -341,7 +341,7 @@
         <div class="row" style="margin-top:8px;">
           <span class="step-no">3</span>
           <select id="agBrand"></select>
-          <input type="text" id="agGun" placeholder="Tabanca kodu" style="width:140px;">
+          <input type="text" id="agGun" placeholder="Kod (boş = otomatik)" style="width:140px;">
           <button class="btn-primary" onclick="assignGun()">🔫 Ata ve şemayı aç</button>
         </div>
       </div>
@@ -722,7 +722,8 @@ function idb(mode, fn) {
     open.onupgradeneeded = () => open.result.createObjectStore("kv");
     open.onerror = () => reject(open.error);
     open.onsuccess = () => {
-      const tx = open.result.transaction("kv", mode), req = fn(tx.objectStore("kv"));
+      let tx, req;
+      try { tx = open.result.transaction("kv", mode); req = fn(tx.objectStore("kv")); } catch (e) { return reject(e); }
       tx.oncomplete = () => resolve(req.result); tx.onerror = () => reject(tx.error);
     };
   });
@@ -829,7 +830,105 @@ const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
    Edge'in "Farklı kaydet" penceresiyle sunucudaki src klasörüne kaydettirir. */
 function saveClick() {
   if (MODE === "server" || serverOnline) return saveNow();
+  if (window.showSaveFilePicker && !IS_MOBILE) return directSave();
   manualSave();
+}
+
+/* 💾 Doğrudan kaydet (indirme yok): src içindeki iki dosya bir kez seçilir, sonra her kayıtta üzerine yazılır.
+   Dosya tutamakları tarayıcı hafızasında (IndexedDB) saklanır; Edge'in indirme ayarına gerek kalmaz. */
+const SAVE_FILES = [
+  { key: "fh_js",   name: "veri.js",  label: "veri.js",  types: [{ description: "veri.js", accept: { "text/javascript": [".js"] } }] },
+  { key: "fh_json", name: DATA_NAME, label: DATA_NAME, types: [{ description: "JSON", accept: { "application/json": [".json"] } }] }
+];
+const saveHandles = {};
+async function loadSaveHandles() {
+  for (const f of SAVE_FILES) if (!saveHandles[f.key]) { const h = await idbGet(f.key); if (h) saveHandles[f.key] = h; }
+}
+async function handleOk(h) { try { return (await h.queryPermission({ mode: "readwrite" })) === "granted"; } catch (e) { return false; } }
+function buildSaveTexts() {
+  const out = { ...db, _rev: (parseInt(db._rev) || 0) + 1, updatedAt: new Date().toISOString() };
+  const json = JSON.stringify(out, null, 2);
+  return { out, texts: { fh_json: json, fh_js: "// Otomatik oluşturulur, elle düzenlemeyin. Asıl veri: " + DATA_NAME + "\nwindow.TABANCA_VERI = " + json + ";\n" } };
+}
+async function writeHandle(h, text) { const w = await h.createWritable(); await w.write(text); await w.close(); }
+async function directSave() {
+  await loadSaveHandles();
+  let ready = true;
+  for (const f of SAVE_FILES) if (!saveHandles[f.key] || !(await handleOk(saveHandles[f.key]))) ready = false;
+  if (ready) return writeAll();
+  saveSetup();
+}
+async function writeAll() {
+  const { out, texts } = buildSaveTexts();
+  try {
+    for (const f of SAVE_FILES) await writeHandle(saveHandles[f.key], texts[f.key]);
+  } catch (e) {
+    return saveFail(e);
+  }
+  db._rev = out._rev; db.updatedAt = out.updatedAt;
+  dirty = false; manualSavedAt = new Date(); saveLocal(); updateStatus(); closeModal();
+  toast("✅ Sunucuya kaydedildi (" + new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) + "). Herkes yenileyince görür.");
+}
+function saveFail(e) {
+  const yol = srcFolderPath();
+  openModal(`<div class="modal-icon">⚠️</div><h2>Kaydedilemedi</h2>
+    <div class="help" style="text-align:left;font-size:14px"><b>Hata:</b> ${esc(e?.name || "Error")} — ${esc(e?.message || String(e))}<br><br>
+      Değişikliklerin <b>bu tarayıcıda duruyor</b>, kaybolmaz.<br><br>
+      ${e?.name === "AbortError"
+        ? "Seçme penceresi bir dosya döndürmedi. Pencereyi sen kapattıysan tekrar dene.<br>Dosyayı seçtiğin hâlde bu çıkıyorsa Edge <b>ağ yolundaki</b> dosyaya izin vermiyor olabilir: ağ klasörünü bir <b>sürücü harfine bağla</b> (Dosya Gezgini → Bu Bilgisayar → <b>Ağ sürücüsüne bağlan</b> → <b>Z:</b>) ve pencerede dosyayı <b>Z:\\...\\Fiam\\src</b> içinden seç."
+        : "Dosya ağ klasöründe kilitli ya da yazma iznin yok olabilir. Tekrar dene."}<br><br>
+      Olmazsa <b>⬇️ İndirerek kaydet</b> ile iki dosyayı indirip <code>${esc(yol)}</code> klasörüne elle koyabilirsin.</div>
+    <div class="modal-actions" style="margin-top:14px"><button id="sfDl">⬇️ İndirerek kaydet</button><button id="sfReset">🔁 Dosyaları yeniden seç</button><button class="btn-primary" id="sfRetry">💾 Tekrar dene</button></div>`);
+  $("sfDl").onclick = () => { closeModal(); manualSave(); };
+  $("sfReset").onclick = async () => { for (const f of SAVE_FILES) { delete saveHandles[f.key]; await idbSet(f.key, null); } saveSetup(); };
+  $("sfRetry").onclick = () => directSave();
+}
+/* Kurulum / izin penceresi: her dosya için bir tık (tarayıcı kuralı: her pencere bir tıkla açılır) */
+function saveSetup() {
+  const yol = srcFolderPath();
+  const row = async f => {
+    const h = saveHandles[f.key];
+    if (!h) return `<button class="btn-add" data-sf="${f.key}" style="width:100%;margin:4px 0">📄 ${esc(f.label)} dosyasını seç</button>`;
+    return (await handleOk(h))
+      ? `<div style="padding:8px;margin:4px 0;background:#0f3d2a;border-radius:8px">✅ ${esc(f.label)} hazır</div>`
+      : `<button class="btn-add" data-sf="${f.key}" style="width:100%;margin:4px 0">🔓 ${esc(f.label)} için izin ver</button>`;
+  };
+  (async () => {
+    const rows = (await Promise.all(SAVE_FILES.map(row))).join("");
+    const first = !SAVE_FILES.some(f => saveHandles[f.key]);
+    openModal(`<div class="modal-icon">💾</div><h2>${first ? "Kaydetmeyi bir kez ayarla" : "Kaydetmek için izin ver"}</h2>
+      <div class="help" style="text-align:left;font-size:14px">
+        ${first
+          ? `Aşağıdaki iki butona sırayla bas. Açılan Windows penceresinde şu klasöre git:<br>
+             <code style="display:block;margin:6px 0;padding:6px 8px;background:#0B1222;border-radius:6px;word-break:break-all">${esc(yol)}</code>
+             oradaki <b>aynı isimli dosyayı</b> seç, <b>Kaydet</b> → <b>Evet (Değiştir)</b> de. Edge “düzenlemeye izin ver” sorarsa <b>İzin ver / Düzenle</b>'yi seç.<br><br>
+             ✅ Bu ayar <b>bir kez</b> yapılır. Sonra 💾 Kaydet doğrudan sunucudaki dosyaların üzerine yazar, <b>hiçbir şey indirmez</b>.`
+          : `Güvenlik için Edge, tarayıcı her açıldığında bir kez izin ister. Butonlara basıp <b>İzin ver / Düzenle</b>'yi seç; kayıt kendiliğinden yapılır.`}
+      </div>${rows}
+      <div class="modal-actions" style="margin-top:14px"><button id="ssCopy">📋 Klasör yolunu kopyala</button><button id="ssDl">⬇️ İndirerek kaydet</button><button id="ssClose">Kapat</button></div>`);
+    $("ssCopy").onclick = async () => { try { await navigator.clipboard.writeText(yol); toast("📋 Klasör yolu kopyalandı."); } catch (e) {} };
+    $("ssDl").onclick = () => { closeModal(); manualSave(); };
+    $("ssClose").onclick = () => closeModal();
+    document.querySelectorAll("[data-sf]").forEach(b => b.onclick = () => pickSaveFile(SAVE_FILES.find(f => f.key === b.dataset.sf)));
+  })();
+}
+async function pickSaveFile(f) {
+  try {
+    let h = saveHandles[f.key];
+    if (h) {
+      if ((await h.requestPermission({ mode: "readwrite" })) !== "granted") { toast("İzin verilmedi. Tekrar bas ve İzin ver'i seç."); return; }
+    } else {
+      const other = SAVE_FILES.map(x => saveHandles[x.key]).find(Boolean);
+      h = await window.showSaveFilePicker({ id: "tabanca_src", suggestedName: f.name, types: f.types, ...(other ? { startIn: other } : {}) });
+      if (h.name !== f.name && !confirm(`Seçilen dosyanın adı "${h.name}".\nDoğrusu "${f.name}" olmalı (sayfa bu dosyayı okur).\n\nYine de bu dosya kullanılsın mı?`)) return;
+      saveHandles[f.key] = h; await idbSet(f.key, h);
+    }
+  } catch (e) {
+    if (e?.name === "AbortError") { toast("Pencere kapatıldı ya da dosya seçilemedi."); }
+    return saveFail(e);
+  }
+  for (const x of SAVE_FILES) if (!saveHandles[x.key] || !(await handleOk(saveHandles[x.key]))) return saveSetup();
+  writeAll();
 }
 function srcFolderPath(pageHref = location.href) {   // bu sayfanın yanındaki src klasörünün Windows yolu (\\sunucu\... veya C:\...)
   try {
@@ -1213,13 +1312,13 @@ function updateStatus() {
   else if (!EDIT && !dirty) { s.className = "pill b-gray"; s.textContent = "👀 Sadece bakma modu"; }
   else if (MODE === "file" && FOLDER_OFF && dirty) { s.className = "pill b-amber"; s.textContent = "✏️ Kaydedilmedi — 💾 Kaydet'e bas"; }
   else if (MODE === "file" && FOLDER_OFF && !manualSavedAt) { s.className = "pill b-gray"; s.textContent = "✏️ Düzenleme açık"; }
-  else if (!serverOnline && !dirty && manualSavedAt) { s.className = "pill b-green"; s.textContent = "💾 Dosyalar indirildi " + manualSavedAt.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) + " — src'ye kaydet"; }
+  else if (!serverOnline && !dirty && manualSavedAt) { s.className = "pill b-green"; s.textContent = "✅ Kaydedildi " + manualSavedAt.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }); }
   else if (!serverOnline) { s.className = "pill b-red"; s.textContent = dirty ? "⚠️ " + offText + " — bu tarayıcıda bekliyor" : "⚠️ " + offText; }
   else if (dirty) { s.className = "pill b-amber"; s.textContent = "✏️ Kaydedilmemiş değişiklik"; }
   else { s.className = "pill b-green"; s.textContent = "✅ Kaydedildi" + (lastSavedAt ? " " + lastSavedAt.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : ""); }
 
   $("editBar").innerHTML = MODE === "file" && FOLDER_OFF
-    ? "✏️ <b>Düzenleme açık.</b> İşin bitince önce sağ üstteki <b>💾 Kaydet</b>'e bas ve dosyayı sunucudaki <b>Fiam\\src</b> klasörüne kaydet, sonra <b>🔓 Kilitle</b>."
+    ? "✏️ <b>Düzenleme açık.</b> İşin bitince önce sağ üstteki <b>💾 Kaydet</b>'e bas (sunucudaki dosyaya doğrudan yazar), sonra <b>🔓 Kilitle</b>."
     : "✏️ <b>Düzenleme açık.</b> Yaptığın değişiklikler kendiliğinden kaydedilir. İşin bitince sağ üstteki <b>🔓 Kilitle</b> butonuna bas.";
   // kaydedilmemiş değişiklik uyarısı (bilgisayar modunda 💾 Kaydet gerekir)
   $("unsavedBar").style.display = MODE === "file" && FOLDER_OFF && dirty ? "flex" : "none";
@@ -1440,6 +1539,19 @@ function addMachine() {
   changed(); render(); toast(`✅ ${code} eklendi. Tabancayı sağdaki kutudan atayabilirsin.`); $("nmName").focus();
 }
 
+/* Tabanca kodu: TQ-[MARKA]-[NO]  ör. TQ-DES-01, TQ-FIA-02, TQ-DOG-03, TQ-SEH-01, TQ-KIL-01 */
+function gunPrefix(brand) {
+  const tr = { "Ç": "C", "Ğ": "G", "İ": "I", "I": "I", "Ö": "O", "Ş": "S", "Ü": "U" };
+  const ab = String(brand || "").toLocaleUpperCase("tr").replace(/[ÇĞİIÖŞÜ]/g, c => tr[c]).replace(/[^A-Z0-9]/g, "").slice(0, 3) || "XXX";
+  return "TQ-" + ab + "-";
+}
+function nextGunCode(brand, exceptId) {
+  const pre = gunPrefix(brand); let max = 0;
+  db.machines.forEach(m => { if (m.id === exceptId) return; const g = String(m.gunCode || "").toUpperCase();
+    if (g.startsWith(pre)) { const n = parseInt(g.slice(pre.length)); if (n > max) max = n; } });
+  return pre + String(max + 1).padStart(2, "0");
+}
+
 function assignGun(machineId, brandSel, gunInput) {
   const m = getMachine(machineId || $("agMachine").value);
   const brand = (brandSel || $("agBrand")).value, gun = (gunInput || $("agGun")).value.trim();
@@ -1448,7 +1560,7 @@ function assignGun(machineId, brandSel, gunInput) {
   if (m.brand && m.brand !== brand && pinStats(m).filled > 0 &&
       !confirm(`${m.code} makinesinde ${m.brand} tabancası var ve bağlantıları girilmiş.\n${brand} atanırsa bu bağlantılar silinir. Devam edilsin mi?`)) return;
   if (m.brand !== brand || !m.pins.length) { m.pins = freshPins(brand); m.bridges = normBridges(db.brandInfo[brand]?.bridges); m.done = false; }
-  m.brand = brand; m.gunCode = gun;
+  m.brand = brand; m.gunCode = gun || (m.gunCode && m.gunCode.startsWith(gunPrefix(brand)) ? m.gunCode : nextGunCode(brand, m.id));
   (gunInput || $("agGun")).value = "";
   ui.machineId = m.id; ui.selPin = null; saveUI();
   changed(); openPage("pins");
