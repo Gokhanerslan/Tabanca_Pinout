@@ -866,8 +866,34 @@ async function writeAll() {
     return saveFail(e);
   }
   db._rev = out._rev; db.updatedAt = out.updatedAt;
+  // kontrol: sayfanın okuduğu src/veri.js gerçekten bu kayıt mı? (yanlış klasördeki dosya seçildiyse yakala)
+  const check = await readServerVeri();
+  if (!check || check.updatedAt !== out.updatedAt) { saveLocal(); updateStatus(); return wrongFolder(); }
   dirty = false; manualSavedAt = new Date(); saveLocal(); updateStatus(); closeModal();
-  toast("✅ Sunucuya kaydedildi (" + new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) + "). Herkes yenileyince görür.");
+  toast("✅ Sunucuya kaydedildi ve kontrol edildi (" + new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) + "). Herkes yenileyince görür.");
+}
+/* Sayfanın yanındaki src/veri.js dosyasını yeniden okur (önbelleği atlayarak) */
+function readServerVeri() {
+  return new Promise(resolve => {
+    const prev = window.TABANCA_VERI; window.TABANCA_VERI = undefined;
+    const sc = document.createElement("script");
+    const done = d => { window.TABANCA_VERI = prev; sc.remove(); resolve(d || null); };
+    sc.onload = () => done(window.TABANCA_VERI); sc.onerror = () => done(null);
+    sc.src = "src/veri.js?t=" + Date.now(); document.head.appendChild(sc);
+  });
+}
+function wrongFolder() {
+  const yol = srcFolderPath();
+  openModal(`<div class="modal-icon">⚠️</div><h2>Yanlış yere kaydedildi</h2>
+    <div class="help" style="text-align:left;font-size:14px">
+      Dosya yazıldı ama <b>sunucudaki src klasörüne değil</b>; başka bir klasördeki (ör. İndirilenler) dosya seçilmiş.
+      Bu yüzden diğer bilgisayarlar yeni veriyi <b>göremez</b>.<br><br>
+      Değişikliklerin <b>kaybolmadı</b>, bu tarayıcıda duruyor.<br><br>
+      <b>🔁 Dosyaları yeniden seç</b>'e bas; açılan pencerede <b>yukarıdaki adres çubuğuna</b> şu yolu yapıştırıp Enter'a bas, sonra <b>veri.js</b>'i seç:<br>
+      <code style="display:block;margin:6px 0;padding:6px 8px;background:#0B1222;border-radius:6px;word-break:break-all">${esc(yol)}</code></div>
+    <div class="modal-actions" style="margin-top:14px"><button id="wfCopy">📋 Yolu kopyala</button><button class="btn-primary" id="wfReset">🔁 Dosyaları yeniden seç</button></div>`);
+  $("wfCopy").onclick = async () => { try { await navigator.clipboard.writeText(yol); toast("📋 Yol kopyalandı. Pencerenin adres çubuğuna Ctrl+V."); } catch (e) {} };
+  $("wfReset").onclick = async () => { try { await navigator.clipboard.writeText(yol); } catch (e) {} for (const f of SAVE_FILES) { delete saveHandles[f.key]; await idbSet(f.key, null); } saveSetup(); };
 }
 function saveFail(e) {
   const yol = srcFolderPath();
@@ -899,7 +925,7 @@ function saveSetup() {
     openModal(`<div class="modal-icon">💾</div><h2>${first ? "Kaydetmeyi bir kez ayarla" : "Kaydetmek için izin ver"}</h2>
       <div class="help" style="text-align:left;font-size:14px">
         ${first
-          ? `Aşağıdaki iki butona sırayla bas. Açılan Windows penceresinde şu klasöre git:<br>
+          ? `Aşağıdaki iki butona sırayla bas. Açılan Windows penceresinin <b>üstteki adres çubuğuna</b> şu yolu yapıştır (<b>📋 Klasör yolunu kopyala</b> → Ctrl+V → Enter). <b>İndirilenler'e kaydetme!</b><br>
              <code style="display:block;margin:6px 0;padding:6px 8px;background:#0B1222;border-radius:6px;word-break:break-all">${esc(yol)}</code>
              oradaki <b>aynı isimli dosyayı</b> seç, <b>Kaydet</b> → <b>Evet (Değiştir)</b> de. Edge “düzenlemeye izin ver” sorarsa <b>İzin ver / Düzenle</b>'yi seç.<br><br>
              ✅ Bu ayar <b>bir kez</b> yapılır. Sonra 💾 Kaydet doğrudan sunucudaki dosyaların üzerine yazar, <b>hiçbir şey indirmez</b>.`
@@ -909,7 +935,7 @@ function saveSetup() {
     $("ssCopy").onclick = async () => { try { await navigator.clipboard.writeText(yol); toast("📋 Klasör yolu kopyalandı."); } catch (e) {} };
     $("ssDl").onclick = () => { closeModal(); manualSave(); };
     $("ssClose").onclick = () => closeModal();
-    document.querySelectorAll("[data-sf]").forEach(b => b.onclick = () => pickSaveFile(SAVE_FILES.find(f => f.key === b.dataset.sf)));
+    document.querySelectorAll("[data-sf]").forEach(b => b.onclick = () => { try { navigator.clipboard.writeText(yol).catch(() => {}); } catch (e) {} pickSaveFile(SAVE_FILES.find(f => f.key === b.dataset.sf)); });
   })();
 }
 async function pickSaveFile(f) {
