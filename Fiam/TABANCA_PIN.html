@@ -255,7 +255,10 @@
 
   <div class="panel" id="fileBanner" style="display:none; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; border-color:rgba(245,158,11,.5);">
     <span id="fileBannerText" style="font-size:14px;"></span>
-    <button class="btn-add" id="fileBannerBtn" onclick="connectFolder()">📁 Klasöre bağlan</button>
+    <span class="row">
+      <button class="btn-add" id="fileBannerBtn" onclick="connectFolder()">📁 Klasöre bağlan</button>
+      <button class="btn-sm" id="fileBannerBtn2" style="display:none">📁 Başka klasör seç</button>
+    </span>
   </div>
 
   <nav class="tabs" id="nav">
@@ -425,7 +428,9 @@
         ⏱️ 20 dakika hiçbir şey yapmazsan düzenleme kendiliğinden kilitlenir.<br>
         💻 <b>Bilgisayarda:</b> <b>TABANCA_PIN.html</b>'e çift tıkla (Chrome veya Edge). Kaydetmek için bir kez <b>src</b> klasörünü seç.<br>
         🌐 <b>Sunucuda:</b> Klasörü PHP'li hostinge yükle; kayıt <b>src/kaydet.php</b> ile yapılır ve şifreyi sunucu da kontrol eder.<br>
-        🗂️ Her kayıtta <b>src/yedek/</b> klasörüne yedek alınır (son 50). İki kişi aynı anda değiştirirse uyarı çıkar.
+        🗂️ Her kayıtta <b>src/yedek/</b> klasörüne yedek alınır (son 50). Ayrıca <b>6 ayda bir</b> <b>src/yedek/6aylik/</b> klasörüne hiç silinmeyen kalıcı yedek alınır.<br>
+        🔗 Bilgisayarda Chrome sayfa kapanınca klasör iznini unutur: kilidi açınca sadece <b>izin</b> sorulur; <b>“Her ziyarette izin ver”</b> seçersen bir daha sormaz.<br>
+        👥 İki kişi aynı anda değiştirirse uyarı çıkar.
       </div>
     </div>
   </section>
@@ -661,14 +666,16 @@ function changed() {        // her veri değişikliğinden sonra çağrılır
 async function serverLoad() {
   const res = await fetch(API_URL, { cache: "no-store" });
   if (!res.ok) throw new Error(res.status);
-  return res.json();
+  const d = await res.json();
+  if (d && "_periodic" in d) { lastPeriodic = d._periodic || null; delete d._periodic; }
+  return d;
 }
 async function serverSave(data, force) {
   const headers = { "Content-Type": "application/json" };
   if (editKey) headers["X-Edit-Key"] = editKey;
   const res = await fetch(API_URL + (force ? "?force=1" : ""), { method: "POST", headers, body: JSON.stringify(data) });
   const out = await res.json().catch(() => ({}));
-  if (res.ok) return { ok: true, rev: out.rev, updatedAt: out.updatedAt };
+  if (res.ok) { if ("periodic" in out) lastPeriodic = out.periodic || null; return { ok: true, rev: out.rev, updatedAt: out.updatedAt }; }
   if (res.status === 409) return { conflict: true, server: out.server };
   if (res.status === 401) return { auth: true };
   return { error: out.message || res.status };
@@ -708,8 +715,25 @@ async function fileLoad() {
   if (!(await folderReady())) throw new Error("klasör bağlı değil");
   const d = await readDataFile();
   if (!d) throw new Error("veri dosyası yok");
+  try { await scanPeriodic(); } catch (e) {}
   return d;
 }
+/* 6 aylık kalıcı yedek: yedek/6aylik/donem_YYYY-AA-GG.json — hiç silinmez */
+const PERIOD_DAYS = 182;
+let lastPeriodic = null;
+async function scanPeriodic(writeJson) {
+  const yd = await dirHandle.getDirectoryHandle("yedek", { create: !!writeJson });
+  const pd = await yd.getDirectoryHandle("6aylik", { create: !!writeJson });
+  let last = "";
+  for await (const [n] of pd.entries()) { const m = n.match(/^donem_(\d{4}-\d{2}-\d{2})\.json$/); if (m && m[1] > last) last = m[1]; }
+  const today = new Date().toISOString().slice(0, 10);
+  if (writeJson && (!last || Date.parse(today) - Date.parse(last) >= PERIOD_DAYS * 864e5)) {
+    await writeFile(pd, `donem_${today}.json`, writeJson); last = today;
+  }
+  lastPeriodic = last || null;
+  return lastPeriodic;
+}
+
 async function fileSave(data, force) {
   if (!(await folderReady())) throw new Error("klasör bağlı değil");
   const cur = await readDataFile();
@@ -730,6 +754,7 @@ async function fileSave(data, force) {
   const json = JSON.stringify(out, null, 2);
   await writeFile(dirHandle, DATA_NAME, json);
   await writeFile(dirHandle, "veri.js", "// Otomatik oluşturulur, elle düzenlemeyin. Asıl veri: " + DATA_NAME + "\nwindow.TABANCA_VERI = " + json + ";\n");
+  try { await scanPeriodic(json); } catch (e) {}
   return { ok: true, rev: out._rev, updatedAt: out.updatedAt };
 }
 
@@ -761,37 +786,54 @@ function showFolderHelp(kind, err) {
   $("fhDl").onclick = () => { downloadDataFiles(); closeModal(); };
 }
 
-async function connectFolder() {
+async function connectFolder() {   // yeni klasör seç
   if (!window.showDirectoryPicker) return showFolderHelp("unsupported");
   const started = Date.now();
   try {
-    {   // her basışta klasör seçtir (en son seçilen klasörden başlar)
-      let h;
-      try { h = await window.showDirectoryPicker({ id: "tabanca", mode: "readwrite", ...(dirHandle ? { startIn: dirHandle } : {}) }); }
-      catch (err) { if (err.name === "AbortError" || !dirHandle) throw err; h = await window.showDirectoryPicker({ id: "tabanca", mode: "readwrite" }); }
-      if (!(await hasFile(h, DATA_NAME))) {   // Fiam klasörü seçildiyse içindeki src'yi kullan
-        try { const s = await h.getDirectoryHandle("src"); if (await hasFile(s, DATA_NAME)) h = s; } catch (e) {}
-      }
-      if (!(await hasFile(h, DATA_NAME)) &&
-          !confirm(`Seçilen klasörde "${DATA_NAME}" bulunamadı.\nNormalde "src" klasörünü seçmelisin.\n\nYine de bu klasörde yeni bir veri dosyası oluşturulsun mu?`)) return;
-      dirHandle = h; await idbSet("dir", h); await idbSet("dirHref", location.href);
+    let h;
+    try { h = await window.showDirectoryPicker({ id: "tabanca", mode: "readwrite", ...(dirHandle ? { startIn: dirHandle } : {}) }); }
+    catch (err) { if (err.name === "AbortError" || !dirHandle) throw err; h = await window.showDirectoryPicker({ id: "tabanca", mode: "readwrite" }); }
+    if (!(await hasFile(h, DATA_NAME))) {   // Fiam klasörü seçildiyse içindeki src'yi kullan
+      try { const s = await h.getDirectoryHandle("src"); if (await hasFile(s, DATA_NAME)) h = s; } catch (e) {}
     }
-    const fileData = await readDataFile();
-    serverOnline = true;
-    if (dirty) {
-      if (confirm(`Klasöre bağlanmadan önce yaptığın değişiklikler var. Bu klasöre yazılsın mı?\n\nTAMAM → değişikliklerimi kaydet (önerilen)\nİPTAL → klasördeki veriyi aç (değişikliklerin silinmez, Ayarlar → ♻️ Geri getir ile dönebilirsin)`)) {
-        render(); await saveNow(fileData ? false : true); return;
-      }
-      rescueLocal(db);
-    }
-    if (fileData) { db = normalize(fileData); dirty = false; saveLocal(); render(); }
-    else { render(); changed(); }
-    toast(`📁 "${dirHandle.name}" klasörüne bağlandı. Değişiklikler artık bu klasöre kaydediliyor.`);
+    if (!(await hasFile(h, DATA_NAME)) &&
+        !confirm(`Seçilen klasörde "${DATA_NAME}" bulunamadı.\nNormalde "src" klasörünü seçmelisin.\n\nYine de bu klasörde yeni bir veri dosyası oluşturulsun mu?`)) return;
+    dirHandle = h; await idbSet("dir", h); await idbSet("dirHref", location.href);
+    await finishConnect();
   } catch (e) {
     // Kullanıcı pencereyi kapattıysa sessiz geç; pencere hiç açılmadan anında hata geldiyse açıkla
     if (e.name !== "AbortError" || Date.now() - started < 700) showFolderHelp("error", e);
     updateStatus();
   }
+}
+/* Daha önce seçilen klasöre tekrar bağlan: klasör seçtirmez, sadece Chrome'dan izin ister.
+   Chrome sayfa kapanınca izni unutur; izin penceresinde "Her ziyarette izin ver" seçilirse bir daha sormaz. */
+async function reconnectFolder(quiet) {
+  if (!dirHandle || !window.showDirectoryPicker) return quiet ? false : connectFolder();
+  try {
+    const perm = await dirHandle.requestPermission({ mode: "readwrite" });
+    if (perm !== "granted") { if (!quiet) toast("📁 İzin verilmedi. Klasörü yeniden seçebilirsin."); updateStatus(); return false; }
+    if (!(await hasFile(dirHandle, DATA_NAME))) throw new Error("veri dosyası yok");
+    await finishConnect();
+    return true;
+  } catch (e) {   // klasör taşınmış / silinmiş olabilir → yeniden seçtir
+    if (!quiet) { toast("📁 Önceki klasöre ulaşılamadı, lütfen klasörü seç."); return connectFolder(); }
+    updateStatus(); return false;
+  }
+}
+async function finishConnect() {
+  const fileData = await readDataFile();
+  serverOnline = true;
+  try { await scanPeriodic(); } catch (e) {}
+  if (dirty) {
+    if (confirm(`Klasöre bağlanmadan önce yaptığın değişiklikler var. Bu klasöre yazılsın mı?\n\nTAMAM → değişikliklerimi kaydet (önerilen)\nİPTAL → klasördeki veriyi aç (değişikliklerin silinmez, Ayarlar → ♻️ Geri getir ile dönebilirsin)`)) {
+      render(); await saveNow(fileData ? false : true); return;
+    }
+    rescueLocal(db);
+  }
+  if (fileData) { db = normalize(fileData); dirty = false; saveLocal(); render(); }
+  else { render(); changed(); }
+  toast(`📁 "${dirHandle.name}" klasörüne bağlandı. Değişiklikler bu klasöre kaydediliyor.`);
 }
 
 /* ---------- Ortak ---------- */
@@ -930,10 +972,14 @@ function updateStatus() {
                : `📁 <b>Kaydetmek için bir kez klasör seçmen gerekiyor.</b> Butona bas ve <b>Fiam/src</b> klasörünü seç.`)
       : (IS_MOBILE ? "📱 <b>Telefonda klasöre kaydedilemiyor.</b> " : "<b>Bu tarayıcı klasöre kaydedemiyor.</b> ") +
         `Değişiklikler bu tarayıcıda saklanıyor. Kalıcı kaydetmek için bilgisayarda <b>Chrome / Edge</b> kullan ya da dosyaları indirip <b>src</b> klasörüne koy.`;
-    const fb = $("fileBannerBtn");
-    fb.textContent = window.showDirectoryPicker ? "📁 Klasöre bağlan" : "⬇️ Dosyaları indir";
-    fb.onclick = !window.showDirectoryPicker ? downloadDataFiles
-      : EDIT ? connectFolder : () => askPassword("Kaydetmek için şifreyi gir.").then(ok => ok && connectFolder());
+    const fb = $("fileBannerBtn"), fb2 = $("fileBannerBtn2"), remembered = !!dirHandle && !!window.showDirectoryPicker;
+    const guard = fn => EDIT ? fn : () => askPassword("Kaydetmek için şifreyi gir.").then(ok => ok && fn());
+    fb.textContent = !window.showDirectoryPicker ? "⬇️ Dosyaları indir" : remembered ? `🔗 "${dirHandle.name}" klasörüne yeniden bağlan` : "📁 Klasöre bağlan";
+    fb.onclick = !window.showDirectoryPicker ? downloadDataFiles : guard(remembered ? () => reconnectFolder(false) : connectFolder);
+    fb2.style.display = remembered ? "" : "none";
+    fb2.onclick = guard(connectFolder);
+    if (remembered) $("fileBannerText").innerHTML = (dirty ? `⚠️ <b>Değişikliklerin henüz dosyaya yazılmadı.</b> ` : "") +
+      `🔗 Chrome, sayfa kapanınca klasör iznini unutur. <b>Tek tıkla yeniden bağlan</b> — izin penceresinde <b>“Her ziyarette izin ver”</b> çıkarsa onu seç, bir daha sormaz.`;
   }
 
   const m = getMachine(ui.machineId);
@@ -946,6 +992,10 @@ function updateStatus() {
       : `Çalışma şekli: <b>SUNUCU (PHP)</b> · Sunucu: <b>${serverOnline ? "BAĞLI" : "ULAŞILAMIYOR"}</b><br>`) +
     `Veri sürümü: <b>${db._rev}</b>${db.updatedAt ? " · Son kayıt: <b>" + esc(new Date(db.updatedAt).toLocaleString("tr-TR")) + "</b>" : ""}<br>` +
     `Toplam: <b>${db.machines.length}</b> makine, <b>${brands().length}</b> marka şablonu`;
+  const nextP = lastPeriodic ? new Date(Date.parse(lastPeriodic) + PERIOD_DAYS * 864e5) : null;
+  $("dataInfo").innerHTML += `<br>🗄️ 6 aylık kalıcı yedek (<b>src/yedek/6aylik/</b>): ` +
+    (lastPeriodic ? `son <b>${esc(new Date(lastPeriodic).toLocaleDateString("tr-TR"))}</b> · sıradaki <b>${esc(nextP.toLocaleDateString("tr-TR"))}</b> sonrası ilk kayıtta`
+                  : (serverOnline ? "ilk kayıtta alınacak" : "klasöre / sunucuya bağlanınca görünür"));
   const rs = rescueInfo();
   if (rs?.data) $("dataInfo").innerHTML += `<br>♻️ Kaydedilmemiş değişiklik yedeği var: <b>${esc(new Date(rs.at).toLocaleString("tr-TR"))}</b>
     <button class="btn-sm edit-only" onclick="restoreRescue()">♻️ Geri getir</button>`;
@@ -1897,6 +1947,8 @@ function askPassword(msg) {
 function unlock(pw) {
   EDIT = true; editKey = pw; lastActivity = Date.now();
   render(); toast("🔓 Düzenleme açıldı");
+  // bilgisayarda: daha önce seçilen klasör varsa, klasör seçtirmeden sadece izin iste
+  if (MODE === "file" && dirHandle && !serverOnline) reconnectFolder(true);
 }
 async function lock(reason) {
   document.activeElement?.blur();

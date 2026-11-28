@@ -12,7 +12,8 @@
 // ------------------------- AYARLAR -------------------------
 $DATA_FILE   = __DIR__ . '/tabanca_makine_veriler.json';
 $BACKUP_DIR  = __DIR__ . '/yedek';
-$BACKUP_KEEP = 50;               // en fazla kaç yedek tutulsun
+$BACKUP_KEEP = 50;               // en fazla kaç yedek tutulsun (her kayıtta)
+$PERIOD_DAYS = 182;              // bu kadar günde bir yedek/6aylik/ içine kalıcı (silinmeyen) yedek alınır
 $MAX_BYTES   = 5 * 1024 * 1024;  // en fazla 5 MB veri kabul et
 
 // Düzenleme şifresi sayfadaki "Ayarlar → Şifreyi değiştir" bölümünden değiştirilir.
@@ -29,6 +30,16 @@ function cevap($code, $data) {
     http_response_code($code);
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
+}
+
+// yedek/6aylik/ içindeki son kalıcı yedeğin tarihi (YYYY-AA-GG) veya ''
+function sonDonemYedegi($dir) {
+    $last = '';
+    $files = glob($dir . '/donem_*.json');
+    if ($files) foreach ($files as $f) {
+        if (preg_match('/donem_(\d{4}-\d{2}-\d{2})\.json$/', $f, $mm) && $mm[1] > $last) $last = $mm[1];
+    }
+    return $last;
 }
 
 function veriOku($file) {
@@ -48,6 +59,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     $data = veriOku($DATA_FILE);
+    $data['_periodic'] = sonDonemYedegi($BACKUP_DIR . '/6aylik');
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
 }
@@ -162,10 +174,20 @@ if (file_put_contents($tmp, $json) === false || !rename($tmp, $DATA_FILE)) {
 @file_put_contents(__DIR__ . '/veri.js',
     "// Otomatik oluşturulur, elle düzenlemeyin. Asıl veri: tabanca_makine_veriler.json\nwindow.TABANCA_VERI = " . $json . ";\n");
 
+// 6 aylık kalıcı yedek (hiç silinmez)
+$pdir = $BACKUP_DIR . '/6aylik';
+if (!is_dir($pdir)) @mkdir($pdir, 0775, true);
+$lastP = sonDonemYedegi($pdir);
+$today = date('Y-m-d');
+if (is_dir($pdir) && ($lastP === '' || (strtotime($today) - strtotime($lastP)) >= $PERIOD_DAYS * 86400)) {
+    if (@copy($DATA_FILE, $pdir . '/donem_' . $today . '.json')) $lastP = $today;
+}
+
 flock($lock, LOCK_UN);
 fclose($lock);
 
 cevap(200, array(
+    'periodic'     => $lastP,
     'status'       => 'ok',
     'message'      => 'Kaydedildi.',
     'rev'          => $incoming['_rev'],
