@@ -427,6 +427,7 @@
         <button class="btn-primary" onclick="exportJSON()">⬇️ Yedeği indir</button>
         <button onclick="downloadShortcut()" title="Logolu masaüstü kısayolu">📌 Masaüstü kısayolu indir</button>
         <button class="edit-only" onclick="document.getElementById('jsonFileInput').click()">⬆️ Yedek yükle</button>
+        <button class="edit-only btn-del" onclick="clearBrowserData()" title="Edge/Chrome hafızasındaki kaydı sil, klasördeki veriyi aç">🗑️ Tarayıcı kaydını sil</button>
         <input type="file" id="jsonFileInput" accept=".json,application/json" style="display:none;" onchange="importJSON(event)">
       </div>
       <div class="muted" style="margin-top:10px;line-height:1.7;" id="dataInfo"></div>
@@ -463,6 +464,12 @@ const AUTOSAVE_MS = 1000;
 const BACKUP_KEEP = 50;
 const DATA_NAME = "tabanca_makine_veriler.json";
 const MODE = location.protocol === "file:" ? "file" : "server";   // çift tıklayınca "file"
+/* SUNUCU ADRESİ — rehber bir web sunucusunda (PHP) çalışıyorsa adresini buraya yaz, örnek:
+     const SUNUCU_ADRESI = "http://10.30.1.5/tabanca/TABANCA_PIN.html";
+   Yazılınca: klasör seçme tamamen kapanır; sayfa ağ klasöründen / eski kısayoldan açılırsa kendiliğinden bu adrese geçer.
+   Boş bırakılırsa bilgisayar modu (klasör seçme) çalışır. */
+const SUNUCU_ADRESI = "";
+const FOLDER_OFF = MODE === "file" && !!SUNUCU_ADRESI;   // sunucu varken bilgisayar modunda klasör seçme yok
 let dirHandle = null;   // dosya modunda bağlanan src klasörü
 
 /* ================== DURUM ================== */
@@ -663,7 +670,7 @@ function restoreRescue() {
   const keepRev = db._rev; db = normalize(r.data); db._rev = keepRev;
   changed(); render(); toast("♻️ Değişiklikler geri getirildi.");
 }
-let warnedNoFolder = false, newerLocalNotice = false;
+let warnedNoFolder = false, newerLocalNotice = false, dataSource = "";
 function changed() {        // her veri değişikliğinden sonra çağrılır
   dirty = true; saveLocal(); updateStatus();
   if (MODE === "file" && !serverOnline && !warnedNoFolder) {
@@ -1038,7 +1045,23 @@ async function saveNow(force = false) {
   updateStatus();
 }
 
+function goToServer() {
+  let local = null; try { local = JSON.parse(localStorage.getItem(LS_DATA) || "null"); } catch (e) {}
+  if (local?.dirty && local.data) {   // bu tarayıcıda sunucuya taşınmamış değişiklik var: önce yedek
+    openModal(`<div class="modal-icon">🌐</div><h2>Rehber artık sunucuda</h2>
+      <div class="help" style="text-align:left;font-size:14px">Bu bilgisayarın tarayıcısında <b>kaydedilmemiş değişiklikler</b> var.<br><br>
+        1️⃣ <b>⬇️ Yedeği indir</b>'e bas.<br>2️⃣ Sunucu sayfası açılınca <b>🔒 Düzenle → ⚙️ Ayarlar → ⬆️ Yedek yükle</b> ile bu dosyayı yükle.</div>
+      <div class="modal-actions" style="margin-top:14px"><button id="gsDl">⬇️ Yedeği indir</button><button class="btn-primary" id="gsGo">🌐 Sunucuya git</button></div>`);
+    $("gsDl").onclick = () => download(JSON.stringify(local.data, null, 2), "tasinacak_veriler_" + new Date().toISOString().slice(0, 10) + ".json", "application/json");
+    $("gsGo").onclick = () => { try { localStorage.setItem(LS_DATA, JSON.stringify({ data: local.data, dirty: false })); } catch (e) {} location.href = SUNUCU_ADRESI; };
+    return true;
+  }
+  location.replace(SUNUCU_ADRESI);
+  return true;
+}
+
 async function loadInitial() {
+  if (FOLDER_OFF && goToServer()) { db = normalize(window.TABANCA_VERI || {}); render(); return; }
   try { Object.assign(ui, JSON.parse(localStorage.getItem(LS_UI) || "{}")); } catch (e) {}
   let local = null;
   try { local = JSON.parse(localStorage.getItem(LS_DATA) || "null"); } catch (e) {}
@@ -1051,10 +1074,10 @@ async function loadInitial() {
   try { remote = await backendLoad(); serverOnline = true; } catch (e) { serverOnline = false; }
 
   if (remote) {
-    db = normalize(remote);
+    db = normalize(remote); dataSource = MODE === "file" ? "klasördeki dosya" : "sunucu";
     if (local?.dirty && local.data) {
       if (confirm(`Bu tarayıcıda kaydedilmemiş değişiklikler var. Şimdi ${MODE === "file" ? "dosyaya yazılsın" : "sunucuya gönderilsin"} mi?\n\nTAMAM → kaydet (önerilen)\nİPTAL → ${placeName()} veriyi aç (değişikliklerin silinmez, Ayarlar → ♻️ Geri getir ile dönebilirsin)`)) {
-        db = normalize(local.data); dirty = true;
+        db = normalize(local.data); dirty = true; dataSource = "tarayıcı hafızası";
         render(); saveNow(local.data._rev !== remote._rev);
         return;
       }
@@ -1066,13 +1089,30 @@ async function loadInitial() {
     const fileD = window.TABANCA_VERI, ld = local?.data;
     const ver = d => [parseInt(d?._rev) || 0, Date.parse(d?.updatedAt || 0) || 0];
     const isNewer = (a, b) => { const [ra, ta] = ver(a), [rb, tb] = ver(b); return ra > rb || (ra === rb && ta > tb); };
-    if (local?.dirty && ld) { db = normalize(ld); dirty = true; }
-    else if (ld && fileD && isNewer(ld, fileD)) { db = normalize(ld); dirty = true; newerLocalNotice = true; }
-    else if (fileD) db = normalize(fileD);                        // src/veri.js (çift tıklayınca)
-    else if (ld) db = normalize(ld);
+    if (local?.dirty && ld) { db = normalize(ld); dirty = true; dataSource = "tarayıcı hafızası"; }
+    else if (ld && fileD && isNewer(ld, fileD)) { db = normalize(ld); dirty = true; newerLocalNotice = true; dataSource = "tarayıcı hafızası"; }
+    else if (fileD) { db = normalize(fileD); dataSource = "klasördeki dosya (veri.js)"; }   // src/veri.js (çift tıklayınca)
+    else if (ld) { db = normalize(ld); dataSource = "tarayıcı hafızası"; }
   }
   render();
   if (newerLocalNotice) toast("ℹ️ Bu bilgisayarda klasördekinden daha yeni bir kayıt bulundu ve açıldı. Kalıcı olması için 📁 Klasöre bağlan.");
+}
+
+/* Tarayıcı hafızasındaki kaydı sil ve klasördeki / sunucudaki veriyi aç (önce yedek indirilir) */
+async function clearBrowserData() {
+  if (!confirm("Bu tarayıcının hafızasındaki kayıt silinecek ve " + (MODE === "file" ? "klasördeki dosyadaki" : "sunucudaki") + " veri açılacak.\n\n" +
+               "Güvenlik için:\n• Silmeden önce şu anki veri bir yedek dosyası olarak indirilecek\n• Ayarlar → ♻️ Geri getir ile geri dönebileceksin\n\nDevam edilsin mi?")) return;
+  exportJSON();               // dosya yedeği (İndirilenler)
+  rescueLocal(db);            // tarayıcı içi kurtarma kopyası
+  clearTimeout(saveTimer); dirty = false;
+  try { localStorage.removeItem(LS_DATA); } catch (e) {}
+  let src = null;
+  try { src = await backendLoad(); serverOnline = true; } catch (e) { serverOnline = false; }
+  if (!src) src = window.TABANCA_VERI || null;
+  db = normalize(src || { templates: {}, machines: [] });
+  dataSource = serverOnline ? (MODE === "file" ? "klasördeki dosya" : "sunucu") : "klasördeki dosya (veri.js)";
+  saveLocal(); render();
+  toast("🗑️ Tarayıcı kaydı silindi; " + dataSource + " açıldı. (Yedek İndirilenler'de, ayrıca ♻️ Geri getir ile dönülebilir.)");
 }
 
 async function reloadFromServer() {
@@ -1131,7 +1171,7 @@ function updateStatus() {
   // Dosya modunda klasör bağlı değilse uyarı çubuğu
   const banner = $("fileBanner");
   // klasör bir kez seçildiyse (hatırlanıyorsa) çubuk bir daha çıkmaz; değiştirmek Ayarlar'dan
-  const showBanner = MODE === "file" && !serverOnline && !dirHandle && (EDIT || dirty);
+  const showBanner = MODE === "file" && !FOLDER_OFF && !serverOnline && !dirHandle && (EDIT || dirty);
   banner.style.display = showBanner ? "flex" : "none";
   if (showBanner) {
     $("fileBannerText").innerHTML = window.showDirectoryPicker
@@ -1154,7 +1194,7 @@ function updateStatus() {
   // Ayarlar → Kayıt klasörü
   const fp = $("folderPanel");
   if (fp) {
-    fp.style.display = MODE === "file" ? "" : "none";
+    fp.style.display = MODE === "file" && !FOLDER_OFF ? "" : "none";
     $("connectBtn2").textContent = dirHandle ? "📁 Klasörü değiştir" : "📁 Klasör seç";
     $("folderPermBtn").style.display = dirHandle && !serverOnline && window.showDirectoryPicker ? "" : "none";
     $("folderInfo").innerHTML = !window.showDirectoryPicker
@@ -1168,7 +1208,9 @@ function updateStatus() {
       ? `Çalışma şekli: <b>YEREL DOSYA</b> · Klasör: <b>${serverOnline ? "BAĞLI (" + esc(dirHandle?.name) + ")" : "BAĞLI DEĞİL"}</b><br>`
       : `Çalışma şekli: <b>SUNUCU (PHP)</b> · Sunucu: <b>${serverOnline ? "BAĞLI" : "ULAŞILAMIYOR"}</b><br>`) +
     `Veri sürümü: <b>${db._rev}</b>${db.updatedAt ? " · Son kayıt: <b>" + esc(new Date(db.updatedAt).toLocaleString("tr-TR")) + "</b>" : ""}<br>` +
-    `Toplam: <b>${db.machines.length}</b> makine, <b>${brands().length}</b> marka şablonu`;
+    `Toplam: <b>${db.machines.length}</b> makine, <b>${brands().length}</b> marka şablonu` +
+    (dataSource ? `<br>👁️ Şu an gösterilen veri: <b>${esc(serverOnline ? (MODE === "file" ? "klasördeki dosya" : "sunucu") : dataSource)}</b>` +
+      (!serverOnline && dataSource === "tarayıcı hafızası" ? ` <span style="color:#FCD34D">(sadece bu bilgisayarda ve bu tarayıcıda var)</span>` : "") : "");
   const nextP = lastPeriodic ? new Date(Date.parse(lastPeriodic) + PERIOD_DAYS * 864e5) : null;
   $("dataInfo").innerHTML += `<br>🗄️ 6 aylık kalıcı yedek (<b>src/yedek/6aylik/</b>): ` +
     (lastPeriodic ? `son <b>${esc(new Date(lastPeriodic).toLocaleDateString("tr-TR"))}</b> · sıradaki <b>${esc(nextP.toLocaleDateString("tr-TR"))}</b> sonrası ilk kayıtta`

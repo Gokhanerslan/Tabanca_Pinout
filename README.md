@@ -23,7 +23,16 @@ karakterli olsa da doğru çalışır; simgesi `Fiam/logo.ico` olur.
 - **Elle yapmak istersen:** `TABANCA_PIN.html`'e sağ tık → *Gönder → Masaüstü (kısayol oluştur)* → kısayola sağ tık →
   *Özellikler → Simge Değiştir…* → `Fiam/logo.ico`.
 
-## Kullanım 2 — PHP'li bir hostingde
+## Kullanım 2 — Web sunucusunda (önerilen, klasör seçmek gerekmez)
+
+Edge/Chrome, ağ paylaşımındaki (`\\sunucu\...`) bir klasöre sayfanın yazmasına izin vermiyor. Ortak kullanım için rehber bir
+web sunucusunda (IIS veya Apache + PHP) çalıştırılmalı; kurulum adımları **[BILGI_ISLEM_KURULUM.md](BILGI_ISLEM_KURULUM.md)** dosyasında.
+
+Sunucu hazır olunca `TABANCA_PIN.html` içindeki `const SUNUCU_ADRESI = "";` satırına adresi yaz
+(ör. `"http://10.30.1.5/tabanca/TABANCA_PIN.html"`): klasör seçme tamamen kapanır, ağ paylaşımındaki eski sayfa ve kısayollar
+kendiliğinden sunucuya yönlenir.
+
+### Eski not — PHP'li bir hostingde
 
 `Fiam` klasörünün içeriğini hostinge yükle, `src` klasörüne yazma izni ver, sayfayı adresinden aç. Kayıt `src/kaydet.php` üzerinden yapılır. Kaydetmeyi şifrelemek için `kaydet.php` içindeki `$EDIT_PASSWORD` değerini doldur.
 
