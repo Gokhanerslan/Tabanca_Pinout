@@ -425,6 +425,7 @@
         <button class="btn-add edit-only" onclick="saveNow()">💾 Şimdi kaydet</button>
         <button onclick="reloadFromServer()">🔄 Yeniden yükle</button>
         <button class="btn-primary" onclick="exportJSON()">⬇️ Yedeği indir</button>
+        <button onclick="downloadShortcut()" title="Logolu masaüstü kısayolu">📌 Masaüstü kısayolu indir</button>
         <button class="edit-only" onclick="document.getElementById('jsonFileInput').click()">⬆️ Yedek yükle</button>
         <input type="file" id="jsonFileInput" accept=".json,application/json" style="display:none;" onchange="importJSON(event)">
       </div>
@@ -436,7 +437,7 @@
         👀 <b>Bakmak için şifre gerekmez.</b> Makineni seç, şemada bir uca dokun; kablonun rengi ve adresi çıkar.<br>
         ✏️ <b>Değiştirmek için</b> sağ üstteki <b>🔒 Düzenle</b>'ye bas ve şifreyi gir. İlk şifre: <b>1234</b> — hemen değiştir!<br>
         ⏱️ 20 dakika hiçbir şey yapmazsan düzenleme kendiliğinden kilitlenir.<br>
-        💻 <b>Bilgisayarda:</b> <b>TABANCA_PIN.html</b>'e çift tıkla (Chrome veya Edge). Kaydetmek için bir kez <b>src</b> klasörünü seç.<br>        🖥️ <b>Masaüstü kısayolu:</b> <b>Fiam</b> klasöründeki <b>KISAYOL_OLUSTUR.bat</b>'a çift tıkla; masaüstüne logolu kısayol oluşur (klasör sunucuda olsa da çalışır). Sayfayı hep bu kısayoldan aç.<br>
+        💻 <b>Bilgisayarda:</b> <b>TABANCA_PIN.html</b>'e çift tıkla (Chrome veya Edge). Kaydetmek için bir kez <b>src</b> klasörünü seç.<br>        📌 <b>Masaüstü kısayolu:</b> Bu sayfadaki <b>📌 Masaüstü kısayolu indir</b> düğmesine bas, inen dosyayı masaüstüne sürükle. Logolu kısayol olur; sayfayı hep bu kısayoldan ve <b>aynı tarayıcıyla</b> aç.<br>
 
         🌐 <b>Sunucuda:</b> Klasörü PHP'li hostinge yükle; kayıt <b>src/kaydet.php</b> ile yapılır ve şifreyi sunucu da kontrol eder.<br>
         🗂️ Her kayıtta <b>src/yedek/</b> klasörüne yedek alınır (son 50). Ayrıca <b>6 ayda bir</b> <b>src/yedek/6aylik/</b> klasörüne hiç silinmeyen kalıcı yedek alınır.<br>
@@ -889,6 +890,38 @@ async function finishConnect() {
   if (fileData) { db = normalize(fileData); dirty = false; saveLocal(); render(); }
   else { render(); changed(); }
   toast(`📁 "${dirHandle.name}" klasörüne bağlandı. Değişiklikler bu klasöre kaydediliyor.`);
+}
+
+/* Masaüstü kısayolu (.url): betik gerektirmez. Sayfa kendi adresini bildiği için ağ yolunda (\\sunucu\...) da doğru kısayolu üretir.
+   Windows .url dosyalarını sistem kod sayfasıyla okur; Türkçe Windows için Türkçe harfler cp1254 olarak yazılır. */
+function shortcutText(pageHref) {
+  const href = pageHref.split("#")[0].split("?")[0];
+  const dirUrl = href.slice(0, href.lastIndexOf("/") + 1);
+  let icon;
+  if (href.startsWith("file:")) {
+    const u = new URL(dirUrl + "logo.ico");
+    const path = decodeURIComponent(u.pathname);
+    icon = u.host ? "\\\\" + u.host + path.replace(/\//g, "\\") : path.replace(/^\//, "").replace(/\//g, "\\");   // \\sunucu\yol veya C:\yol
+  } else icon = dirUrl + "logo.ico";
+  return `[InternetShortcut]\r\nURL=${href}\r\nIconFile=${icon}\r\nIconIndex=0\r\n`;
+}
+function downloadShortcut() {
+  const text = shortcutText(location.href);
+  const cp1254 = { "Ç": 0xC7, "Ğ": 0xD0, "İ": 0xDD, "Ö": 0xD6, "Ş": 0xDE, "Ü": 0xDC, "ç": 0xE7, "ğ": 0xF0, "ı": 0xFD, "ö": 0xF6, "ş": 0xFE, "ü": 0xFC };
+  const bytes = []; let lossy = false;
+  for (const ch of text) { const c = ch.codePointAt(0); if (c < 128) bytes.push(c); else if (cp1254[ch]) bytes.push(cp1254[ch]); else { bytes.push(63); lossy = true; } }
+  const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: "application/octet-stream" }));
+  const a = document.createElement("a"); a.href = url; a.download = "Tabanca Baglanti Rehberi.url"; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  openModal(`<div class="modal-icon">📌</div><h2>Kısayol indirildi</h2>
+    <div class="help" style="text-align:left;font-size:14px">
+      1️⃣ <b>İndirilenler</b> klasöründeki <b>Tabanca Baglanti Rehberi.url</b> dosyasını <b>masaüstüne sürükle</b>.<br>
+      2️⃣ Simge hemen görünmezse masaüstünde <b>F5</b>'e bas.<br>
+      3️⃣ Sayfayı hep bu kısayoldan aç; kısayol Windows'un <b>varsayılan tarayıcısıyla</b> açar.<br>
+      ${lossy ? "<br>⚠️ Klasör yolunda Türkçe dışı özel harf var; logo görünmezse kısayola sağ tık → Özellikler → Simge Değiştir → <b>logo.ico</b>." : ""}
+      <br><span class="muted">Tarayıcı “bu dosya türü zararlı olabilir” derse <b>Koru / Sakla</b>'yı seç; dosya sadece bu sayfanın adresini ve logosunu içerir.</span></div>
+    <div class="modal-actions" style="margin-top:14px"><button class="btn-primary" id="scOk">Tamam</button></div>`);
+  $("scOk").onclick = () => closeModal();
 }
 
 /* Klasör tanılama: kullanıcı ekran görüntüsü gönderebilsin */
