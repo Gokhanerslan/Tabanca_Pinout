@@ -722,7 +722,12 @@ function folderError(step, e, silentCancel) {
     NotFoundError: "Klasör ya da dosya bulunamadı (taşınmış / silinmiş olabilir). Klasörü yeniden seç.",
     InvalidModificationError: "Dosya yazılamadı (ağ klasöründe kilitli ya da salt okunur olabilir).",
     NoModificationAllowedError: "Dosya salt okunur. Ağ klasöründe yazma yetkini kontrol et.",
-    AbortError: "İşlem tarayıcı tarafından iptal edildi. Klasörü seçtikten sonra çıkan izin penceresinde <b>Düzenle / İzin ver</b>'i seç."
+    AbortError: step === "klasör seçme penceresi"
+      ? "Klasör seçme penceresi bir klasör döndürmedi. Pencereyi sen kapattıysan bunu yok say ve tekrar dene.<br><br>" +
+        (location.protocol === "file:" && location.host
+          ? "Klasörü seçtiğin hâlde bu çıkıyorsa tarayıcı <b>ağ yolundaki</b> (\\\\" + esc(location.host) + "\\...) klasörü açamıyor olabilir. Çözüm: Ağ klasörünü bir <b>sürücü harfine bağla</b> (Dosya Gezgini → Bu Bilgisayar → <b>Ağ sürücüsüne bağlan</b> → örn. <b>Z:</b>), sayfayı <b>Z:\\...\\Fiam\\TABANCA_PIN.html</b> üzerinden aç ve klasörü <b>Z:</b> içinden seç. Sonra 📌 Masaüstü kısayolunu yeniden indir."
+          : "")
+      : "İşlem tarayıcı tarafından iptal edildi. İzin penceresinde <b>İzin ver</b>'i seç."
   };
   openModal(`<div class="modal-icon">📁</div><h2>Klasöre bağlanılamadı</h2>
     <div class="help" style="text-align:left;font-size:14px">
@@ -824,14 +829,14 @@ function showFolderHelp(kind, err) {
   $("fhDl").onclick = () => { downloadDataFiles(); closeModal(); };
 }
 
-async function connectFolder() {   // yeni klasör seç
+async function connectFolder() {   // yeni klasör seç: 1) sadece okuma izniyle seç, 2) yazma iznini ayrı iste
   if (!window.showDirectoryPicker) return showFolderHelp("unsupported");
   const started = Date.now(); lastPermAsk = started;
   let step = "klasör seçme penceresi";
   try {
     let h;
-    try { h = await window.showDirectoryPicker({ id: "tabanca", mode: "readwrite", ...(dirHandle ? { startIn: dirHandle } : {}) }); }
-    catch (err) { if (err.name === "AbortError" || !dirHandle) throw err; h = await window.showDirectoryPicker({ id: "tabanca", mode: "readwrite" }); }
+    try { h = await window.showDirectoryPicker({ id: "tabanca", mode: "read", ...(dirHandle ? { startIn: dirHandle } : {}) }); }
+    catch (err) { if (err.name === "AbortError" || !dirHandle) throw err; h = await window.showDirectoryPicker({ id: "tabanca", mode: "read" }); }
     step = "seçilen klasörü okuma";
     if (!(await hasFile(h, DATA_NAME))) {   // Fiam klasörü seçildiyse içindeki src'yi kullan
       try { const s = await h.getDirectoryHandle("src"); if (await hasFile(s, DATA_NAME)) h = s; } catch (e) {}
@@ -839,20 +844,56 @@ async function connectFolder() {   // yeni klasör seç
     if (!(await hasFile(h, DATA_NAME)) &&
         !confirm(`Seçilen klasörde "${DATA_NAME}" bulunamadı.\nNormalde "src" klasörünü seçmelisin.\n\nYine de bu klasörde yeni bir veri dosyası oluşturulsun mu?`)) return;
     step = "yazma izni";
-    if ((await h.queryPermission({ mode: "readwrite" })) !== "granted" && (await h.requestPermission({ mode: "readwrite" })) !== "granted")
-      throw Object.assign(new Error("Klasöre yazma izni verilmedi."), { name: "NotAllowedError" });
+    if ((await h.queryPermission({ mode: "readwrite" })) === "granted") return useFolder(h);
+    askWritePermission(h);   // tarayıcı izin isteğini ayrı bir tıklamayla ister
+  } catch (e) {
+    if (step === "klasör seçme penceresi" && Date.now() - started < 700) { lastFolderError = { step, name: e.name, message: e.message, at: new Date() }; return showFolderHelp("error", e); }
+    folderError(step, e);
+  }
+}
+/* 2. adım: yazma izni — ayrı bir tıklamayla istenir (tarayıcı izin penceresini kullanıcı tıklamasında açar) */
+function askWritePermission(h) {
+  openModal(`<div class="modal-icon">🔓</div><h2>Son adım: yazma izni</h2>
+    <div class="help" style="font-size:14px">📁 <b>${esc(h.name)}</b> klasörü seçildi.<br>
+      Kayıt yapabilmek için aşağıdaki düğmeye bas; tarayıcının açtığı pencerede <b>“Değişiklikleri kaydet” / “İzin ver”</b> de.</div>
+    <div class="modal-actions" style="margin-top:14px"><button id="wpCancel">Vazgeç</button><button class="btn-add" id="wpGo">🔓 Yazma izni ver</button></div>`);
+  $("wpCancel").onclick = () => { closeModal(); lastFolderError = { step: "yazma izni", name: "AbortError", message: "Yazma izni adımında vazgeçildi.", at: new Date() }; updateStatus(); };
+  $("wpGo").onclick = async () => {
+    let perm;
+    try { perm = await h.requestPermission({ mode: "readwrite" }); }
+    catch (e) { closeModal(); return folderError("yazma izni", e); }
+    closeModal();
+    if (perm === "granted") return useFolder(h);
+    writeDenied(perm);
+  };
+}
+function writeDenied(perm) {
+  lastFolderError = { step: "yazma izni", name: "NotAllowedError", message: `Tarayıcı yazma iznini vermedi (${perm}).`, at: new Date() };
+  lastPermAsk = Date.now();
+  const pol = /Edg\//.test(navigator.userAgent) ? "edge://policy" : "chrome://policy";
+  openModal(`<div class="modal-icon">⛔</div><h2>Tarayıcı yazma iznini vermedi</h2>
+    <div class="help" style="text-align:left;font-size:14px">
+      Klasör okunabiliyor ama tarayıcı bu sayfanın dosyaya <b>yazmasına izin vermedi</b>.<br><br>
+      1️⃣ İzin penceresinde <b>“İzin ver / Değişiklikleri kaydet”</b> seçtiğinden emin ol ve tekrar dene.<br>
+      2️⃣ Pencere hiç çıkmadıysa büyük ihtimalle <b>şirketin tarayıcı ayarı</b> engelliyor: adres çubuğuna <b>${pol}</b> yaz,
+         <b>“FileSystemWrite”</b> geçen satır varsa görüntüsünü bilgi işleme ver; bu adres için yazma izni açılmalı
+         (<b>FileSystemWriteAskForUrls</b>: <code>file://*</code>).<br>
+      3️⃣ O zamana kadar değişikliklerin <b>bu tarayıcıda saklanır</b>. Kalıcı yapmak için <b>⬇️ Dosyaları indir</b> ile inen iki dosyayı <b>Fiam\\src</b> klasörüne kopyala.</div>
+    <div class="modal-actions" style="margin-top:14px"><button id="wdClose">Kapat</button><button id="wdDl">⬇️ Dosyaları indir</button><button class="btn-primary" id="wdRetry">🔁 Tekrar dene</button></div>`);
+  $("wdClose").onclick = () => { closeModal(); updateStatus(); };
+  $("wdDl").onclick = () => { closeModal(); downloadDataFiles(); };
+  $("wdRetry").onclick = () => { closeModal(); connectFolder(); };
+  updateStatus();
+}
+async function useFolder(h) {
+  let step = "klasörü hatırlama (tarayıcı hafızası)";
+  try {
     dirHandle = h;
-    step = "klasörü hatırlama (tarayıcı hafızası)";
     const remembered = (await idbSet("dir", h)) && (await idbSet("dirHref", location.href));
     step = "veri dosyasını okuma / yazma";
     await finishConnect();
     if (!remembered) toast("⚠️ Klasör bağlandı ama tarayıcı hatırlayamadı; sayfa yeniden açılınca tekrar sorulabilir. (Ayarlar → 🔍 Klasör tanılama)");
-  } catch (e) {
-    // pencere kullanıcı tarafından kapatıldıysa kısa uyarı; diğer her durumda nedenini göster
-    if (step === "klasör seçme penceresi" && e.name === "AbortError" && Date.now() - started >= 700) return folderError(step, e, true);
-    if (step === "klasör seçme penceresi" && Date.now() - started < 700) { lastFolderError = { step, name: e.name, message: e.message, at: new Date() }; return showFolderHelp("error", e); }
-    folderError(step, e);
-  }
+  } catch (e) { folderError(step, e); }
 }
 /* Daha önce seçilen klasöre tekrar bağlan: klasör seçtirmez, sadece Chrome'dan izin ister.
    Chrome sayfa kapanınca izni unutur; izin penceresinde "Her ziyarette izin ver" seçilirse bir daha sormaz. */
