@@ -427,6 +427,7 @@
         <button class="btn-primary" onclick="exportJSON()">⬇️ Yedeği indir</button>
         <button onclick="downloadShortcut()" title="Logolu masaüstü kısayolu">📌 Masaüstü kısayolu indir</button>
         <button class="edit-only" onclick="document.getElementById('jsonFileInput').click()">⬆️ Yedek yükle</button>
+        <button class="edit-only btn-del" onclick="clearBrowserData()" title="Edge/Chrome hafızasındaki kaydı sil, klasördeki veriyi aç">🗑️ Tarayıcı kaydını sil</button>
         <input type="file" id="jsonFileInput" accept=".json,application/json" style="display:none;" onchange="importJSON(event)">
       </div>
       <div class="muted" style="margin-top:10px;line-height:1.7;" id="dataInfo"></div>
@@ -663,7 +664,7 @@ function restoreRescue() {
   const keepRev = db._rev; db = normalize(r.data); db._rev = keepRev;
   changed(); render(); toast("♻️ Değişiklikler geri getirildi.");
 }
-let warnedNoFolder = false, newerLocalNotice = false;
+let warnedNoFolder = false, newerLocalNotice = false, dataSource = "";
 function changed() {        // her veri değişikliğinden sonra çağrılır
   dirty = true; saveLocal(); updateStatus();
   if (MODE === "file" && !serverOnline && !warnedNoFolder) {
@@ -1051,10 +1052,10 @@ async function loadInitial() {
   try { remote = await backendLoad(); serverOnline = true; } catch (e) { serverOnline = false; }
 
   if (remote) {
-    db = normalize(remote);
+    db = normalize(remote); dataSource = MODE === "file" ? "klasördeki dosya" : "sunucu";
     if (local?.dirty && local.data) {
       if (confirm(`Bu tarayıcıda kaydedilmemiş değişiklikler var. Şimdi ${MODE === "file" ? "dosyaya yazılsın" : "sunucuya gönderilsin"} mi?\n\nTAMAM → kaydet (önerilen)\nİPTAL → ${placeName()} veriyi aç (değişikliklerin silinmez, Ayarlar → ♻️ Geri getir ile dönebilirsin)`)) {
-        db = normalize(local.data); dirty = true;
+        db = normalize(local.data); dirty = true; dataSource = "tarayıcı hafızası";
         render(); saveNow(local.data._rev !== remote._rev);
         return;
       }
@@ -1066,13 +1067,30 @@ async function loadInitial() {
     const fileD = window.TABANCA_VERI, ld = local?.data;
     const ver = d => [parseInt(d?._rev) || 0, Date.parse(d?.updatedAt || 0) || 0];
     const isNewer = (a, b) => { const [ra, ta] = ver(a), [rb, tb] = ver(b); return ra > rb || (ra === rb && ta > tb); };
-    if (local?.dirty && ld) { db = normalize(ld); dirty = true; }
-    else if (ld && fileD && isNewer(ld, fileD)) { db = normalize(ld); dirty = true; newerLocalNotice = true; }
-    else if (fileD) db = normalize(fileD);                        // src/veri.js (çift tıklayınca)
-    else if (ld) db = normalize(ld);
+    if (local?.dirty && ld) { db = normalize(ld); dirty = true; dataSource = "tarayıcı hafızası"; }
+    else if (ld && fileD && isNewer(ld, fileD)) { db = normalize(ld); dirty = true; newerLocalNotice = true; dataSource = "tarayıcı hafızası"; }
+    else if (fileD) { db = normalize(fileD); dataSource = "klasördeki dosya (veri.js)"; }   // src/veri.js (çift tıklayınca)
+    else if (ld) { db = normalize(ld); dataSource = "tarayıcı hafızası"; }
   }
   render();
   if (newerLocalNotice) toast("ℹ️ Bu bilgisayarda klasördekinden daha yeni bir kayıt bulundu ve açıldı. Kalıcı olması için 📁 Klasöre bağlan.");
+}
+
+/* Tarayıcı hafızasındaki kaydı sil ve klasördeki / sunucudaki veriyi aç (önce yedek indirilir) */
+async function clearBrowserData() {
+  if (!confirm("Bu tarayıcının hafızasındaki kayıt silinecek ve " + (MODE === "file" ? "klasördeki dosyadaki" : "sunucudaki") + " veri açılacak.\n\n" +
+               "Güvenlik için:\n• Silmeden önce şu anki veri bir yedek dosyası olarak indirilecek\n• Ayarlar → ♻️ Geri getir ile geri dönebileceksin\n\nDevam edilsin mi?")) return;
+  exportJSON();               // dosya yedeği (İndirilenler)
+  rescueLocal(db);            // tarayıcı içi kurtarma kopyası
+  clearTimeout(saveTimer); dirty = false;
+  try { localStorage.removeItem(LS_DATA); } catch (e) {}
+  let src = null;
+  try { src = await backendLoad(); serverOnline = true; } catch (e) { serverOnline = false; }
+  if (!src) src = window.TABANCA_VERI || null;
+  db = normalize(src || { templates: {}, machines: [] });
+  dataSource = serverOnline ? (MODE === "file" ? "klasördeki dosya" : "sunucu") : "klasördeki dosya (veri.js)";
+  saveLocal(); render();
+  toast("🗑️ Tarayıcı kaydı silindi; " + dataSource + " açıldı. (Yedek İndirilenler'de, ayrıca ♻️ Geri getir ile dönülebilir.)");
 }
 
 async function reloadFromServer() {
@@ -1168,7 +1186,9 @@ function updateStatus() {
       ? `Çalışma şekli: <b>YEREL DOSYA</b> · Klasör: <b>${serverOnline ? "BAĞLI (" + esc(dirHandle?.name) + ")" : "BAĞLI DEĞİL"}</b><br>`
       : `Çalışma şekli: <b>SUNUCU (PHP)</b> · Sunucu: <b>${serverOnline ? "BAĞLI" : "ULAŞILAMIYOR"}</b><br>`) +
     `Veri sürümü: <b>${db._rev}</b>${db.updatedAt ? " · Son kayıt: <b>" + esc(new Date(db.updatedAt).toLocaleString("tr-TR")) + "</b>" : ""}<br>` +
-    `Toplam: <b>${db.machines.length}</b> makine, <b>${brands().length}</b> marka şablonu`;
+    `Toplam: <b>${db.machines.length}</b> makine, <b>${brands().length}</b> marka şablonu` +
+    (dataSource ? `<br>👁️ Şu an gösterilen veri: <b>${esc(serverOnline ? (MODE === "file" ? "klasördeki dosya" : "sunucu") : dataSource)}</b>` +
+      (!serverOnline && dataSource === "tarayıcı hafızası" ? ` <span style="color:#FCD34D">(sadece bu bilgisayarda ve bu tarayıcıda var)</span>` : "") : "");
   const nextP = lastPeriodic ? new Date(Date.parse(lastPeriodic) + PERIOD_DAYS * 864e5) : null;
   $("dataInfo").innerHTML += `<br>🗄️ 6 aylık kalıcı yedek (<b>src/yedek/6aylik/</b>): ` +
     (lastPeriodic ? `son <b>${esc(new Date(lastPeriodic).toLocaleDateString("tr-TR"))}</b> · sıradaki <b>${esc(nextP.toLocaleDateString("tr-TR"))}</b> sonrası ilk kayıtta`
