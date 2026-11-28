@@ -27,6 +27,10 @@
   .top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .lock-btn { font-size: 15px; padding: 10px 18px; background: var(--amber); border-color: var(--amber); color: #111827; }
   body.edit .lock-btn { background: var(--red); border-color: var(--red); color: #fff; }
+  .unsaved-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.5); color: #FECACA; border-radius: 12px;
+    padding: 10px 14px; margin-bottom: 12px; font-size: 14px; line-height: 1.5; }
+  .unsaved-bar b { color: #fff; }
   .edit-bar { background: linear-gradient(90deg, rgba(245,158,11,.18), rgba(245,158,11,.06)); border: 1px solid rgba(245,158,11,.45);
     color: #FDE68A; border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; font-size: 14px; }
   body:not(.edit) .edit-only { display: none !important; }
@@ -205,7 +209,7 @@
   .print-only { display: none; }
   @media print {
     body { background: #fff; color: #000; padding: 0; }
-    .topbar, .tabs, .edit-bar, .no-print, #fileBanner { display: none !important; }
+    .topbar, .tabs, .edit-bar, .unsaved-bar, .no-print, #fileBanner { display: none !important; }
     body:not(.print-list) .page:not(#page-pins) { display: none !important; }
     body:not(.print-list) #page-pins { display: block !important; }
     body.print-list .page:not(#page-machines) { display: none !important; }
@@ -253,7 +257,13 @@
     </div>
   </header>
 
-  <div class="edit-bar edit-only">✏️ <b>Düzenleme açık.</b> Yaptığın değişiklikler kendiliğinden kaydedilir. İşin bitince sağ üstteki <b>🔓 Kilitle</b> butonuna bas.</div>
+  <div class="edit-bar edit-only" id="editBar">✏️ <b>Düzenleme açık.</b> Yaptığın değişiklikler kendiliğinden kaydedilir. İşin bitince sağ üstteki <b>🔓 Kilitle</b> butonuna bas.</div>
+  <div class="unsaved-bar" id="unsavedBar" style="display:none">
+    <div>⚠️ <b>Kaydedilmemiş değişiklik var.</b> Değişikliklerin şimdilik sadece bu bilgisayarda (Edge'in hafızasında) duruyor; başkaları göremez.
+      Kaydetmeden sayfayı kapatırsan Edge <b>“Bu siteden ayrılınsın mı? Yaptığınız değişiklikler kaydedilmeyebilir”</b> diye uyarır:
+      orada <b>İptal</b>'e basıp önce <b>💾 Kaydet</b>'e bas.</div>
+    <button class="btn-add" onclick="saveClick()">💾 Kaydet</button>
+  </div>
 
   <div class="panel" id="fileBanner" style="display:none; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; border-color:rgba(245,158,11,.5);">
     <span id="fileBannerText" style="font-size:14px;"></span>
@@ -1207,6 +1217,12 @@ function updateStatus() {
   else if (!serverOnline) { s.className = "pill b-red"; s.textContent = dirty ? "⚠️ " + offText + " — bu tarayıcıda bekliyor" : "⚠️ " + offText; }
   else if (dirty) { s.className = "pill b-amber"; s.textContent = "✏️ Kaydedilmemiş değişiklik"; }
   else { s.className = "pill b-green"; s.textContent = "✅ Kaydedildi" + (lastSavedAt ? " " + lastSavedAt.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : ""); }
+
+  $("editBar").innerHTML = MODE === "file" && FOLDER_OFF
+    ? "✏️ <b>Düzenleme açık.</b> İşin bitince önce sağ üstteki <b>💾 Kaydet</b>'e bas ve dosyayı sunucudaki <b>Fiam\\src</b> klasörüne kaydet, sonra <b>🔓 Kilitle</b>."
+    : "✏️ <b>Düzenleme açık.</b> Yaptığın değişiklikler kendiliğinden kaydedilir. İşin bitince sağ üstteki <b>🔓 Kilitle</b> butonuna bas.";
+  // kaydedilmemiş değişiklik uyarısı (bilgisayar modunda 💾 Kaydet gerekir)
+  $("unsavedBar").style.display = MODE === "file" && FOLDER_OFF && dirty ? "flex" : "none";
 
   // Dosya modunda klasör bağlı değilse uyarı çubuğu
   const banner = $("fileBanner");
