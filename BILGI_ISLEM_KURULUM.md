@@ -46,7 +46,7 @@ klasör seçmesi ya da tarayıcıya izin vermesi gerekmez; herkes her bilgisayar
 const SUNUCU_ADRESI = "";
 ```
 
-Sunucu adresini yazın:
+Sunucu adresini yazın. Adres mutlaka `http://` ya da `https://` ile başlamalı; `file://` ile başlayan ağ klasörü adresi yok sayılır:
 
 ```js
 const SUNUCU_ADRESI = "http://10.30.1.5/tabanca/TABANCA_PIN.html";
