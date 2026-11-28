@@ -12,6 +12,18 @@ Bundan sonra yapılan her değişiklik doğrudan `Fiam/src/tabanca_makine_verile
 
 > Firefox / Safari dosyaya doğrudan yazamaz: sayfa açılır ve veriler görünür, değişiklikler sadece o tarayıcıda saklanır.
 
+## Masaüstü kısayolu (logolu)
+
+`Fiam` klasörünü bilgisayara ya da sunucudaki bir paylaşıma (`\\sunucu\paylasim\Fiam`) koyduktan sonra
+`Fiam/KISAYOL_OLUSTUR.bat` dosyasına **çift tıkla**. Masaüstüne logolu **“Tabanca Bağlantı Rehberi”** kısayolu oluşur:
+
+- Sayfayı **Chrome**'da açar (Chrome yoksa Edge). Klasör paylaşımda olsa da çalışır.
+- Logo (`logo.ico`) bilgisayara kopyalanır; ağ yavaşken de kısayolun simgesi görünür.
+- Sayfayı **hep bu kısayoldan** aç: klasör izni sayfanın adresine göre hatırlanır; farklı yoldan (ör. Z: sürücüsü ↔ `\\sunucu`) açarsan klasör tekrar sorulabilir.
+
+**Elle yapmak istersen:** `TABANCA_PIN.html`'e sağ tık → *Gönder → Masaüstü (kısayol oluştur)* → kısayola sağ tık →
+*Özellikler → Simge Değiştir…* → `Fiam/logo.ico` dosyasını seç.
+
 ## Kullanım 2 — PHP'li bir hostingde
 
 `Fiam` klasörünün içeriğini hostinge yükle, `src` klasörüne yazma izni ver, sayfayı adresinden aç. Kayıt `src/kaydet.php` üzerinden yapılır. Kaydetmeyi şifrelemek için `kaydet.php` içindeki `$EDIT_PASSWORD` değerini doldur.
@@ -110,6 +122,8 @@ Hepsi **Markalar & Şablonlar** sayfasından değiştirilebilir, pin eklenip sil
 | Dosya | Açıklama |
 |---|---|
 | `Fiam/TABANCA_PIN.html` | Uygulamanın kendisi |
+| `Fiam/KISAYOL_OLUSTUR.bat` | Masaüstüne logolu kısayol oluşturur (`src/kisayol_olustur.ps1`'i çalıştırır) |
+| `Fiam/logo.ico`, `Fiam/logo.svg` | Uygulama logosu |
 | `Fiam/src/tabanca_makine_veriler.json` | Asıl veri |
 | `Fiam/src/veri.js` | Verinin kopyası; sayfa çift tıklayınca bunu okur (otomatik güncellenir, elle düzenleme) |
 | `Fiam/src/kaydet.php` | Sunucu modunda kaydetme ucu |
