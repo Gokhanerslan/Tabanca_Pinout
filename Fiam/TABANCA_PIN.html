@@ -469,7 +469,9 @@ const MODE = location.protocol === "file:" ? "file" : "server";   // çift tıkl
    Yazılınca: klasör seçme tamamen kapanır; sayfa ağ klasöründen / eski kısayoldan açılırsa kendiliğinden bu adrese geçer.
    Boş bırakılırsa bilgisayar modu (klasör seçme) çalışır. */
 const SUNUCU_ADRESI = "";
-const FOLDER_OFF = MODE === "file" && !!SUNUCU_ADRESI;   // sunucu varken bilgisayar modunda klasör seçme yok
+// Sadece http(s) adresi geçerli: file:// (ağ klasörü) adresi yazılırsa yok sayılır, yoksa sayfa kendine yönlenip döngüye girer
+const SUNUCU_GECERLI = /^https?:\/\//i.test(SUNUCU_ADRESI);
+const FOLDER_OFF = MODE === "file" && SUNUCU_GECERLI;   // sunucu varken bilgisayar modunda klasör seçme yok
 let dirHandle = null;   // dosya modunda bağlanan src klasörü
 
 /* ================== DURUM ================== */
